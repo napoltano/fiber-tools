@@ -824,6 +824,8 @@
     .scan-last { text-align: center; font-family: ui-monospace, Menlo, monospace; font-weight: 700; font-size: 1.05rem; min-height: 1.4em; margin-bottom: 10px; }
     .scan-msg { position: absolute; left: 16px; right: 16px; top: 42%; transform: translateY(-50%); text-align: center; z-index: 3; font-weight: 700; padding: 0 10px; }
 
+    /* Con una finestra aperta le notifiche vanno in alto, per non coprirne il contenuto */
+    body:has(#modal:not([hidden])) .toast-wrap { bottom: auto; top: max(16px, env(safe-area-inset-top)); }
     /* Con lo scanner aperto le notifiche vanno in alto, per non coprire i comandi */
     .scanner:not([hidden]) ~ .toast-wrap { bottom: auto; top: calc(max(16px, env(safe-area-inset-top)) + 70px); }
 
@@ -970,6 +972,16 @@
     .imp-stats div { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
     .imp-stats b { display: block; font-size: 1.25rem; font-weight: 900; }
     .imp-stats span { font-size: 0.7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+    .radio-list { display: flex; flex-direction: column; gap: 8px; }
+    .radio-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 12px; background: var(--card-2); font-size: 0.86rem; font-weight: 700; cursor: pointer; }
+    .radio-row:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+    .radio-row input { width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0; }
+    .radio-row select { margin-left: auto; padding: 6px 30px 6px 10px; font-size: 14px; width: auto; }
+    .radio-row small { display: block; font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+    .exp-count { font-size: 0.84rem; font-weight: 800; color: var(--primary-ink); margin-top: 10px; }
+    .imp-section { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--card-2); display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    .imp-section h4 { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .imp-section .btn-secondary { margin: 0; }
     .more-note { font-size: 0.74rem; color: var(--muted); font-weight: 700; text-align: center; padding: 8px; }
 
     /* ---------- TOAST ---------- */
@@ -1694,8 +1706,9 @@
           <button type="button" class="chip" id="posNearBtn"><svg><use href="#i-target"/></svg>Vicino a me</button>
         </div>
         <div class="chip-row">
-          <button type="button" class="chip" id="posImportBtn"><svg><use href="#i-map"/></svg>Importa da Google My Maps</button>
-          <input type="file" id="posImportFile" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden>
+          <button type="button" class="chip" id="posImportBtn"><svg><use href="#i-download"/></svg>Importa posizioni</button>
+          <button type="button" class="chip" id="posExportBtn"><svg><use href="#i-share"/></svg>Condividi posizioni</button>
+          <input type="file" id="posImportFile" accept=".kml,.kmz,.txt,.xml,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz,text/plain,text/xml,application/xml" hidden>
         </div>
         <div class="pfs-mode-selector" data-seg="pos">
           <span class="seg-indicator"></span>
@@ -4239,7 +4252,7 @@
         switch (b.dataset.pact) {
           case 'nav': navigateTo(it); break;
           case 'map': pendingFocus = pfs; setPosView('map'); break;
-          case 'share': sharePosition(it); break;
+          case 'share': chooseSharePosition(it); break;
           case 'copy': copyText(fmtCoord(it.lat, it.lng)).then(ok => toast(ok ? 'Coordinate copiate.' : 'Copia non riuscita.', ok ? 'success' : 'error')); break;
           case 'history': showHistory(pfs, '', 'PFS'); break;
           case 'edit': editPosition(pfs); break;
@@ -4277,7 +4290,10 @@
         while (p && p.localName !== 'Folder') p = p.parentElement;
         if (p) folder = childText(p, 'name');
         const desc = childText(pm, 'description').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-        out.push({ name, lat, lng, folder, desc });
+        // dati aggiuntivi presenti nei file creati da Fiber Tools
+        const ext = {};
+        for (const d of pm.getElementsByTagName('Data')) ext[d.getAttribute('name')] = (d.getElementsByTagName('value')[0]?.textContent || '').trim();
+        out.push({ name, lat, lng, folder, desc, anello: ext.anello || '', note: 'note' in ext ? ext.note : null, tecnico: ext.tecnico || '', updatedAt: ext.aggiornato || '', fotoId: ext.fotoId || '' });
       }
       return out;
     }
@@ -4308,6 +4324,12 @@
       throw new Error('Nel KMZ non c’è nessun file KML.');
     }
 
+    /** "03/11/2026 22:07" -> millisecondi (0 se non leggibile) */
+    function parseStamp(v) {
+      const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ ,]+(\d{1,2}):(\d{2}))?/.exec(String(v || '').trim());
+      return m ? new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime() : 0;
+    }
+
     function mergeImported(points, overwriteManual) {
       const all = getPositions();
       const stamp = nowStamp();
@@ -4317,19 +4339,26 @@
         const pfs = canonPfs(pt.name);
         if (!pfs || seen.has(pfs)) return;
         seen.add(pfs);
-        const anello = /^[A-Z]+_\d+/.test(pfs) ? anelloFrom(pfs) : (pt.folder ? pt.folder.toUpperCase() : anelloFrom(pfs));
+        const shared = !!pt.updatedAt;                       // file creato da Fiber Tools
+        const anello = pt.anello ? pt.anello.toUpperCase()
+          : /^[A-Z]+_\d+/.test(pfs) ? anelloFrom(pfs) : (pt.folder ? pt.folder.toUpperCase() : anelloFrom(pfs));
+        const tecnico = pt.tecnico || MAP_SOURCE;
+        const note = pt.note !== null && pt.note !== undefined ? pt.note : (pt.desc || '');
+        const entry = { pfs, anello, lat: pt.lat, lng: pt.lng, note, tecnico, updatedAt: pt.updatedAt || stamp };
+        if (tecnico === MAP_SOURCE) entry.source = 'mymaps';
+        if (pt.fotoId) entry.fotoId = pt.fotoId;
         const cur = all[pfs];
-        if (!cur) {
-          all[pfs] = { pfs, anello, lat: pt.lat, lng: pt.lng, note: pt.desc || '', tecnico: MAP_SOURCE, updatedAt: stamp, source: 'mymaps' };
-          added++; changed.push(all[pfs]); return;
-        }
-        const different = distanceM(cur, pt) > 2 || cur.anello !== anello;
-        const fromMap = cur.source === 'mymaps' || cur.tecnico === MAP_SOURCE;
+        if (!cur) { all[pfs] = entry; added++; changed.push(entry); return; }
+        const different = distanceM(cur, pt) > 2 || cur.anello !== anello || (shared && (cur.note || '') !== note);
         if (!different) { same++; return; }
-        if (!fromMap && !overwriteManual) { keptManual++; return; }
-        all[pfs] = { ...cur, lat: pt.lat, lng: pt.lng, anello, tecnico: MAP_SOURCE, updatedAt: stamp, source: 'mymaps' };
-        delete all[pfs].synced;
-        updated++; changed.push(all[pfs]);
+        const fromMap = cur.source === 'mymaps' || cur.tecnico === MAP_SOURCE;
+        const newer = shared && parseStamp(entry.updatedAt) > parseStamp(cur.updatedAt);
+        if (!fromMap && !overwriteManual && !newer) { keptManual++; return; }
+        const next = { ...cur, ...entry };
+        if (entry.source !== 'mymaps') delete next.source;
+        if (entry.fotoId && entry.fotoId !== cur.fotoId) delete next.thumb;
+        delete next.synced;
+        all[pfs] = next; updated++; changed.push(next);
       });
       savePositions(all);
       return { added, updated, same, keptManual, changed, total: seen.size, anelli: new Set(Object.values(all).map(i => i.anello)).size };
@@ -4340,7 +4369,7 @@
     async function finishImport(text, overwrite) {
       let pts;
       try { pts = parseKml(text); } catch (e) { toast(e.message, 'error', 5000); return; }
-      if (!pts.length) { toast('Nella mappa non ci sono punti da importare.', 'error'); return; }
+      if (!pts.length) { toast('Nel file non ci sono posizioni da importare.', 'error'); return; }
       const r = mergeImported(pts, overwrite);
       if (scriptVersion >= 3) enqueuePosBatches(r.changed);
       posNearMode = false; $('posSearch').value = '';
@@ -4353,7 +4382,7 @@
             <div><b>${r.same}</b><span>Già uguali</span></div>
             <div><b>${r.anelli}</b><span>Anelli</span></div>
           </div>
-          ${r.keptManual ? `<p class="small">${r.keptManual} PFS inseriti a mano hanno una posizione diversa dalla mappa e sono stati lasciati com’erano.</p>` : ''}
+          ${r.keptManual ? `<p class="small">${r.keptManual} PFS hanno sul telefono una posizione inserita a mano più recente e sono stati lasciati com’erano.</p>` : ''}
           <p class="small">${scriptVersion >= 3 ? 'Le posizioni vengono inviate al foglio Google e condivise con la squadra.' : 'Le posizioni sono su questo telefono. Con lo script Google v3 vengono condivise con tutta la squadra.'}</p>`,
         okText: 'Ottimo', cancelText: 'Chiudi'
       });
@@ -4381,19 +4410,21 @@
       const saved = prefill || lsGet(MYMAPS_KEY, '');
       let wantsFile = false;
       const ok = await openModal({
-        title: 'Importa da Google My Maps',
+        title: 'Importa posizioni',
         bodyHtml: `
-          <p style="margin-bottom:10px">Incolla il link della mappa con i PFS: l’app scarica tutti i punti e li divide per anello. Per aggiornarli in futuro ripeti l’importazione.</p>
-          <div class="field-group">
-            <label class="field-label" for="impUrl">Link della mappa</label>
+          <div class="imp-section">
+            <h4>Da file ricevuto · anche offline</h4>
+            <span class="small" style="color:var(--muted)">Il file condiviso da un collega (KML, KMZ o .txt di Fiber Tools) o esportato da Google My Maps.</span>
+            <button type="button" class="btn-secondary" id="impFileLink"><svg><use href="#i-file"/></svg> Scegli il file</button>
+          </div>
+          <div class="imp-section">
+            <h4>Da link Google My Maps</h4>
             <input id="impUrl" class="custom-input" autocomplete="off" placeholder="https://www.google.com/maps/d/viewer?mid=…" value="${escapeHtml(saved)}">
           </div>
-          <label class="check-row"><input type="checkbox" id="impOverwrite"> Sostituisci anche le posizioni inserite a mano</label>
-          <p class="small" style="margin-top:10px">Oppure <a href="#" id="impFileLink">scegli un file KML o KMZ</a> esportato da My Maps.</p>`,
-        okText: 'Importa', cancelText: 'Annulla',
+          <label class="check-row"><input type="checkbox" id="impOverwrite"> Sostituisci anche le posizioni inserite a mano più recenti</label>`,
+        okText: 'Importa dal link', cancelText: 'Annulla',
         onOpen: () => {
-          if (!saved) setTimeout(() => { if (!$('modal').contains(document.activeElement)) $('impUrl')?.focus(); }, 50);
-          $('impFileLink').addEventListener('click', e => { e.preventDefault(); importOverwrite = $('impOverwrite').checked; wantsFile = true; closeModal(false); });
+          $('impFileLink').addEventListener('click', () => { importOverwrite = $('impOverwrite').checked; wantsFile = true; closeModal(false); });
         }
       });
       if (wantsFile) { $('posImportFile').click(); return; }
@@ -4412,7 +4443,132 @@
       importOverwrite = false;
     }
 
+    /* ---------- File condivisibile delle posizioni (KML) ---------- */
+    const kmlEsc = v => String(v ?? '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
+    function kmlColor(css) {   // "#rrggbb" -> "ffbbggrr" (formato colore KML)
+      const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(css);
+      return m ? `ff${m[3]}${m[2]}${m[1]}`.toLowerCase() : 'ffd18802';
+    }
+
+    function buildPositionsKml(items, title) {
+      const groups = {};
+      items.forEach(it => (groups[it.anello] = groups[it.anello] || []).push(it));
+      const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      const styleId = an => 'a-' + an.replace(/[^\w-]/g, '_');
+      const data = (k, v) => `<Data name="${k}"><value>${kmlEsc(v)}</value></Data>`;
+      const styles = keys.map(an => `
+    <Style id="${styleId(an)}"><IconStyle><color>${kmlColor(anelloColor(an))}</color><scale>1</scale><Icon><href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href></Icon></IconStyle></Style>`).join('');
+      const folders = keys.map(an => `
+    <Folder>
+      <name>${kmlEsc(an)}</name>${groups[an].sort((a, b) => a.pfs.localeCompare(b.pfs, 'it', { numeric: true })).map(it => `
+      <Placemark>
+        <name>${kmlEsc(it.pfs)}</name>
+        <styleUrl>#${styleId(an)}</styleUrl>${it.note ? `
+        <description>${kmlEsc(it.note)}</description>` : ''}
+        <ExtendedData>${data('app', 'fiber-tools')}${data('anello', it.anello)}${data('note', it.note || '')}${data('tecnico', it.tecnico || '')}${data('aggiornato', it.updatedAt || '')}${it.fotoId ? data('fotoId', it.fotoId) : ''}</ExtendedData>
+        <Point><coordinates>${Number(it.lng).toFixed(6)},${Number(it.lat).toFixed(6)},0</coordinates></Point>
+      </Placemark>`).join('')}
+    </Folder>`).join('');
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>${kmlEsc(title)}</name>
+    <description>${kmlEsc(`Creato con Fiber Tools il ${nowStamp()}${getTecnico() ? ' da ' + getTecnico() : ''}. ${items.length} PFS. Per caricarlo: Fiber Tools → PFS Qui → Importa posizioni → Scegli il file (funziona anche offline).`)}</description>${styles}${folders}
+  </Document>
+</kml>
+`;
+    }
+
+    /** Condivide il file (WhatsApp, email…) dove il telefono lo consente, altrimenti lo scarica. */
+    async function shareOrDownload(content, baseName, title, text) {
+      const candidates = [
+        new File([content], `${baseName}.kml`, { type: 'application/vnd.google-earth.kml+xml' }),
+        new File([content], `${baseName}_fibertools.txt`, { type: 'text/plain' })   // Android non condivide i .kml
+      ];
+      if (navigator.share && navigator.canShare) {
+        for (const f of candidates) {
+          try {
+            if (!navigator.canShare({ files: [f] })) continue;
+            await navigator.share({ files: [f], title, text });
+            return 'shared';
+          } catch (e) { if (e && e.name === 'AbortError') return 'aborted'; }
+        }
+      }
+      downloadBlob(new Blob([content], { type: 'application/vnd.google-earth.kml+xml' }), `${baseName}.kml`);
+      return 'downloaded';
+    }
+
+    async function sharePositionsFile(items, label) {
+      if (!items.length) { toast('Nessun PFS da condividere.', 'error'); return; }
+      const d = new Date();
+      const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const kml = buildPositionsKml(items, `Fiber Tools – Posizioni PFS ${label}`);
+      const res = await shareOrDownload(kml, `PFS_${safeName(label)}_${date}`, `Posizioni PFS ${label}`,
+        `${items.length} posizioni PFS (${label}). Aprile in Fiber Tools: PFS Qui → Importa posizioni → Scegli il file.`);
+      if (res === 'downloaded') toast(`File con ${items.length} PFS salvato nei Download: invialo ai colleghi (WhatsApp, email…).`, 'success', 5000);
+      else if (res === 'shared') toast(`${items.length} posizioni condivise.`);
+    }
+
+    async function openExport() {
+      const all = Object.values(getPositions());
+      if (!all.length) { toast('Non ci sono ancora PFS da condividere.', 'info'); return; }
+      const anelli = [...new Set(all.map(i => i.anello))].sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      const q = ($('posSearch').value || '').trim();
+      const qItems = q ? filteredPositions() : [];
+      const isManual = it => !(it.source === 'mymaps' || it.tecnico === MAP_SOURCE);
+      const pick = () => {
+        const scope = document.querySelector('input[name="expScope"]:checked')?.value || 'all';
+        let items = scope === 'anello' ? all.filter(i => i.anello === $('expAnello').value) : scope === 'search' ? qItems : all;
+        if ($('expManual').checked) items = items.filter(isManual);
+        const label = scope === 'anello' ? $('expAnello').value : scope === 'search' ? `ricerca ${q}` : 'tutti';
+        return { items, label: $('expManual').checked ? `${label} modificati` : label };
+      };
+      const ok = await openModal({
+        title: 'Condividi posizioni',
+        bodyHtml: `
+          <p style="margin-bottom:10px">Crea un file da inviare ai colleghi: lo caricano in Fiber Tools anche senza rete, e le posizioni più recenti aggiornano le loro.</p>
+          <div class="radio-list">
+            <label class="radio-row"><input type="radio" name="expScope" value="all" checked><span>Tutti i PFS<small>${all.length} PFS in ${anelli.length} anelli</small></span></label>
+            <label class="radio-row"><input type="radio" name="expScope" value="anello"><span>Un anello</span>
+              <select id="expAnello" class="custom-select">${anelli.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('')}</select></label>
+            ${q ? `<label class="radio-row"><input type="radio" name="expScope" value="search"><span>Risultati della ricerca<small>“${escapeHtml(q)}”: ${qItems.length} PFS</small></span></label>` : ''}
+          </div>
+          <label class="check-row"><input type="checkbox" id="expManual"> Solo PFS aggiunti o corretti a mano (non dalla mappa)</label>
+          <div class="exp-count" id="expCount"></div>`,
+        okText: 'Crea e condividi', cancelText: 'Annulla',
+        onOpen: () => {
+          const upd = () => { const p = pick(); $('expCount').textContent = `Il file conterrà ${p.items.length} PFS`; $('modalOk').disabled = !p.items.length; };
+          $('modalBody').addEventListener('change', upd);
+          $('expAnello').addEventListener('change', () => { document.querySelector('input[name="expScope"][value="anello"]').checked = true; upd(); });
+          upd();
+        }
+      });
+      const sel = ok ? pick() : null;
+      $('modalOk').disabled = false;
+      if (sel) await sharePositionsFile(sel.items, sel.label);
+    }
+
+    /** Condivisione di un singolo PFS: messaggio con link oppure file per l'app. */
+    async function chooseSharePosition(it) {
+      let choice = null;
+      $('modalOk').hidden = true;
+      const done = openModal({
+        title: `Condividi ${it.pfs}`,
+        bodyHtml: `<div class="opt-list">
+            <button type="button" class="btn-secondary" data-choice="msg"><svg><use href="#i-share"/></svg> Messaggio con link Google Maps</button>
+            <button type="button" class="btn-secondary" data-choice="file"><svg><use href="#i-file"/></svg> File per Fiber Tools (anche offline)</button>
+          </div>`,
+        cancelText: 'Annulla',
+        onOpen: () => $('modalBody').querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => { choice = b.dataset.choice; closeModal(true); }))
+      });
+      await done;
+      $('modalOk').hidden = false;
+      if (choice === 'msg') sharePosition(it);
+      else if (choice === 'file') sharePositionsFile([it], it.pfs);
+    }
+
     function initV3() {
+      $('posExportBtn').addEventListener('click', openExport);
       // link di importazione rapida: ...fiber-tools/#importa=<link della mappa>
       const hm = /^#importa=(.+)$/.exec(location.hash || '');
       if (hm) setTimeout(() => { openPfsPos(); setTimeout(() => openImport(decodeURIComponent(hm[1])), 350); }, 300);

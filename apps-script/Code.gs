@@ -9,6 +9,7 @@
  *        { action: "delete",    pfs, splitter, adminKey }
  *        { action: "savePos",   pfs, anello, lat, lng, note, tecnico, timestamp, photo?, fotoId? }
  *        { action: "deletePos", pfs, adminKey }
+ *        { action: "savePosBatch", items: [{ pfs, anello, lat, lng, note, tecnico, timestamp }] }  (importazione)
  *
  * Fogli (creati in automatico):
  *   Ribattiture   : PFS | SPLITTER | DATA | TECNICO | O1 PERMUTA | O1 ID | ... | O16 ID | FOTO
@@ -235,6 +236,31 @@ function savePos_(b) {
   return { status: 'success', saved: true, fotoId: fotoId };
 }
 
+/** Salvataggio di molte posizioni in una volta sola (importazione da Google My Maps). */
+function savePosBatch_(b) {
+  const items = Array.isArray(b.items) ? b.items : [];
+  const sh = posSheet_();
+  const values = sh.getDataRange().getValues();
+  const body = values.slice(1).map(r => { const row = r.slice(0, 9); while (row.length < 9) row.push(''); return row; });
+  const index = {};
+  body.forEach((r, i) => { const k = norm_(r[1]); if (k) index[k] = i; });
+  let added = 0, updated = 0, skipped = 0;
+  items.forEach(it => {
+    const pfs = norm_(it.pfs), lat = Number(it.lat), lng = Number(it.lng);
+    if (!pfs || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) { skipped++; return; }
+    const anello = norm_(it.anello) || (/^([A-Z]+_\d+)/.exec(pfs) || [, pfs.split('/')[0]])[1];
+    const i = index[pfs];
+    const fotoId = i !== undefined ? String(body[i][7] || '') : '';
+    const row = [anello, pfs, lat.toFixed(6), lng.toFixed(6), String(it.note || ''), norm_(it.tecnico), String(it.timestamp || nowIt_()), fotoId,
+      'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lng.toFixed(6)];
+    if (i !== undefined) { if (it.note === undefined || it.note === '') row[4] = body[i][4]; body[i] = row; updated++; }
+    else { index[pfs] = body.length; body.push(row); added++; }
+  });
+  if (body.length) sh.getRange(2, 1, body.length, 9).setValues(body);
+  if (added || updated) log_('Importazione posizioni', 'IMPORTAZIONE', '', b.tecnico, added + ' nuove, ' + updated + ' aggiornate' + (skipped ? ', ' + skipped + ' scartate' : ''));
+  return { status: 'success', added: added, updated: updated, skipped: skipped };
+}
+
 function deletePos_(b) {
   if (!adminOk_(b.adminKey)) return { status: 'error', code: 'admin', message: 'Solo l’amministratore può eliminare' };
   const pfs = norm_(b.pfs);
@@ -255,6 +281,7 @@ function doPost(e) {
     if (action === 'delete') return json_(deleteRib_(b));
     if (action === 'savePos') return json_(savePos_(b));
     if (action === 'deletePos') return json_(deletePos_(b));
+    if (action === 'savePosBatch') return json_(savePosBatch_(b));
     return json_({ status: 'error', message: 'Azione sconosciuta: ' + action });
   } catch (err) {
     return json_({ status: 'error', message: String(err) });

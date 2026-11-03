@@ -964,6 +964,14 @@
     .hist-who { font-size: 0.72rem; color: var(--muted); font-weight: 700; margin-top: 2px; }
     .hist-det { font-size: 0.76rem; margin-top: 4px; font-weight: 600; overflow-wrap: anywhere; }
 
+    .check-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; margin-top: 10px; }
+    .check-row input { width: 18px; height: 18px; accent-color: var(--primary); }
+    .imp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 10px; }
+    .imp-stats div { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+    .imp-stats b { display: block; font-size: 1.25rem; font-weight: 900; }
+    .imp-stats span { font-size: 0.7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+    .more-note { font-size: 0.74rem; color: var(--muted); font-weight: 700; text-align: center; padding: 8px; }
+
     /* ---------- TOAST ---------- */
     .toast-wrap {
       position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
@@ -1646,7 +1654,7 @@
           <div class="row-fields">
             <div class="field-group" style="flex:1.4">
               <label class="field-label" for="posPfs">Codice PFS</label>
-              <input type="text" id="posPfs" class="custom-input" data-upper autocapitalize="characters" autocomplete="off" placeholder="es. NA_05/08W22">
+              <input type="text" id="posPfs" class="custom-input" data-upper autocapitalize="characters" autocomplete="off" placeholder="es. NA_05 08E22">
             </div>
             <div class="field-group">
               <label class="field-label" for="posAnello">Anello</label>
@@ -1684,6 +1692,10 @@
         <div class="pos-tools">
           <input type="search" id="posSearch" class="custom-input" data-upper autocapitalize="characters" placeholder="Cerca PFS, anello o note..." autocomplete="off">
           <button type="button" class="chip" id="posNearBtn"><svg><use href="#i-target"/></svg>Vicino a me</button>
+        </div>
+        <div class="chip-row">
+          <button type="button" class="chip" id="posImportBtn"><svg><use href="#i-map"/></svg>Importa da Google My Maps</button>
+          <input type="file" id="posImportFile" accept=".kml,.kmz,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz" hidden>
         </div>
         <div class="pfs-mode-selector" data-seg="pos">
           <span class="seg-indicator"></span>
@@ -2483,7 +2495,7 @@
                 <button type="button" class="btn-xs" data-act="folder-pdf"><svg><use href="#i-file"/></svg> PDF</button>
                 <button type="button" class="btn-xs" data-act="folder-xls"><svg><use href="#i-table"/></svg> Excel</button>
                 <button type="button" class="btn-xs" data-act="folder-share"><svg><use href="#i-share"/></svg> Condividi</button>
-                ${positions[pfs] ? '<button type="button" class="btn-xs pos-chip" data-act="folder-nav"><svg><use href="#i-nav"/></svg> Naviga</button>' : '<button type="button" class="btn-xs" data-act="folder-pos"><svg><use href="#i-pin"/></svg> Posizione</button>'}
+                ${positions[canonPfs(pfs)] ? '<button type="button" class="btn-xs pos-chip" data-act="folder-nav"><svg><use href="#i-nav"/></svg> Naviga</button>' : '<button type="button" class="btn-xs" data-act="folder-pos"><svg><use href="#i-pin"/></svg> Posizione</button>'}
               </div>
               ${(() => { const st = folderStats(db, pfs); return `<div class="folder-stats"><span class="ok">${st.withId}/${st.total} con ID</span>${st.noIdr ? `<span class="warn">${st.noIdr} NO IDR</span>` : ''}${st.empty ? `<span>${st.empty} vuoti</span>` : ''}</div>`; })()}
               ${items}
@@ -3298,7 +3310,27 @@
     }
     const qKind = p => /Pos$/.test(p.action) ? 'pos' : 'rib';
     const qKey = p => `${qKind(p)}:${p.pfs}|${p.splitter || ''}`;
-    const hasPending = (kind, pfs, spl = '') => getQueue().some(it => qKey(it.payload) === `${kind}:${pfs}|${spl}`);
+    /** PFS con una posizione ancora da inviare (singola o dentro un blocco). */
+    function pendingPosSet() {
+      const set = new Set();
+      getQueue().forEach(it => {
+        const p = it.payload;
+        if (/Pos$/.test(p.action)) set.add(p.pfs);
+        if (p.action === 'savePosBatch') (p.items || []).forEach(x => set.add(x.pfs));
+      });
+      return set;
+    }
+    const hasPending = (kind, pfs, spl = '') => kind === 'pos' ? pendingPosSet().has(pfs) : getQueue().some(it => qKey(it.payload) === `${kind}:${pfs}|${spl}`);
+
+    /** Mette in coda le posizioni a blocchi di 400: poche richieste invece di migliaia. */
+    function enqueuePosBatches(items) {
+      if (!items.length) return;
+      const stamp = Date.now();
+      for (let i = 0; i < items.length; i += 400) {
+        const chunk = items.slice(i, i + 400).map(it => { const p = posPayload(it); delete p.action; return p; });
+        enqueue({ action: 'savePosBatch', pfs: `__BLOCCO_${stamp}_${i}`, tecnico: getTecnico(), items: chunk });
+      }
+    }
 
     function enqueue(payload) {
       const key = qKey(payload);
@@ -3338,6 +3370,13 @@
           if (data && data.fotoId) it.fotoId = data.fotoId;
           saveRibattitureData(db);
         }
+      } else if (payload.action === 'savePosBatch') {
+        const all = getPositions(); let changed = false;
+        (payload.items || []).forEach(x => {
+          const it = all[x.pfs];
+          if (it && it.updatedAt === x.timestamp) { it.synced = data ? true : 'blind'; changed = true; }
+        });
+        if (changed) savePositions(all);
       } else if (payload.action === 'savePos') {
         const all = getPositions();
         const it = all[payload.pfs];
@@ -3355,8 +3394,12 @@
       if (navigator.onLine === false && !manual) { updateQueueUI(); return; }
       queueBusy = true; updateQueueUI();
       let sent = 0, waitingAdmin = 0, stopped = null;
+      const tried = new Set();
       try {
-        for (const item of getQueue()) {
+        // continua finché ci sono voci mai tentate in questo giro (anche quelle aggiunte durante l'invio)
+        let item;
+        while (!stopped && (item = getQueue().find(x => !tried.has(x.id)))) {
+          tried.add(item.id);
           const p = { ...item.payload };
           if (/^delete/.test(p.action)) {
             if (!adminSecret) { waitingAdmin++; continue; }
@@ -3420,19 +3463,24 @@
     function mergeRemotePos(remoteRaw) {
       const remote = normalizePositions(remoteRaw);
       const local = getPositions();
+      const pend = pendingPosSet();
+      const toSend = [];
       Object.keys(remote).forEach(k => {
-        if (hasPending('pos', k)) return;
+        if (pend.has(k)) return;
         const prev = local[k];
         const next = { ...remote[k], synced: true };
         if (prev && prev.thumb && prev.fotoId && prev.fotoId === next.fotoId) next.thumb = prev.thumb;
+        if (prev && prev.source) next.source = prev.source;
         local[k] = next;
       });
       Object.keys(local).forEach(k => {
         const it = local[k];
-        if (it.synced === true && !remote[k] && !hasPending('pos', k)) delete local[k];
-        else if (it.synced !== true && !remote[k] && !hasPending('pos', k)) enqueue(posPayload(it));
+        if (pend.has(k) || remote[k]) return;
+        if (it.synced === true) delete local[k];        // eliminato dall'admin sul foglio
+        else toSend.push(it);                           // mai arrivato al foglio: lo reinvia
       });
       savePositions(local);
+      enqueuePosBatches(toSend);
     }
 
     async function syncFromGoogleSheets(silent = false) {
@@ -3471,7 +3519,7 @@
       const ok = await confirmBox('Invia tutto a Google Sheets', `Verranno inviate ${list.length} ribattiture${pos.length && scriptVersion >= 3 ? ` e ${pos.length} posizioni PFS` : ''}. Quelle già presenti sul foglio saranno aggiornate.`, 'Invia');
       if (!ok) return;
       list.forEach(([pfs, splitter, it]) => enqueue({ action: 'save', pfs, splitter, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], fotoId: it.fotoId || '' }));
-      if (scriptVersion >= 3) pos.forEach(it => enqueue(posPayload(it)));
+      if (scriptVersion >= 3) enqueuePosBatches(pos);
       toast('Invio avviato: segui l’avanzamento nella barra in alto.', 'info');
     }
 
@@ -3765,7 +3813,7 @@
     /* =====================================================================
        PFS QUI: posizioni dei PFS divise per anello
        ===================================================================== */
-    let posNearMode = false, posView = 'list', myPos = null, posEditing = null;
+    let posNearMode = false, posView = 'list', myPos = null, posEditing = null, posGroups = {};
     let posPhoto = { data: null, thumb: '', fotoId: '' };
     let map = null, mapLayer = null, myMarker = null, leafletPromise = null, pendingFocus = null;
 
@@ -3776,12 +3824,20 @@
       return p.split(/[\/\s-]/)[0] || 'SENZA ANELLO';
     }
 
+    /** Codice PFS uniforme: "na_01 16e13", "NA_01/16E13" e "NA_01-16E13" diventano tutti "NA_01/16E13". */
+    function canonPfs(v) {
+      const s = String(v || '').trim().toUpperCase().replace(/\s+/g, ' ');
+      const m = /^([A-Z]+_\d+)[\s\/-]+(.+)$/.exec(s);
+      return m ? `${m[1]}/${m[2]}` : s;
+    }
+    const looseKey = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
     function normalizePositions(data) {
       const out = {};
       Object.keys(data || {}).forEach(k => {
         const it = data[k];
         if (!it || typeof it !== 'object') return;
-        const pfs = String(it.pfs || k).trim().toUpperCase();
+        const pfs = canonPfs(it.pfs || k);
         const lat = Number(it.lat), lng = Number(it.lng);
         if (!pfs || !isFinite(lat) || !isFinite(lng)) return;
         out[pfs] = { ...it, pfs, lat, lng, anello: String(it.anello || anelloFrom(pfs)).trim().toUpperCase() };
@@ -3838,7 +3894,11 @@
       });
     }
 
+    // colori ben distinti per gli anelli numerati (NA_01, NA_02…), gli altri ricavati dal nome
+    const ANELLO_PALETTE = ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#0fa3b1', '#f032e6', '#9a6324', '#2f4858', '#bcbd22', '#800000', '#469990'];
     function anelloColor(anello) {
+      const m = /_(\d+)$/.exec(String(anello));
+      if (m) return ANELLO_PALETTE[(Number(m[1]) - 1 + ANELLO_PALETTE.length) % ANELLO_PALETTE.length];
       let h = 0; for (const ch of String(anello)) h = (h * 31 + ch.charCodeAt(0)) % 360;
       return `hsl(${h}, 70%, 45%)`;
     }
@@ -3848,13 +3908,13 @@
       const pend = (it.synced !== true && scriptVersion >= 3) || hasPending('pos', it.pfs) ? '<span class="pend">⏳ da inviare</span>' : '';
       const ph = photoSrc(it);
       return `
-        <div class="pos-item" data-pos="${escapeHtml(it.pfs)}" style="--i:${i};--anello:${anelloColor(it.anello)}">
+        <div class="pos-item" data-pos="${escapeHtml(it.pfs)}" style="--i:${Math.min(i, 12)};--anello:${anelloColor(it.anello)}">
           <div class="pos-main">
             ${ph ? `<button type="button" class="pos-thumb" data-pact="photo"><img src="${escapeHtml(ph)}" alt="" loading="lazy"></button>` : ''}
             <div class="pos-body">
               <div class="pos-name">${escapeHtml(it.pfs)}</div>
               ${it.note ? `<div class="pos-note">${escapeHtml(it.note)}</div>` : ''}
-              <div class="pos-meta">${dist}<span>${escapeHtml(it.updatedAt || '')}</span>${it.tecnico ? `<span>👤 ${escapeHtml(it.tecnico)}</span>` : ''}${pend}</div>
+              <div class="pos-meta">${dist}<span>${escapeHtml(it.updatedAt || '')}</span>${it.tecnico ? `<span>${it.tecnico === 'GOOGLE MY MAPS' ? '🗺️ Da Google My Maps' : '👤 ' + escapeHtml(it.tecnico)}</span>` : ''}${pend}</div>
             </div>
           </div>
           <div class="pos-actions">
@@ -3871,7 +3931,8 @@
 
     function filteredPositions() {
       const q = ($('posSearch').value || '').trim().toUpperCase();
-      return Object.values(getPositions()).filter(it => !q || it.pfs.includes(q) || it.anello.includes(q) || String(it.note || '').toUpperCase().includes(q));
+      const lq = looseKey(q);
+      return Object.values(getPositions()).filter(it => !q || (lq && looseKey(it.pfs).includes(lq)) || it.anello.includes(q) || String(it.note || '').toUpperCase().includes(q));
     }
 
     function renderPositions() {
@@ -3884,7 +3945,8 @@
 
       if (posView === 'map') { renderMap(items); }
       if (!Object.keys(all).length) {
-        list.innerHTML = `<div class="empty-state"><svg><use href="#i-pin"/></svg><div>Nessun PFS salvato. Aggiungi il primo con il modulo qui sopra.</div></div>`;
+        list.innerHTML = `<div class="empty-state"><svg><use href="#i-pin"/></svg><div>Nessun PFS salvato. Aggiungi il primo con il modulo qui sopra, oppure importali tutti da una mappa.</div>
+          <button type="button" class="btn-secondary" data-pos-import style="margin:12px auto 0;max-width:300px"><svg><use href="#i-map"/></svg> Importa da Google My Maps</button></div>`;
         return;
       }
       if (!items.length) { list.innerHTML = `<div class="empty-state">Nessun PFS trovato.</div>`; return; }
@@ -3896,11 +3958,16 @@
       }
       const q = ($('posSearch').value || '').trim();
       const openNow = new Set([...list.querySelectorAll('.pfs-folder.open')].map(f => f.dataset.anello));
+      const MAX_RESULTS = 200;
+      const shown = q ? items.slice(0, MAX_RESULTS) : items;
       const groups = {};
-      items.forEach(it => (groups[it.anello] = groups[it.anello] || []).push(it));
+      shown.forEach(it => (groups[it.anello] = groups[it.anello] || []).push(it));
       const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
-      list.innerHTML = keys.map((an, gi) => {
-        const arr = groups[an].sort((a, b) => a.pfs.localeCompare(b.pfs, 'it', { numeric: true }));
+      Object.values(groups).forEach(arr => arr.sort((a, b) => a.pfs.localeCompare(b.pfs, 'it', { numeric: true })));
+      posGroups = groups;
+      const more = q && items.length > MAX_RESULTS ? `<div class="more-note">Trovati ${items.length} PFS: mostro i primi ${MAX_RESULTS}, affina la ricerca.</div>` : '';
+      list.innerHTML = more + keys.map((an, gi) => {
+        const arr = groups[an];
         const isOpen = openNow.has(an) || !!q || keys.length === 1;
         return `
           <div class="pfs-folder ${isOpen ? 'open' : ''}" data-anello="${escapeHtml(an)}" style="--i:${gi}">
@@ -3908,7 +3975,7 @@
               <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(an)}"></span>Anello ${escapeHtml(an)}</span>
               <span class="folder-meta">${arr.length} PFS <svg><use href="#i-down"/></svg></span>
             </button>
-            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${arr.map(posItemHtml).join('')}</div></div></div>
+            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${isOpen ? arr.map(posItemHtml).join('') : ''}</div></div></div>
           </div>`;
       }).join('');
     }
@@ -3942,7 +4009,7 @@
     }
 
     async function savePosition() {
-      const pfs = $('posPfs').value.trim().toUpperCase();
+      const pfs = canonPfs($('posPfs').value);
       const coords = parseCoords($('posCoords').value);
       setInvalid('posPfs', pfs ? '' : 'x');
       setInvalid('posCoords', coords ? '' : 'x');
@@ -4017,7 +4084,7 @@
       let L;
       try { L = await loadLeaflet(); } catch (e) { $('posMapMsg').textContent = 'Impossibile caricare la mappa.'; return; }
       if (!map) {
-        map = L.map('posMap', { zoomControl: true, attributionControl: true }).setView([40.85, 14.27], 11);
+        map = L.map('posMap', { zoomControl: true, attributionControl: true, preferCanvas: true }).setView([40.85, 14.27], 11);
         const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
         tiles.on('tileerror', () => { $('posMapMsg').textContent = navigator.onLine === false ? 'Senza rete la mappa non si carica: usa l’elenco e "Naviga".' : ''; });
         tiles.on('load', () => { $('posMapMsg').textContent = ''; });
@@ -4027,7 +4094,8 @@
       mapLayer.clearLayers();
       const pts = [];
       items.forEach(it => {
-        const m = L.circleMarker([it.lat, it.lng], { radius: 9, weight: 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 1 });
+        const many = items.length > 300;
+        const m = L.circleMarker([it.lat, it.lng], { radius: many ? 5 : 9, weight: many ? 1.5 : 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 0.95 });
         m.bindTooltip(it.pfs, { direction: 'top', offset: [0, -8] });
         m.bindPopup(`<div class="map-pop"><b>${escapeHtml(it.pfs)}</b><br><small>Anello ${escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
         m._pfs = it.pfs;
@@ -4062,8 +4130,8 @@
     function openPfsPos(prefillPfs) {
       openScreen('pfsPosScreen', 'PFS Qui', 'Posizioni PFS per anello');
       if (prefillPfs) {
-        const it = getPositions()[prefillPfs];
-        if (it) { $('posSearch').value = prefillPfs; renderPositions(); }
+        const it = getPositions()[canonPfs(prefillPfs)];
+        if (it) { $('posSearch').value = it.pfs; renderPositions(); }
         else { resetPosForm(prefillPfs); $('posForm').open = true; setTimeout(() => $('posForm').scrollIntoView({ behavior: 'smooth' }), 200); }
       }
     }
@@ -4155,8 +4223,16 @@
       document.querySelectorAll('[data-seg="pos"] .pfs-mode-btn').forEach(b => b.addEventListener('click', () => setPosView(b.dataset.mode)));
 
       $('posList').addEventListener('click', e => {
+        if (e.target.closest('[data-pos-import]')) { openImport(); return; }
         const header = e.target.closest('.pfs-folder-header');
-        if (header) { const f = header.parentElement; f.classList.toggle('open'); header.setAttribute('aria-expanded', f.classList.contains('open')); return; }
+        if (header) {
+          const f = header.parentElement; f.classList.toggle('open');
+          header.setAttribute('aria-expanded', f.classList.contains('open'));
+          const inner = f.querySelector('.pfs-folder-inner > div');
+          // i PFS di un anello vengono disegnati solo quando lo apri
+          if (f.classList.contains('open') && !inner.children.length) inner.innerHTML = (posGroups[f.dataset.anello] || []).map(posItemHtml).join('');
+          return;
+        }
         const b = e.target.closest('[data-pact]'); if (!b) return;
         const pfs = b.closest('[data-pos]').dataset.pos;
         const it = getPositions()[pfs]; if (!it) return;
@@ -4182,7 +4258,166 @@
       });
     }
 
+    /* ---------- Importazione da Google My Maps (link, KML o KMZ) ---------- */
+    const MYMAPS_KEY = 'fiber_tools_mymaps_url';
+    const MAP_SOURCE = 'GOOGLE MY MAPS';
+    const childText = (el, tag) => ([...el.children].find(c => c.localName === tag)?.textContent || '').trim();
+
+    function parseKml(text) {
+      const doc = new DOMParser().parseFromString(text, 'application/xml');
+      if (doc.getElementsByTagName('parsererror').length) throw new Error('Il file non è un KML valido.');
+      const out = [];
+      for (const pm of doc.getElementsByTagName('Placemark')) {
+        const name = childText(pm, 'name');
+        const coordEl = pm.getElementsByTagName('Point')[0]?.getElementsByTagName('coordinates')[0];
+        if (!name || !coordEl) continue;
+        const [lng, lat] = coordEl.textContent.trim().split(/[\s,]+/).map(Number);
+        if (!isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) continue;
+        let p = pm.parentElement, folder = '';
+        while (p && p.localName !== 'Folder') p = p.parentElement;
+        if (p) folder = childText(p, 'name');
+        const desc = childText(pm, 'description').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        out.push({ name, lat, lng, folder, desc });
+      }
+      return out;
+    }
+
+    /** Estrae il primo file .kml da un archivio KMZ (zip). */
+    async function kmzToKml(buf) {
+      const dv = new DataView(buf);
+      let eocd = -1;
+      for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+      if (eocd < 0) throw new Error('File KMZ non valido.');
+      let off = dv.getUint32(eocd + 16, true);
+      const n = dv.getUint16(eocd + 10, true);
+      for (let k = 0; k < n; k++) {
+        const method = dv.getUint16(off + 10, true), csize = dv.getUint32(off + 20, true);
+        const nlen = dv.getUint16(off + 28, true), xlen = dv.getUint16(off + 30, true), clen = dv.getUint16(off + 32, true);
+        const lho = dv.getUint32(off + 42, true);
+        const name = new TextDecoder().decode(new Uint8Array(buf, off + 46, nlen));
+        off += 46 + nlen + xlen + clen;
+        if (!/\.kml$/i.test(name)) continue;
+        const start = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true);
+        const data = new Uint8Array(buf, start, csize);
+        if (method === 0) return new TextDecoder().decode(data);
+        if (method === 8 && typeof DecompressionStream !== 'undefined') {
+          return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+        }
+        throw new Error('Questo KMZ non si può aprire qui: esporta da My Maps in formato KML.');
+      }
+      throw new Error('Nel KMZ non c’è nessun file KML.');
+    }
+
+    function mergeImported(points, overwriteManual) {
+      const all = getPositions();
+      const stamp = nowStamp();
+      const seen = new Set(), changed = [];
+      let added = 0, updated = 0, same = 0, keptManual = 0;
+      points.forEach(pt => {
+        const pfs = canonPfs(pt.name);
+        if (!pfs || seen.has(pfs)) return;
+        seen.add(pfs);
+        const anello = /^[A-Z]+_\d+/.test(pfs) ? anelloFrom(pfs) : (pt.folder ? pt.folder.toUpperCase() : anelloFrom(pfs));
+        const cur = all[pfs];
+        if (!cur) {
+          all[pfs] = { pfs, anello, lat: pt.lat, lng: pt.lng, note: pt.desc || '', tecnico: MAP_SOURCE, updatedAt: stamp, source: 'mymaps' };
+          added++; changed.push(all[pfs]); return;
+        }
+        const different = distanceM(cur, pt) > 2 || cur.anello !== anello;
+        const fromMap = cur.source === 'mymaps' || cur.tecnico === MAP_SOURCE;
+        if (!different) { same++; return; }
+        if (!fromMap && !overwriteManual) { keptManual++; return; }
+        all[pfs] = { ...cur, lat: pt.lat, lng: pt.lng, anello, tecnico: MAP_SOURCE, updatedAt: stamp, source: 'mymaps' };
+        delete all[pfs].synced;
+        updated++; changed.push(all[pfs]);
+      });
+      savePositions(all);
+      return { added, updated, same, keptManual, changed, total: seen.size, anelli: new Set(Object.values(all).map(i => i.anello)).size };
+    }
+
+    const myMapsMid = v => { const m = /[?&#]mid=([\w-]+)/.exec(v) || /^\s*([\w-]{20,})\s*$/.exec(v); return m ? m[1] : null; };
+
+    async function finishImport(text, overwrite) {
+      let pts;
+      try { pts = parseKml(text); } catch (e) { toast(e.message, 'error', 5000); return; }
+      if (!pts.length) { toast('Nella mappa non ci sono punti da importare.', 'error'); return; }
+      const r = mergeImported(pts, overwrite);
+      if (scriptVersion >= 3) enqueuePosBatches(r.changed);
+      posNearMode = false; $('posSearch').value = '';
+      renderPositions();
+      await openModal({
+        title: 'Importazione completata',
+        bodyHtml: `<div class="imp-stats">
+            <div><b>${r.added}</b><span>Nuovi PFS</span></div>
+            <div><b>${r.updated}</b><span>Posizioni aggiornate</span></div>
+            <div><b>${r.same}</b><span>Già uguali</span></div>
+            <div><b>${r.anelli}</b><span>Anelli</span></div>
+          </div>
+          ${r.keptManual ? `<p class="small">${r.keptManual} PFS inseriti a mano hanno una posizione diversa dalla mappa e sono stati lasciati com’erano.</p>` : ''}
+          <p class="small">${scriptVersion >= 3 ? 'Le posizioni vengono inviate al foglio Google e condivise con la squadra.' : 'Le posizioni sono su questo telefono. Con lo script Google v3 vengono condivise con tutta la squadra.'}</p>`,
+        okText: 'Ottimo', cancelText: 'Chiudi'
+      });
+    }
+
+    async function importFromMyMaps(link, overwrite) {
+      const mid = myMapsMid(link);
+      if (!mid) { toast('Link non valido: serve il link di Google My Maps (contiene "mid=").', 'error', 5000); return; }
+      lsSet(MYMAPS_KEY, link.trim());
+      toast('Scarico la mappa…', 'info', 2500);
+      let text;
+      try {
+        const res = await fetchWithTimeout(`https://www.google.com/maps/d/kml?mid=${encodeURIComponent(mid)}&forcekml=1`, {}, 45000);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        text = await res.text();
+      } catch (e) {
+        toast(navigator.onLine === false ? 'Serve la connessione per scaricare la mappa.' : 'Impossibile scaricare la mappa: controlla che sia condivisa con "chiunque abbia il link".', 'error', 6000);
+        return;
+      }
+      await finishImport(text, overwrite);
+    }
+
+    let importOverwrite = false;
+    async function openImport(prefill) {
+      const saved = prefill || lsGet(MYMAPS_KEY, '');
+      let wantsFile = false;
+      const ok = await openModal({
+        title: 'Importa da Google My Maps',
+        bodyHtml: `
+          <p style="margin-bottom:10px">Incolla il link della mappa con i PFS: l’app scarica tutti i punti e li divide per anello. Per aggiornarli in futuro ripeti l’importazione.</p>
+          <div class="field-group">
+            <label class="field-label" for="impUrl">Link della mappa</label>
+            <input id="impUrl" class="custom-input" autocomplete="off" placeholder="https://www.google.com/maps/d/viewer?mid=…" value="${escapeHtml(saved)}">
+          </div>
+          <label class="check-row"><input type="checkbox" id="impOverwrite"> Sostituisci anche le posizioni inserite a mano</label>
+          <p class="small" style="margin-top:10px">Oppure <a href="#" id="impFileLink">scegli un file KML o KMZ</a> esportato da My Maps.</p>`,
+        okText: 'Importa', cancelText: 'Annulla',
+        onOpen: () => {
+          if (!saved) setTimeout(() => { if (!$('modal').contains(document.activeElement)) $('impUrl')?.focus(); }, 50);
+          $('impFileLink').addEventListener('click', e => { e.preventDefault(); importOverwrite = $('impOverwrite').checked; wantsFile = true; closeModal(false); });
+        }
+      });
+      if (wantsFile) { $('posImportFile').click(); return; }
+      if (!ok) return;
+      await importFromMyMaps($('impUrl').value, $('impOverwrite').checked);
+    }
+
+    async function importFromFile(file) {
+      if (!file) return;
+      try {
+        const buf = await file.arrayBuffer();
+        const head = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+        const text = head[0] === 0x50 && head[1] === 0x4b ? await kmzToKml(buf) : new TextDecoder().decode(buf);
+        await finishImport(text, importOverwrite);
+      } catch (e) { toast(e.message || 'Impossibile leggere il file.', 'error', 5000); }
+      importOverwrite = false;
+    }
+
     function initV3() {
+      // link di importazione rapida: ...fiber-tools/#importa=<link della mappa>
+      const hm = /^#importa=(.+)$/.exec(location.hash || '');
+      if (hm) setTimeout(() => { openPfsPos(); setTimeout(() => openImport(decodeURIComponent(hm[1])), 350); }, 300);
+      $('posImportBtn').addEventListener('click', () => openImport());
+      $('posImportFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; importFromFile(f); });
       updateQueueUI();
       watchForUpdates();
       setTimeout(() => processQueue(), 1500);
@@ -4320,7 +4555,7 @@
           case 'delete': deleteSplitter(pfs, spl); break;
           case 'history': showHistory(pfs, spl, 'splitter'); break;
           case 'photo': viewPhoto(getRibattitureData()[pfs]?.[spl], `Foto ${pfs} → ${spl}`); break;
-          case 'folder-nav': { const it = getPositions()[pfs]; if (it) navigateTo(it); break; }
+          case 'folder-nav': { const it = getPositions()[canonPfs(pfs)]; if (it) navigateTo(it); break; }
           case 'folder-pos': openPfsPos(pfs); break;
         }
       });

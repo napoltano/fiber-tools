@@ -31,7 +31,8 @@ Creato e realizzato da **Marigliano Massimiliano**.
 
 ### PFS Qui
 - **Aggiungi PFS**: codice (l'anello viene riconosciuto in automatico, es. `NA_05/08W22` → anello `NA_05`), coordinate con **Posizione attuale** (GPS) oppure incollando coordinate o un link di Google Maps, note di accesso e foto.
-- **Elenco per anello** con ricerca per PFS, anello o note; **Vicino a me** ordina i PFS per distanza.
+- **Importa da Google My Maps**: incolli il link della mappa con i PFS e l'app scarica tutti i punti (anche migliaia), li divide per anello e li invia al foglio a blocchi. Ripetendo l'importazione si aggiornano le posizioni cambiate; quelle corrette a mano restano com'erano (salvo *Sostituisci anche le posizioni inserite a mano*). Si può usare anche un file KML/KMZ esportato da My Maps, oppure un link rapido `…/fiber-tools/#importa=<link della mappa>`.
+- **Elenco per anello** con ricerca per PFS, anello o note (`NA_01 16e13` e `NA_01/16E13` sono lo stesso PFS); **Vicino a me** ordina i PFS per distanza.
 - **Mappa** con un colore per ogni anello; **Naviga** apre Google Maps con il percorso fino al PFS.
 - **Elimina** solo per l'amministratore (anche lo script lo verifica, se è impostata `ADMIN_KEY`).
 

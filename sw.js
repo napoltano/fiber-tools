@@ -1,6 +1,6 @@
 /* Service worker di Fiber Tools: rende l'app utilizzabile offline.
    Quando modifichi i file dell'app, aumenta VERSION per forzare l'aggiornamento. */
-const VERSION = 'fiber-tools-v2';
+const VERSION = 'fiber-tools-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -11,7 +11,9 @@ const ASSETS = [
   './icons/apple-touch-icon.png',
   './icons/favicon-32.png',
   './vendor/barcode-detector.js',
-  './vendor/zxing_reader.wasm'
+  './vendor/zxing_reader.wasm',
+  './vendor/leaflet/leaflet.js',
+  './vendor/leaflet/leaflet.css'
 ];
 
 self.addEventListener('install', event => {

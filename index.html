@@ -846,6 +846,124 @@
       #printArea .foot { font-size: 8pt; color: #666; margin-top: 10pt; }
     }
 
+    /* ---------- V3 ---------- */
+    .t-teal   { --tile-bg: color-mix(in srgb, #14b8a6 15%, transparent); --tile-fg: #0d9488; }
+    .t-orange { --tile-bg: color-mix(in srgb, #f97316 15%, transparent); --tile-fg: #ea580c; }
+
+    .queue-pill {
+      position: sticky; top: 74px; z-index: 19;
+      width: 100%; max-width: 520px; margin: -6px 0 12px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 9px 14px; border-radius: 12px;
+      border: 1px solid color-mix(in srgb, #f59e0b 55%, var(--border));
+      background: color-mix(in srgb, #f59e0b 14%, var(--card));
+      color: var(--text); font-size: 0.8rem; font-weight: 800;
+      animation: fadeUp 0.3s var(--ease);
+    }
+    .queue-pill svg { width: 16px; height: 16px; color: #d97706; }
+    .update-bar {
+      width: 100%; max-width: 520px; margin: -6px 0 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 12px 10px 14px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff;
+      font-size: 0.82rem; font-weight: 700; animation: fadeUp 0.3s var(--ease);
+    }
+    .update-bar button { border: none; background: #fff; color: #0369a1; font-weight: 800; border-radius: 9px; padding: 7px 12px; font-size: 0.78rem; }
+
+    .photo-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .photo-row .btn-secondary { flex: 1; margin: 0; min-width: 170px; }
+    .photo-preview { position: relative; display: flex; align-items: center; gap: 8px; }
+    .photo-preview img { width: 54px; height: 54px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); cursor: zoom-in; }
+    .photo-preview span { font-size: 0.68rem; font-weight: 700; color: var(--muted); max-width: 70px; }
+    .photo-preview button { position: absolute; top: -6px; left: 44px; width: 20px; height: 20px; border-radius: 50%; border: none;
+      background: var(--danger); color: #fff; font-weight: 900; font-size: 0.8rem; line-height: 1; display: grid; place-items: center; }
+
+    .ottico-row.dup { border-color: #f59e0b; background: color-mix(in srgb, #f59e0b 10%, var(--card-2)); }
+    .ottico-row.dup .ottico-num { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+    .dup-box { font-size: 0.78rem; font-weight: 600; line-height: 1.45; border-radius: 12px; padding: 10px 12px;
+      background: color-mix(in srgb, #f59e0b 12%, var(--card)); border: 1px solid color-mix(in srgb, #f59e0b 45%, var(--border)); animation: fadeUp 0.3s var(--ease); }
+    .dup-box ul { margin: 4px 0 0 18px; }
+
+    .split-head { display: flex; gap: 10px; align-items: flex-start; }
+    .split-thumb { border: none; padding: 0; background: none; flex-shrink: 0; }
+    .split-thumb img { width: 44px; height: 44px; object-fit: cover; border-radius: 9px; border: 1px solid var(--border); display: block; }
+    .pend { display: inline-flex; align-items: center; font-size: 0.66rem; font-weight: 800; color: #b45309;
+      background: color-mix(in srgb, #f59e0b 16%, transparent); padding: 1px 7px; border-radius: 999px; margin-top: 4px; margin-left: 4px; }
+    .folder-stats { display: flex; gap: 6px; flex-wrap: wrap; }
+    .folder-stats span { font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); }
+    .folder-stats .ok { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, var(--border)); }
+    .folder-stats .warn { color: #b45309; border-color: color-mix(in srgb, #f59e0b 45%, var(--border)); }
+    .btn-xs.pos-chip { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+
+    /* Budget ottico */
+    .bg-total { font-size: 2.3rem; font-weight: 900; letter-spacing: -1px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+    .bg-total small { font-size: 1rem; color: var(--muted); font-weight: 800; }
+    .bg-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; margin: 10px 0 6px; background: var(--border); gap: 2px; }
+    .bg-bar span { transition: flex 0.45s var(--ease); min-width: 3px; }
+    .bg-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.7rem; color: var(--muted); font-weight: 700; }
+    .bg-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+    .bg-legend b { color: var(--text); }
+    .bg-verdict { margin-top: 10px; font-size: 0.82rem; font-weight: 800; padding: 9px 12px; border-radius: 10px; line-height: 1.35; animation: fadeUp 0.3s var(--ease); }
+    .bg-verdict.ok { background: color-mix(in srgb, #10b981 14%, var(--card)); color: color-mix(in srgb, #047857 80%, var(--text)); }
+    .bg-verdict.warn { background: color-mix(in srgb, #f59e0b 16%, var(--card)); color: color-mix(in srgb, #92400e 80%, var(--text)); }
+    .bg-verdict.bad { background: color-mix(in srgb, #ef4444 14%, var(--card)); color: color-mix(in srgb, #b91c1c 85%, var(--text)); }
+    [data-theme="dark"] .bg-verdict.ok { color: #6ee7b7; } [data-theme="dark"] .bg-verdict.warn { color: #fcd34d; } [data-theme="dark"] .bg-verdict.bad { color: #fca5a5; }
+    .row-3 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+    .adv-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; animation: riseIn 0.5s var(--ease) both 0.05s; }
+    .adv-card > summary { list-style: none; cursor: pointer; padding: 14px 16px; font-weight: 800; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .adv-card > summary::-webkit-details-marker { display: none; }
+    .adv-card > summary svg { width: 18px; height: 18px; color: var(--primary); transition: transform 0.3s var(--ease); }
+    .adv-card[open] > summary svg.rot { transform: rotate(45deg); }
+    .adv-card > summary .chev-r { margin-left: auto; color: var(--muted); }
+    .adv-card[open] > summary .chev-r { transform: rotate(180deg); }
+    .adv-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.3s var(--ease); }
+    .adv-body .note { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+
+    /* PFS Qui */
+    .pos-tools { display: flex; gap: 8px; align-items: center; }
+    .pos-tools .custom-input { flex: 1; padding: 10px 12px; font-size: 15px; }
+    .chip.active { color: #fff; background: var(--success); border-color: var(--success); }
+    .pos-item {
+      background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--anello, var(--primary));
+      border-radius: 12px; padding: 11px 12px; display: flex; flex-direction: column; gap: 10px;
+      animation: fadeUp 0.3s var(--ease) both; animation-delay: calc(var(--i, 0) * 25ms);
+    }
+    #posList > .pos-item { margin-bottom: 8px; }
+    .pos-main { display: flex; gap: 10px; align-items: flex-start; }
+    .pos-thumb { border: none; padding: 0; background: none; flex-shrink: 0; }
+    .pos-thumb img { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); }
+    .pos-body { min-width: 0; flex: 1; }
+    .pos-name { font-weight: 900; font-size: 0.95rem; overflow-wrap: anywhere; }
+    .pos-note { font-size: 0.78rem; color: var(--text); opacity: 0.85; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
+    .pos-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 0.7rem; color: var(--muted); font-weight: 700; margin-top: 4px; }
+    .pos-meta .pend { margin: 0; }
+    .pos-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .pos-actions .btn-xs.danger { margin-left: auto; }
+    .btn-nav {
+      display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 9px; padding: 8px 14px;
+      background: linear-gradient(135deg, #059669, #10b981); color: #fff; font-weight: 800; font-size: 0.8rem;
+      box-shadow: 0 6px 14px -6px rgba(16,185,129,0.7); transition: transform 0.12s;
+    }
+    .btn-nav:active { transform: scale(0.95); }
+    .btn-nav svg { width: 15px; height: 15px; }
+    .anello-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; border: 2px solid var(--card); box-shadow: 0 0 0 1px var(--border); }
+    .map-wrap { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 14px; animation: riseIn 0.4s var(--ease); }
+    #posMap { height: min(62vh, 520px); width: 100%; background: var(--card-2); }
+    .map-msg:not(:empty) { position: absolute; left: 10px; right: 10px; top: 10px; z-index: 500; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 0.78rem; font-weight: 700; }
+    .map-locate { position: absolute; right: 10px; bottom: 24px; z-index: 500; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--primary); display: grid; place-items: center; box-shadow: var(--shadow); }
+    .map-locate svg { width: 22px; height: 22px; }
+    .map-pop { font-family: inherit; min-width: 150px; }
+    .map-pop .btn-nav { margin-top: 8px; }
+    .leaflet-container { font: inherit; }
+
+    .hist { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow: auto; }
+    .hist-row { border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; background: var(--card-2); }
+    .hist-top { display: flex; justify-content: space-between; gap: 8px; font-size: 0.82rem; }
+    .hist-top span { font-size: 0.7rem; color: var(--muted); font-weight: 700; white-space: nowrap; }
+    .hist-who { font-size: 0.72rem; color: var(--muted); font-weight: 700; margin-top: 2px; }
+    .hist-det { font-size: 0.76rem; margin-top: 4px; font-weight: 600; overflow-wrap: anywhere; }
+
     /* ---------- TOAST ---------- */
     .toast-wrap {
       position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
@@ -947,6 +1065,14 @@
       <symbol id="i-torch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 6l2 5v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-9z"/><path d="M6 2h12v4H6zM12 13v3"/></symbol>
       <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
       <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+      <symbol id="i-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 19-9-9 19-2-8z"/></symbol>
+      <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-photo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+      <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l4-4"/><path d="M3.3 19a10 10 0 1 1 17.4 0"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
       <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z"/></symbol>
     </defs>
   </svg>
@@ -971,6 +1097,9 @@
       </button>
     </div>
   </header>
+
+  <button type="button" class="queue-pill" id="queuePill" hidden><svg id="queueIcon"><use href="#i-sync"/></svg><span id="queueText"></span></button>
+  <div class="update-bar" id="updateBar" hidden><span>Nuova versione di Fiber Tools disponibile</span><button type="button" id="updateBtn">Aggiorna</button></div>
 
   <main class="container">
 
@@ -1059,6 +1188,24 @@
           <span class="badge-num">06</span>
           <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
         </button>
+
+        <button class="btn-main" type="button" style="--i:6" data-open="pfsPosScreen" data-title="PFS Qui" data-sub="Posizioni PFS per anello">
+          <div class="tile-icon t-teal"><svg><use href="#i-nav"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">PFS Qui</span>
+            <span class="btn-desc">Coordinate e navigazione</span>
+          </div>
+          <span class="badge-num">07</span>
+        </button>
+
+        <button class="btn-main" type="button" style="--i:7" data-open="budgetScreen" data-title="Budget Ottico" data-sub="Attenuazione e verifica potenza">
+          <div class="tile-icon t-orange"><svg><use href="#i-gauge"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">Budget</span>
+            <span class="btn-desc">Attenuazione e dBm</span>
+          </div>
+          <span class="badge-num">08</span>
+        </button>
       </div>
 
       <footer class="app-footer">
@@ -1079,6 +1226,15 @@
           <label class="field-label" for="ribSplitterInput">Splitter (es. Splitter 1, Primary...)</label>
           <input type="text" id="ribSplitterInput" class="custom-input" data-upper placeholder="Inserisci Splitter..." autocomplete="off" autocapitalize="characters">
         </div>
+        <div class="photo-row">
+          <button type="button" class="btn-secondary" id="ribPhotoBtn"><svg><use href="#i-photo"/></svg> <span id="ribPhotoBtnText">Aggiungi foto splitter</span></button>
+          <div class="photo-preview" id="ribPhotoPreview" hidden>
+            <img id="ribPhotoImg" alt="Foto splitter">
+            <span id="ribPhotoState"></span>
+            <button type="button" id="ribPhotoRemove" aria-label="Rimuovi foto">×</button>
+          </div>
+          <input type="file" id="ribPhotoFile" accept="image/*" capture="environment" hidden>
+        </div>
       </div>
 
       <div class="controls-card">
@@ -1087,6 +1243,7 @@
           <span class="count-pill" id="ribFillCount">0 / 16</span>
         </div>
         <div class="progress" aria-hidden="true"><div id="ribProgress"></div></div>
+        <div class="dup-box" id="ribDupBox" hidden></div>
         <div class="ottici-head">
           <span></span>
           <span class="field-label">Permuta</span>
@@ -1388,6 +1545,161 @@
       </div>
     </section>
 
+    <!-- ================= BUDGET OTTICO ================= -->
+    <section id="budgetScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="search-result-card" id="bgCard">
+        <div class="result-info" style="flex:1">
+          <div class="result-title">Attenuazione totale prevista</div>
+          <div class="bg-total"><span id="bgTotal">0,00</span> <small>dB</small></div>
+          <div class="result-subtext">Potenza attesa all’ONT: <b id="bgRx">—</b></div>
+          <div class="bg-bar" id="bgBar"></div>
+          <div class="bg-legend" id="bgLegend"></div>
+          <div class="bg-verdict" id="bgVerdict"></div>
+        </div>
+      </div>
+
+      <div class="controls-card">
+        <div class="section-title"><span>Tratta</span></div>
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label" for="bgKm">Lunghezza (km)</label>
+            <input type="text" inputmode="decimal" id="bgKm" class="custom-input" placeholder="es. 2,5">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="bgWave">Lunghezza d’onda</label>
+            <select id="bgWave" class="custom-select">
+              <option value="1310">1310 nm</option>
+              <option value="1490" selected>1490 nm (GPON down)</option>
+              <option value="1550">1550 nm</option>
+              <option value="custom">Personalizzata</option>
+            </select>
+          </div>
+        </div>
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label" for="bgSplices">N° giunti</label>
+            <input type="text" inputmode="numeric" id="bgSplices" class="custom-input" value="2">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="bgConn">N° connettori</label>
+            <input type="text" inputmode="numeric" id="bgConn" class="custom-input" value="2">
+          </div>
+        </div>
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label" for="bgSpl1">Splitter 1° livello</label>
+            <select id="bgSpl1" class="custom-select"><option value="0">Nessuno</option><option value="2">1:2</option><option value="4">1:4</option><option value="8">1:8</option><option value="16">1:16</option><option value="32">1:32</option><option value="64">1:64</option></select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="bgSpl2">Splitter 2° livello</label>
+            <select id="bgSpl2" class="custom-select"><option value="0">Nessuno</option><option value="2">1:2</option><option value="4">1:4</option><option value="8">1:8</option><option value="16">1:16</option><option value="32">1:32</option><option value="64">1:64</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-card">
+        <div class="section-title"><span>Verifica misura power meter</span></div>
+        <div class="field-group">
+          <label class="field-label" for="bgMeasured">Potenza misurata (dBm) – il segno meno è automatico</label>
+          <input type="text" inputmode="decimal" id="bgMeasured" class="custom-input" placeholder="es. 21,5">
+        </div>
+        <div class="bg-verdict" id="bgMeasureResult" hidden></div>
+      </div>
+
+      <details class="adv-card">
+        <summary><svg><use href="#i-gear"/></svg> Valori tecnici (modificabili) <svg class="chev-r"><use href="#i-down"/></svg></summary>
+        <div class="adv-body">
+          <div class="row-3">
+            <div class="field-group"><label class="field-label" for="bgCoef">Fibra dB/km</label><input type="text" inputmode="decimal" id="bgCoef" class="custom-input" value="0,25"></div>
+            <div class="field-group"><label class="field-label" for="bgMargin">Margine dB</label><input type="text" inputmode="decimal" id="bgMargin" class="custom-input" value="0"></div>
+            <div class="field-group"><label class="field-label" for="bgSpliceLoss">dB per giunto</label><input type="text" inputmode="decimal" id="bgSpliceLoss" class="custom-input" value="0,1"></div>
+            <div class="field-group"><label class="field-label" for="bgConnLoss">dB per connettore</label><input type="text" inputmode="decimal" id="bgConnLoss" class="custom-input" value="0,5"></div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="bgClass">Classe ottica OLT/ONT</label>
+            <select id="bgClass" class="custom-select">
+              <option value="B+" selected>GPON classe B+</option>
+              <option value="C+">GPON classe C+</option>
+              <option value="custom">Personalizzata</option>
+            </select>
+          </div>
+          <div class="row-3">
+            <div class="field-group"><label class="field-label" for="bgTxMin">TX min dBm</label><input type="text" inputmode="decimal" id="bgTxMin" class="custom-input"></div>
+            <div class="field-group"><label class="field-label" for="bgTxMax">TX max dBm</label><input type="text" inputmode="decimal" id="bgTxMax" class="custom-input"></div>
+            <div class="field-group"><label class="field-label" for="bgSens">Sensibilità dBm</label><input type="text" inputmode="decimal" id="bgSens" class="custom-input"></div>
+            <div class="field-group"><label class="field-label" for="bgOver">Saturazione dBm</label><input type="text" inputmode="decimal" id="bgOver" class="custom-input"></div>
+          </div>
+          <div class="note">Valori tipici (perdite splitter massime ITU-T, GPON B+/C+). Verifica sempre con le specifiche del tuo operatore.</div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ================= PFS QUI ================= -->
+    <section id="pfsPosScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <details class="adv-card" id="posForm">
+        <summary><svg class="rot"><use href="#i-plus"/></svg> <span id="posFormTitle">Aggiungi PFS</span> <svg class="chev-r"><use href="#i-down"/></svg></summary>
+        <div class="adv-body">
+          <div class="row-fields">
+            <div class="field-group" style="flex:1.4">
+              <label class="field-label" for="posPfs">Codice PFS</label>
+              <input type="text" id="posPfs" class="custom-input" data-upper autocapitalize="characters" autocomplete="off" placeholder="es. NA_05/08W22">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="posAnello">Anello</label>
+              <input type="text" id="posAnello" class="custom-input" data-upper autocapitalize="characters" autocomplete="off" placeholder="auto">
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="posCoords">Coordinate</label>
+            <input type="text" id="posCoords" class="custom-input" autocomplete="off" placeholder="40.851800, 14.268100 o link Google Maps">
+            <div class="chip-row">
+              <button type="button" class="chip" id="posGps"><svg><use href="#i-target"/></svg>Posizione attuale</button>
+              <button type="button" class="chip" id="posPaste"><svg><use href="#i-copy"/></svg>Incolla</button>
+            </div>
+            <div class="note" id="posAcc" style="font-size:0.74rem;color:var(--success);font-weight:700"></div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="posNote">Note (indirizzo, accesso, chiavi…)</label>
+            <input type="text" id="posNote" class="custom-input" autocomplete="off" placeholder="es. Via Roma 12, armadio a sinistra del cancello">
+          </div>
+          <div class="photo-row">
+            <button type="button" class="btn-secondary" id="posPhotoBtn"><svg><use href="#i-photo"/></svg> <span id="posPhotoBtnText">Foto del PFS</span></button>
+            <div class="photo-preview" id="posPhotoPreview" hidden>
+              <img id="posPhotoImg" alt="Foto PFS">
+              <button type="button" id="posPhotoRemove" aria-label="Rimuovi foto">×</button>
+            </div>
+            <input type="file" id="posPhotoFile" accept="image/*" capture="environment" hidden>
+          </div>
+          <button type="button" class="btn-action" id="posSave" style="margin-bottom:0"><svg><use href="#i-save"/></svg> Salva posizione</button>
+          <button type="button" class="btn-secondary" id="posCancel" hidden>Annulla modifica</button>
+        </div>
+      </details>
+
+      <div class="controls-card">
+        <div class="section-title"><span>Archivio PFS</span><span class="count-pill" id="posCount">0 PFS</span></div>
+        <div class="pos-tools">
+          <input type="search" id="posSearch" class="custom-input" data-upper autocapitalize="characters" placeholder="Cerca PFS, anello o note..." autocomplete="off">
+          <button type="button" class="chip" id="posNearBtn"><svg><use href="#i-target"/></svg>Vicino a me</button>
+        </div>
+        <div class="pfs-mode-selector" data-seg="pos">
+          <span class="seg-indicator"></span>
+          <button type="button" class="pfs-mode-btn active" data-mode="list">Elenco per anello</button>
+          <button type="button" class="pfs-mode-btn" data-mode="map">Mappa</button>
+        </div>
+      </div>
+
+      <div class="map-wrap" id="posMapWrap" hidden>
+        <div id="posMap"></div>
+        <div class="map-msg" id="posMapMsg"></div>
+        <button type="button" class="map-locate" id="posLocateMap" aria-label="La mia posizione"><svg><use href="#i-target"/></svg></button>
+      </div>
+      <div id="posList"></div>
+    </section>
+
   </main>
 
   <!-- Barcode a schermo intero (per farlo leggere allo scanner) -->
@@ -1451,6 +1763,7 @@
     // non più la password in chiaro.
     const ADMIN_HASH = "6a9b8655543befb6d3eaa0b5ee162b4d160d2c83d6f511132ee3f3cc1127b76a";
     let isAdminLoggedIn = false;
+    let adminSecret = '';   // password admin in memoria, inviata allo script solo per le eliminazioni
 
     const C = {
       ROSSO: "bg-rosso", VERDE: "bg-verde", GIALLO: "bg-giallo", MARRONE: "bg-marrone",
@@ -1632,7 +1945,7 @@
     async function handleAdminAuth() {
       if (isAdminLoggedIn) {
         const ok = await confirmBox('Esci da Admin', 'Vuoi uscire dalla modalità amministratore?', 'Esci');
-        if (ok) { isAdminLoggedIn = false; updateAdminUI(); toast('Logout effettuato.', 'info'); }
+        if (ok) { isAdminLoggedIn = false; adminSecret = ''; updateAdminUI(); toast('Logout effettuato.', 'info'); }
         return;
       }
       const ok = await openModal({
@@ -1647,15 +1960,17 @@
             <input id="admPass" type="password" class="custom-input" autocomplete="current-password">
           </div>`,
         okText: 'Accedi',
-        onOpen: () => setTimeout(() => $('admUser').focus(), 50)
+        onOpen: () => setTimeout(() => { if (!$('modal').contains(document.activeElement)) $('admUser').focus(); }, 50)
       });
       if (!ok) return;
       const user = ($('admUser')?.value || '').trim().toUpperCase();
       const pass = $('admPass')?.value || '';
       if (sha256(`${user}:${pass}`) === ADMIN_HASH) {
         isAdminLoggedIn = true;
+        adminSecret = pass;
         updateAdminUI();
         toast('Accesso amministratore eseguito!');
+        processQueue();
       } else {
         toast('Credenziali errate. Accesso negato.', 'error');
       }
@@ -1693,6 +2008,8 @@
       else if (screenId === 'pteScreen') { renderPteColors(); calculatePTE(); }
       else if (screenId === 'fibercopScreen') { renderFcColors(); updateFiberCop(); }
       else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
+      else if (screenId === 'budgetScreen') calcBudget();
+      else if (screenId === 'pfsPosScreen') { renderPositions(); syncFromGoogleSheets(true); }
       else if (screenId === 'barcodeScreen') {
         renderBarcode(false); renderRecentBarcodes();
         if (!fromHistory && window.matchMedia('(pointer: fine)').matches) setTimeout(() => $('bcInput').focus(), 300);
@@ -2029,6 +2346,7 @@
       }
       $('ribFillCount').textContent = `${filled} / 16`;
       $('ribProgress').style.width = `${(filled / 16) * 100}%`;
+      checkRibDuplicates();
     }
 
     /** Porta tutti i nomi PFS/splitter in maiuscolo (unendo eventuali doppioni "na_05" / "NA_05"). */
@@ -2066,43 +2384,6 @@
       $('ribSyncIcon').classList.toggle('spin', on);
     }
 
-    async function syncFromGoogleSheets(silent = false) {
-      if (syncing) return;
-      setSyncing(true);
-      const badge = $('archiveCountBadge');
-      badge.innerHTML = `<svg class="spin"><use href="#i-sync"/></svg> Sincronizzazione…`;
-      if (!Object.keys(getRibattitureData()).length) {
-        $('pfsArchiveContainer').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
-      }
-
-      const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timer = setTimeout(() => ctrl && ctrl.abort(), 15000);
-      try {
-        const res = await fetch(GOOGLE_SHEET_WEB_APP_URL, ctrl ? { signal: ctrl.signal } : {});
-        const json = await res.json();
-        if (json.status === 'success' && json.data && typeof json.data === 'object') {
-          const local = getRibattitureData();
-          setScriptVersion(Number(json.version) || 1);
-          const remote = normalizeRibDb(json.data);
-          Object.keys(remote).forEach(pfs => {
-            if (!local[pfs] || typeof local[pfs] !== 'object') local[pfs] = {};
-            Object.keys(remote[pfs]).forEach(spl => { local[pfs][spl] = remote[pfs][spl]; });
-          });
-          saveRibattitureData(local);
-          if (!silent) toast('Archivio aggiornato da Google Sheets.');
-        } else if (!silent) {
-          toast('Google Sheets non ha restituito dati validi.', 'error');
-        }
-      } catch (err) {
-        console.error('Errore sincronizzazione:', err);
-        toast(silent ? 'Offline: mostro l’archivio locale.' : 'Sincronizzazione fallita. Archivio locale mostrato.', silent ? 'info' : 'error');
-      } finally {
-        clearTimeout(timer);
-        setSyncing(false);
-        loadRibattitureArchive();
-      }
-    }
-
     function collectOttici() {
       const out = [];
       for (let i = 1; i <= 16; i++) {
@@ -2120,37 +2401,38 @@
 
       const pfsKey = pfsRaw.toUpperCase();
       const splitterKey = splRaw.toUpperCase();
-      const now = new Date();
-      const timestamp = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-      const ottici = collectOttici();
+      const timestamp = nowStamp();
+      const ottici = collectOttici().map(o => ({ ...o, pte: o.pte.toUpperCase(), fibra: o.fibra.toUpperCase() }));
 
+      const dups = checkRibDuplicates();
+      if (dups.length) {
+        const ok = await confirmBox('Possibili duplicati', `${dups.length === 1 ? 'C’è un avviso' : `Ci sono ${dups.length} avvisi`}: ${dups[0]}${dups.length > 1 ? '…' : ''}. Vuoi salvare comunque?`, 'Salva comunque');
+        if (!ok) return;
+      }
       const db = getRibattitureData();
-      const exists = db[pfsKey] && db[pfsKey][splitterKey];
-      if (exists) {
+      if (db[pfsKey] && db[pfsKey][splitterKey]) {
         const ok = await confirmBox('Sovrascrivere?', `Esiste già una ribattitura per ${pfsKey} → ${splitterKey}. Vuoi aggiornarla?`, 'Aggiorna');
         if (!ok) return;
       }
       const tecnico = await ensureTecnico();
-      if (!db[pfsKey]) db[pfsKey] = {};
-      db[pfsKey][splitterKey] = { updatedAt: timestamp, tecnico, ottici };
+      const item = { updatedAt: timestamp, tecnico, ottici, fotoId: ribPhoto.data ? '' : (ribPhoto.fotoId || ''), thumb: ribPhoto.thumb || '' };
+      if (ribPhoto.data) item.photoPending = true;
+      (db[pfsKey] = db[pfsKey] || {})[splitterKey] = item;
       saveRibattitureData(db);
-      loadRibattitureArchive(pfsKey);
 
-      const btn = $('ribSaveBtn');
-      btn.disabled = true;
-      try {
-        await postToSheets({ action: 'save', pfs: pfsKey, splitter: splitterKey, timestamp, tecnico, ottici });
-        toast(`Salvata in ${pfsKey} → ${splitterKey} e inviata a Google Sheets.`);
-      } catch (err) {
-        toast('Salvata in locale, ma l’invio a Google Sheets non è riuscito (sei offline?).', 'error', 4000);
-      } finally {
-        btn.disabled = false;
-      }
+      const payload = { action: 'save', pfs: pfsKey, splitter: splitterKey, timestamp, tecnico, ottici, fotoId: item.fotoId };
+      if (ribPhoto.data) payload.photo = ribPhoto.data;
+      ribPhoto.data = null; renderRibPhoto();
+      const sending = enqueue(payload);
+      loadRibattitureArchive(pfsKey);   // dopo l'accodamento, così mostra "da inviare"
+      reportSend(await sending, { label: `Salvata in ${pfsKey} → ${splitterKey}`, key: ['rib', pfsKey, splitterKey] });
+      loadRibattitureArchive(pfsKey);
     }
 
     function loadRibattitureArchive(openPfs) {
       const container = $('pfsArchiveContainer');
       const db = getRibattitureData();
+      const positions = getPositions();
       const q = ($('archiveSearch').value || '').trim().toUpperCase();
       const openNow = new Set([...container.querySelectorAll('.pfs-folder.open')].map(f => f.dataset.pfs));
       if (openPfs) openNow.add(openPfs);
@@ -2171,16 +2453,21 @@
         const isOpen = openNow.has(pfs) || (q && spls.length);
         const items = spls.map(spl => `
           <div class="splitter-item" data-pfs="${escapeHtml(pfs)}" data-spl="${escapeHtml(spl)}">
-            <div>
-              <div class="splitter-name">${escapeHtml(spl)}</div>
-              <div class="splitter-date">Aggiornato: ${escapeHtml(db[pfs][spl]?.updatedAt || '—')}</div>
-              ${db[pfs][spl]?.tecnico ? `<span class="splitter-tech"><svg width="11" height="11"><use href="#i-user"/></svg>${escapeHtml(db[pfs][spl].tecnico)}</span>` : ''}
+            <div class="split-head">
+              ${photoSrc(db[pfs][spl]) ? `<button type="button" class="split-thumb" data-act="photo" aria-label="Foto"><img src="${escapeHtml(photoSrc(db[pfs][spl]))}" alt="" loading="lazy"></button>` : ''}
+              <div>
+                <div class="splitter-name">${escapeHtml(spl)}</div>
+                <div class="splitter-date">Aggiornato: ${escapeHtml(db[pfs][spl]?.updatedAt || '—')}</div>
+                ${db[pfs][spl]?.tecnico ? `<span class="splitter-tech"><svg width="11" height="11"><use href="#i-user"/></svg>${escapeHtml(db[pfs][spl].tecnico)}</span>` : ''}
+                ${hasPending('rib', pfs, spl) ? '<span class="pend">⏳ da inviare</span>' : ''}
+              </div>
             </div>
             <div class="splitter-actions">
               <button type="button" class="btn-xs" data-act="load"><svg><use href="#i-eye"/></svg> Apri</button>
               <button type="button" class="btn-xs" data-act="copy"><svg><use href="#i-copy"/></svg> Copia</button>
               <button type="button" class="btn-xs" data-act="share" aria-label="Condividi"><svg><use href="#i-share"/></svg></button>
               <button type="button" class="btn-xs" data-act="export" aria-label="PDF o Excel"><svg><use href="#i-file"/></svg></button>
+              <button type="button" class="btn-xs" data-act="history" aria-label="Storico"><svg><use href="#i-clock"/></svg></button>
               <button type="button" class="btn-xs danger" data-act="delete" aria-label="Elimina"><svg><use href="#i-x"/></svg></button>
             </div>
           </div>`).join('');
@@ -2196,7 +2483,9 @@
                 <button type="button" class="btn-xs" data-act="folder-pdf"><svg><use href="#i-file"/></svg> PDF</button>
                 <button type="button" class="btn-xs" data-act="folder-xls"><svg><use href="#i-table"/></svg> Excel</button>
                 <button type="button" class="btn-xs" data-act="folder-share"><svg><use href="#i-share"/></svg> Condividi</button>
+                ${positions[pfs] ? '<button type="button" class="btn-xs pos-chip" data-act="folder-nav"><svg><use href="#i-nav"/></svg> Naviga</button>' : '<button type="button" class="btn-xs" data-act="folder-pos"><svg><use href="#i-pin"/></svg> Posizione</button>'}
               </div>
+              ${(() => { const st = folderStats(db, pfs); return `<div class="folder-stats"><span class="ok">${st.withId}/${st.total} con ID</span>${st.noIdr ? `<span class="warn">${st.noIdr} NO IDR</span>` : ''}${st.empty ? `<span>${st.empty} vuoti</span>` : ''}</div>`; })()}
               ${items}
             </div></div></div>
           </div>`;
@@ -2219,6 +2508,7 @@
         }
       });
       refreshRibProgress();
+      setRibPhotoFromItem(item);
       setInvalid('ribPfsInput', ''); setInvalid('ribSplitterInput', '');
       if (focusOttico >= 1 && focusOttico <= 16) {
         const row = $(`ribRow${focusOttico}`);
@@ -2259,19 +2549,16 @@
       const ok = await confirmBox('Elimina ribattitura', `Eliminare definitivamente lo splitter ${splitter} dal PFS ${pfs}?`, 'Elimina', true);
       if (!ok) return;
       const db = getRibattitureData();
-      if (db[pfs] && db[pfs][splitter]) {
-        delete db[pfs][splitter];
-        if (!Object.keys(db[pfs]).length) delete db[pfs];
-        saveRibattitureData(db);
-        loadRibattitureArchive();
-        if (scriptVersion >= 2) {
-          try {
-            await postToSheets({ action: 'delete', pfs, splitter });
-            toast('Ribattitura eliminata anche da Google Sheets.');
-          } catch (e) { toast('Eliminata in locale, ma Google Sheets non è raggiungibile.', 'error', 4000); }
-        } else {
-          toast('Eliminata in locale. Installa lo script v2 per eliminarla anche da Google Sheets.', 'info', 4500);
-        }
+      if (!db[pfs] || !db[pfs][splitter]) return;
+      delete db[pfs][splitter];
+      if (!Object.keys(db[pfs]).length) delete db[pfs];
+      saveRibattitureData(db);
+      loadRibattitureArchive();
+      if (scriptVersion >= 2) {
+        enqueue({ action: 'delete', pfs, splitter, tecnico: getTecnico() });
+        toast('Ribattitura eliminata, anche da Google Sheets.');
+      } else {
+        toast('Eliminata in locale. Installa lo script v2 per eliminarla anche da Google Sheets.', 'info', 4500);
       }
     }
 
@@ -2291,6 +2578,7 @@
       $('ribPfsInput').value = ''; $('ribSplitterInput').value = '';
       for (let i = 1; i <= 16; i++) { $(`ribPte${i}`).value = ''; $(`ribFibra${i}`).value = ''; }
       refreshRibProgress();
+      clearRibPhoto();
     }
 
     /* ---------- GENERATORE BARCODE CODE 128 ---------- */
@@ -2513,7 +2801,7 @@
             <input id="techAsk" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI">
           </div>`,
         okText: 'Salva nome', cancelText: 'Salta',
-        onOpen: () => setTimeout(() => $('techAsk')?.focus(), 50)
+        onOpen: () => setTimeout(() => { if (!$('modal').contains(document.activeElement)) $('techAsk')?.focus(); }, 50)
       });
       setTecnico(ok ? ($('techAsk')?.value || '') : '');
       return getTecnico();
@@ -2522,59 +2810,6 @@
     /* ---------- Script Google Sheets ---------- */
     function setScriptVersion(v) { scriptVersion = v; lsSet(SCRIPT_VER_KEY, String(v)); }
     function loadScriptVersion() { scriptVersion = Number(lsGet(SCRIPT_VER_KEY, '1')) || 1; }
-
-    /** Invia dati allo script. no-cors: Apps Script non restituisce intestazioni CORS, la risposta non è leggibile. */
-    function postToSheets(payload) {
-      return fetch(GOOGLE_SHEET_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-    }
-
-    async function uploadWholeArchive() {
-      const db = getRibattitureData();
-      const list = [];
-      Object.keys(db).forEach(p => Object.keys(db[p]).forEach(s => list.push([p, s, db[p][s]])));
-      if (!list.length) { toast('L’archivio è vuoto.', 'info'); return; }
-      const ok = await confirmBox('Invia tutto a Google Sheets', `Verranno inviate ${list.length} ribattiture. Quelle già presenti sul foglio saranno aggiornate.`, 'Invia');
-      if (!ok) return;
-      let sent = 0;
-      try {
-        for (const [pfs, splitter, item] of list) {
-          await postToSheets({ action: 'save', pfs, splitter, timestamp: item.updatedAt || '', tecnico: item.tecnico || '', ottici: item.ottici || [] });
-          sent++;
-        }
-        toast(`${sent} ribattiture inviate a Google Sheets.`);
-      } catch (e) {
-        toast(`Invio interrotto dopo ${sent} su ${list.length}: controlla la connessione.`, 'error', 4500);
-      }
-    }
-
-    async function openSettings() {
-      const v2 = scriptVersion >= 2;
-      const ok = await openModal({
-        title: 'Impostazioni',
-        bodyHtml: `
-          <div class="field-group">
-            <label class="field-label" for="setTech">Nome tecnico</label>
-            <input id="setTech" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI" value="${escapeHtml(getTecnico())}">
-          </div>
-          <hr>
-          <div class="field-group">
-            <span class="field-label">Google Sheets</span>
-            <div class="status-line ${v2 ? 'ok' : 'warn'}"><span class="dot"></span>${v2 ? 'Script v2 attivo: salvataggi, tecnico ed eliminazioni sincronizzati' : 'Script originale: le eliminazioni restano solo sul telefono'}</div>
-            ${v2 ? '' : `<p class="small">Per sincronizzare anche eliminazioni e nome tecnico installa lo script v2: <a href="${REPO_URL}#script-google-sheets-v2" target="_blank" rel="noopener">istruzioni</a>.</p>`}
-            <button type="button" class="btn-secondary" id="setUpload" style="margin-top:6px"><svg><use href="#i-cloud"/></svg> Invia tutto l’archivio a Sheets</button>
-          </div>
-          <hr>
-          <p class="small">Fiber Tools • <a href="${REPO_URL}" target="_blank" rel="noopener">codice su GitHub</a></p>`,
-        okText: 'Salva', cancelText: 'Chiudi',
-        onOpen: () => $('setUpload').addEventListener('click', () => { closeModal(false); uploadWholeArchive(); })
-      });
-      if (ok) { setTecnico($('setTech')?.value || ''); toast(getTecnico() ? `Nome tecnico: ${getTecnico()}` : 'Nome tecnico rimosso.', 'info'); }
-    }
 
     /* ---------- Ricerca per ID / permuta ---------- */
     function markMatch(text, q) {
@@ -2980,6 +3215,980 @@
       });
     }
 
+    /* =====================================================================
+       V3: comunicazione con Google Sheets, coda offline, codice squadra,
+       PFS Qui (posizioni per anello), budget ottico, foto, storico,
+       backup, controlli duplicati
+       ===================================================================== */
+    const QUEUE_KEY = 'fiber_tools_queue';
+    const TEAM_KEY_LS = 'fiber_tools_team_key';
+    const POS_KEY = 'fiber_tools_pfs_pos';
+    let queueBusy = false;
+    let corsOk = null;            // null = non ancora verificato
+    class AuthError extends Error { constructor(msg, code) { super(msg); this.code = code || 'auth'; } }
+    class NetError extends Error {}
+
+    const getTeamKey = () => (lsGet(TEAM_KEY_LS, '') || '').trim();
+    const nowStamp = () => { const d = new Date(); return d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); };
+
+    /* ---------- Comunicazione con lo script ---------- */
+    function sheetsUrl(params = {}) {
+      const u = new URL(GOOGLE_SHEET_WEB_APP_URL);
+      const k = getTeamKey();
+      if (k) u.searchParams.set('key', k);
+      Object.entries(params).forEach(([a, b]) => u.searchParams.set(a, b));
+      return u.toString();
+    }
+
+    async function fetchWithTimeout(url, opts = {}, ms = 20000) {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), ms);
+      try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
+      finally { clearTimeout(t); }
+    }
+
+    async function sheetsGet(params) {
+      let res;
+      try { res = await fetchWithTimeout(sheetsUrl(params)); }
+      catch (e) { throw new NetError(e.message); }
+      let json;
+      try { json = await res.json(); } catch (e) { throw new Error('Risposta non valida da Google Sheets'); }
+      corsOk = true;
+      if (json && json.status === 'error' && (json.code === 'auth' || json.code === 'admin')) throw new AuthError(json.message, json.code);
+      return json;
+    }
+
+    /** POST allo script. Legge la risposta quando possibile; altrimenti invia "alla cieca" (no-cors). */
+    async function sheetsPost(payload) {
+      const body = JSON.stringify(getTeamKey() ? { ...payload, key: getTeamKey() } : payload);
+      const blind = async () => {
+        try {
+          await fetchWithTimeout(GOOGLE_SHEET_WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body }, 60000);
+          return { confirmed: false, data: null };
+        } catch (e) { throw new NetError(e.message); }
+      };
+      if (corsOk === false) return blind();
+      let res;
+      try {
+        res = await fetchWithTimeout(GOOGLE_SHEET_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body }, 60000);
+      } catch (e) {
+        if (corsOk === true) throw new NetError(e.message);       // CORS funziona: è la rete che manca
+        const r = await blind();                                   // CORS mai verificato: riprova senza
+        corsOk = false;
+        return r;
+      }
+      let json = null;
+      try { json = await res.json(); } catch (e) { /* script vecchio: risposta non JSON */ }
+      if (json && json.status === 'error') {
+        if (json.code === 'auth' || json.code === 'admin') throw new AuthError(json.message, json.code);
+        const err = new Error(json.message || 'Errore dello script'); err.server = true; throw err;
+      }
+      return { confirmed: !!json, data: json };
+    }
+
+    // Compatibilità con il resto del codice
+    function postToSheets(payload) { return sheetsPost(payload); }
+
+    /* ---------- Coda di invio (funziona anche senza rete) ---------- */
+    function getQueue() { try { const q = JSON.parse(lsGet(QUEUE_KEY, '[]')); return Array.isArray(q) ? q : []; } catch (e) { return []; } }
+    function setQueue(q) {
+      try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); }
+      catch (e) { toast('Memoria del telefono piena: elimina qualche foto in attesa.', 'error', 5000); }
+      updateQueueUI();
+    }
+    const qKind = p => /Pos$/.test(p.action) ? 'pos' : 'rib';
+    const qKey = p => `${qKind(p)}:${p.pfs}|${p.splitter || ''}`;
+    const hasPending = (kind, pfs, spl = '') => getQueue().some(it => qKey(it.payload) === `${kind}:${pfs}|${spl}`);
+
+    function enqueue(payload) {
+      const key = qKey(payload);
+      const q = getQueue();
+      const old = q.find(it => qKey(it.payload) === key);
+      // l'ultima operazione sulla stessa voce sostituisce le precedenti, senza perdere una foto non ancora inviata
+      if (old && old.payload.photo && !payload.photo && /^save/.test(payload.action) && !payload.removePhoto) payload.photo = old.payload.photo;
+      const next = q.filter(it => qKey(it.payload) !== key);
+      next.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2, 7), payload, at: Date.now(), tries: 0 });
+      setQueue(next);
+      return processQueue();
+    }
+
+    /** Messaggio dopo il tentativo d'invio: dice cosa è successo davvero. */
+    function reportSend(r, what) {
+      if (r && r.sent && !hasPending(...what.key)) toast(`${what.label} e inviata a Google Sheets.`);
+      else if (r && r.stopped === 'net' || navigator.onLine === false) toast(`${what.label} sul telefono. Senza rete: la invio appena torna la connessione.`, 'info', 4500);
+      else if (r && (r.stopped === 'auth' || r.stopped === 'admin')) { /* avviso già mostrato */ }
+      else toast(`${what.label}.`);
+    }
+
+    function updateQueueUI() {
+      const q = getQueue();
+      const pill = $('queuePill');
+      if (!pill) return;
+      pill.hidden = !q.length;
+      $('queueText').textContent = queueBusy ? `Invio in corso… (${q.length})` : `${q.length} ${q.length === 1 ? 'modifica' : 'modifiche'} in attesa di rete`;
+      $('queueIcon').classList.toggle('spin', queueBusy);
+    }
+
+    function markSynced(payload, data) {
+      if (payload.action === 'save') {
+        const db = getRibattitureData();
+        const it = db[payload.pfs]?.[payload.splitter];
+        if (it && it.updatedAt === payload.timestamp) {
+          it.synced = data ? true : 'blind'; delete it.photoPending;
+          if (data && data.fotoId) it.fotoId = data.fotoId;
+          saveRibattitureData(db);
+        }
+      } else if (payload.action === 'savePos') {
+        const all = getPositions();
+        const it = all[payload.pfs];
+        if (it && it.updatedAt === payload.timestamp) {
+          it.synced = data ? true : 'blind'; delete it.photoPending;
+          if (data && data.fotoId) it.fotoId = data.fotoId;
+          savePositions(all);
+        }
+      }
+    }
+
+    async function processQueue(manual = false) {
+      if (queueBusy) return;
+      if (!getQueue().length) { updateQueueUI(); return; }
+      if (navigator.onLine === false && !manual) { updateQueueUI(); return; }
+      queueBusy = true; updateQueueUI();
+      let sent = 0, waitingAdmin = 0, stopped = null;
+      try {
+        for (const item of getQueue()) {
+          const p = { ...item.payload };
+          if (/^delete/.test(p.action)) {
+            if (!adminSecret) { waitingAdmin++; continue; }
+            p.adminKey = adminSecret;
+          }
+          try {
+            const r = await sheetsPost(p);
+            setQueue(getQueue().filter(x => x.id !== item.id));
+            markSynced(item.payload, r.data);
+            sent++;
+          } catch (e) {
+            if (e instanceof NetError) { stopped = 'net'; break; }
+            if (e instanceof AuthError) { stopped = e.code; break; }
+            // errore dello script: riprova al massimo 3 volte, poi scarta
+            const q = getQueue(); const cur = q.find(x => x.id === item.id);
+            if (cur) { cur.tries = (cur.tries || 0) + 1; if (cur.tries >= 3) { q.splice(q.indexOf(cur), 1); toast(`Google Sheets ha rifiutato una modifica (${item.payload.pfs}): ${e.message}`, 'error', 5000); } setQueue(q); }
+          }
+        }
+      } finally {
+        queueBusy = false; updateQueueUI();
+      }
+      if (stopped === 'auth') toast('Codice squadra mancante o errato: impostalo in ⚙️ Impostazioni.', 'error', 5000);
+      else if (stopped === 'admin') toast('Lo script ha rifiutato la password admin: controlla ADMIN_KEY nello script.', 'error', 5000);
+      else if (stopped === 'net' && manual) toast('Ancora senza rete: riproverò in automatico.', 'info');
+      if (waitingAdmin && manual) toast('Accedi come Admin per completare le eliminazioni in attesa.', 'info', 4000);
+      if (sent && $('ribattituraScreen').classList.contains('active')) loadRibattitureArchive();
+      if (sent && $('pfsPosScreen').classList.contains('active')) renderPositions();
+      return { sent, stopped };
+    }
+
+    /* ---------- Sincronizzazione (ribattiture + posizioni) ---------- */
+    function mergeRemoteRib(remoteRaw) {
+      const remote = normalizeRibDb(remoteRaw);
+      const local = getRibattitureData();
+      Object.keys(remote).forEach(p => Object.keys(remote[p]).forEach(s => {
+        if (hasPending('rib', p, s)) return;
+        const prev = local[p]?.[s];
+        const next = { ...remote[p][s], synced: true };
+        if (prev && prev.thumb && prev.fotoId && prev.fotoId === next.fotoId) next.thumb = prev.thumb;
+        (local[p] = local[p] || {})[s] = next;
+      }));
+      if (scriptVersion >= 2) {
+        // rimuove le voci già sincronizzate che sul foglio non esistono più (eliminate dall'admin)
+        Object.keys(local).forEach(p => {
+          Object.keys(local[p]).forEach(s => {
+            if (local[p][s]?.synced === true && !remote[p]?.[s] && !hasPending('rib', p, s)) delete local[p][s];
+          });
+          if (!Object.keys(local[p]).length) delete local[p];
+        });
+        // voci mai inviate (salvate prima dello script v2 o con invio fallito): le mette in coda
+        Object.keys(local).forEach(p => Object.keys(local[p]).forEach(s => {
+          const it = local[p][s];
+          if (it.synced !== true && !hasPending('rib', p, s)) {
+            enqueue({ action: 'save', pfs: p, splitter: s, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], fotoId: it.fotoId || '' });
+          }
+        }));
+      }
+      saveRibattitureData(local);
+    }
+
+    function mergeRemotePos(remoteRaw) {
+      const remote = normalizePositions(remoteRaw);
+      const local = getPositions();
+      Object.keys(remote).forEach(k => {
+        if (hasPending('pos', k)) return;
+        const prev = local[k];
+        const next = { ...remote[k], synced: true };
+        if (prev && prev.thumb && prev.fotoId && prev.fotoId === next.fotoId) next.thumb = prev.thumb;
+        local[k] = next;
+      });
+      Object.keys(local).forEach(k => {
+        const it = local[k];
+        if (it.synced === true && !remote[k] && !hasPending('pos', k)) delete local[k];
+        else if (it.synced !== true && !remote[k] && !hasPending('pos', k)) enqueue(posPayload(it));
+      });
+      savePositions(local);
+    }
+
+    async function syncFromGoogleSheets(silent = false) {
+      if (syncing) return;
+      setSyncing(true);
+      $('archiveCountBadge').innerHTML = `<svg class="spin"><use href="#i-sync"/></svg> Sincronizzazione…`;
+      if (!Object.keys(getRibattitureData()).length) $('pfsArchiveContainer').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      try {
+        await processQueue();
+        const json = await sheetsGet();
+        if (json && json.status === 'success' && json.data && typeof json.data === 'object') {
+          setScriptVersion(Number(json.version) || 1);
+          mergeRemoteRib(json.data);
+          if (json.positions && typeof json.positions === 'object') mergeRemotePos(json.positions);
+          if (!silent) toast('Archivio aggiornato da Google Sheets.');
+        } else if (!silent) {
+          toast('Google Sheets non ha restituito dati validi.', 'error');
+        }
+      } catch (err) {
+        console.error('Errore sincronizzazione:', err);
+        if (err instanceof AuthError) toast('Codice squadra mancante o errato: impostalo in ⚙️ Impostazioni.', 'error', 5000);
+        else toast(silent ? 'Offline: mostro l’archivio locale.' : 'Sincronizzazione fallita. Archivio locale mostrato.', silent ? 'info' : 'error');
+      } finally {
+        setSyncing(false);
+        loadRibattitureArchive();
+        if ($('pfsPosScreen').classList.contains('active')) renderPositions();
+      }
+    }
+
+    async function uploadWholeArchive() {
+      const db = getRibattitureData();
+      const list = [];
+      Object.keys(db).forEach(p => Object.keys(db[p]).forEach(s => list.push([p, s, db[p][s]])));
+      const pos = Object.values(getPositions());
+      if (!list.length && !pos.length) { toast('L’archivio è vuoto.', 'info'); return; }
+      const ok = await confirmBox('Invia tutto a Google Sheets', `Verranno inviate ${list.length} ribattiture${pos.length && scriptVersion >= 3 ? ` e ${pos.length} posizioni PFS` : ''}. Quelle già presenti sul foglio saranno aggiornate.`, 'Invia');
+      if (!ok) return;
+      list.forEach(([pfs, splitter, it]) => enqueue({ action: 'save', pfs, splitter, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], fotoId: it.fotoId || '' }));
+      if (scriptVersion >= 3) pos.forEach(it => enqueue(posPayload(it)));
+      toast('Invio avviato: segui l’avanzamento nella barra in alto.', 'info');
+    }
+
+    /* ---------- Controlli duplicati ---------- */
+    const isRealId = v => v && v !== 'NO IDR' && v !== '-';
+
+    /** Restituisce l'elenco degli avvisi e segna le righe coinvolte. */
+    function checkRibDuplicates() {
+      const warnings = [];
+      const rows = {};
+      if (!$('ribRow1')) return warnings;
+      const ott = collectOttici().map(o => ({ ...o, pte: o.pte.toUpperCase(), fibra: o.fibra.toUpperCase() }));
+      const curPfs = $('ribPfsInput').value.trim().toUpperCase(), curSpl = $('ribSplitterInput').value.trim().toUpperCase();
+      const group = (field, label) => {
+        const map = {};
+        ott.forEach(o => { if (isRealId(o[field])) (map[o[field]] = map[o[field]] || []).push(o.ottico); });
+        Object.entries(map).forEach(([v, list]) => {
+          if (list.length > 1) { warnings.push(`${label} ${v} ${field === 'pte' ? 'ripetuta' : 'ripetuto'} agli ottici ${list.join(', ')}`); list.forEach(n => rows[n] = true); }
+        });
+      };
+      group('fibra', 'ID');
+      group('pte', 'Permuta');
+      // stesso ID già usato in un altro splitter dell'archivio
+      const db = getRibattitureData();
+      const index = {};
+      Object.keys(db).forEach(p => Object.keys(db[p]).forEach(s => {
+        if (p === curPfs && s === curSpl) return;
+        (db[p][s]?.ottici || []).forEach(o => { const id = String(o.fibra || '').toUpperCase(); if (isRealId(id) && !index[id]) index[id] = `${p} → ${s} (ottico ${o.ottico})`; });
+      }));
+      ott.forEach(o => {
+        if (isRealId(o.fibra) && index[o.fibra]) { warnings.push(`ID ${o.fibra} già usato in ${index[o.fibra]}`); rows[o.ottico] = true; }
+      });
+      for (let i = 1; i <= 16; i++) $(`ribRow${i}`).classList.toggle('dup', !!rows[i]);
+      const box = $('ribDupBox');
+      box.hidden = !warnings.length;
+      box.innerHTML = warnings.length ? `<b>⚠️ Controlla:</b><ul>${warnings.slice(0, 6).map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul>${warnings.length > 6 ? `<small>…e altri ${warnings.length - 6}</small>` : ''}` : '';
+      return warnings;
+    }
+
+    /** Riepilogo di una cartella PFS: ottici con ID, NO IDR, vuoti. */
+    function folderStats(db, pfs) {
+      let withId = 0, noIdr = 0, empty = 0, total = 0;
+      Object.values(db[pfs] || {}).forEach(it => {
+        const byNum = {};
+        (it?.ottici || []).forEach(o => { byNum[Number(o.ottico)] = o; });
+        for (let n = 1; n <= 16; n++) {
+          const o = byNum[n] || {}; total++;
+          if (isRealId(String(o.fibra || '').toUpperCase())) withId++;
+          else if (o.pte) noIdr++;
+          else empty++;
+        }
+      });
+      return { withId, noIdr, empty, total };
+    }
+
+    /* ---------- Foto (compressione + anteprima) ---------- */
+    function loadImage(file) {
+      return new Promise((res, rej) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => { URL.revokeObjectURL(url); res(img); };
+        img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Immagine non leggibile')); };
+        img.src = url;
+      });
+    }
+    function resizeTo(img, max, quality) {
+      const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      return c.toDataURL('image/jpeg', quality);
+    }
+    async function processPhoto(file) {
+      const img = await loadImage(file);
+      return { data: resizeTo(img, 1280, 0.72), thumb: resizeTo(img, 240, 0.6) };
+    }
+    const driveThumb = (id, w = 600) => `https://drive.google.com/thumbnail?id=${encodeURIComponent(id)}&sz=w${w}`;
+    const driveView = id => `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
+    const photoSrc = it => it?.thumb || (it?.fotoId ? driveThumb(it.fotoId, 300) : '');
+
+    function viewPhoto(it, title) {
+      if (!it) return;
+      const src = it.fotoId ? driveThumb(it.fotoId, 1200) : it.thumb;
+      if (!src) return;
+      openModal({
+        title: title || 'Foto',
+        bodyHtml: `<img src="${escapeHtml(src)}" alt="" style="width:100%;border-radius:12px;display:block">
+          ${it.fotoId ? `<p class="small" style="margin-top:8px"><a href="${driveView(it.fotoId)}" target="_blank" rel="noopener">Apri su Google Drive</a></p>` : '<p class="small" style="margin-top:8px">Anteprima: la foto completa sarà su Google Drive dopo l’invio.</p>'}`,
+        okText: 'Chiudi', cancelText: 'Indietro'
+      });
+    }
+
+    // Foto della ribattitura in compilazione
+    let ribPhoto = { data: null, thumb: '', fotoId: '' };
+    function renderRibPhoto() {
+      const src = ribPhoto.thumb || (ribPhoto.fotoId ? driveThumb(ribPhoto.fotoId, 300) : '');
+      $('ribPhotoPreview').hidden = !src;
+      $('ribPhotoImg').src = src || '';
+      $('ribPhotoBtnText').textContent = src ? 'Cambia foto' : 'Aggiungi foto splitter';
+      $('ribPhotoState').textContent = ribPhoto.data ? 'Da inviare' : (ribPhoto.fotoId ? 'Su Google Drive' : 'Solo sul telefono');
+    }
+    function setRibPhotoFromItem(item) { ribPhoto = { data: null, thumb: item?.thumb || '', fotoId: item?.fotoId || '' }; renderRibPhoto(); }
+    function clearRibPhoto() { ribPhoto = { data: null, thumb: '', fotoId: '' }; renderRibPhoto(); }
+
+    /* ---------- Storico modifiche ---------- */
+    async function showHistory(pfs, splitter, kindLabel) {
+      if (scriptVersion < 3) { toast('Lo storico è disponibile con lo script Google v3 (vedi README).', 'info', 4000); return; }
+      let json;
+      try { json = await sheetsGet({ action: 'history', pfs, splitter: splitter || '' }); }
+      catch (e) { toast(e instanceof AuthError ? 'Codice squadra errato.' : 'Storico non disponibile senza rete.', 'error'); return; }
+      const rows = Array.isArray(json?.history) ? json.history : [];
+      openModal({
+        title: `Storico ${kindLabel || ''}`.trim(),
+        bodyHtml: `<p class="small" style="margin-bottom:8px">${escapeHtml(pfs)}${splitter ? ' → ' + escapeHtml(splitter) : ''}</p>` +
+          (rows.length ? `<div class="hist">${rows.map(r => `
+            <div class="hist-row">
+              <div class="hist-top"><b>${escapeHtml(r.azione || '')}</b><span>${escapeHtml(r.data || '')}</span></div>
+              <div class="hist-who">${r.tecnico ? '👤 ' + escapeHtml(r.tecnico) : 'Tecnico non indicato'}</div>
+              ${r.dettaglio ? `<div class="hist-det">${escapeHtml(r.dettaglio)}</div>` : ''}
+            </div>`).join('')}</div>` : '<div class="empty-state">Nessuna modifica registrata.</div>'),
+        okText: 'Chiudi', cancelText: 'Indietro'
+      });
+    }
+
+    /* ---------- Backup e ripristino ---------- */
+    function downloadBackup() {
+      const backup = {
+        app: 'fiber-tools', formato: 1, creato: new Date().toISOString(),
+        tecnico: getTecnico(),
+        ribattiture: getRibattitureData(),
+        posizioni: getPositions(),
+        barcode: getRecentBarcodes()
+      };
+      const d = new Date();
+      const name = `FiberTools_backup_${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`;
+      downloadBlob(new Blob([JSON.stringify(backup, null, 1)], { type: 'application/json' }), name);
+      toast('Backup scaricato: conservalo in Drive o inviatelo per email.');
+    }
+
+    async function restoreBackup(file) {
+      if (!file) return;
+      let b;
+      try { b = JSON.parse(await file.text()); } catch (e) { toast('File non valido.', 'error'); return; }
+      if (!b || b.app !== 'fiber-tools') { toast('Questo file non è un backup di Fiber Tools.', 'error'); return; }
+      const rib = normalizeRibDb(b.ribattiture || {}), pos = normalizePositions(b.posizioni || {});
+      const nRib = Object.values(rib).reduce((a, x) => a + Object.keys(x).length, 0), nPos = Object.keys(pos).length;
+      const ok = await confirmBox('Ripristina backup', `Il backup del ${b.creato ? new Date(b.creato).toLocaleString('it-IT') : '—'} contiene ${nRib} ribattiture e ${nPos} posizioni PFS. Le voci mancanti verranno aggiunte; quelle già presenti sul telefono restano invariate.`, 'Ripristina');
+      if (!ok) return;
+      const db = getRibattitureData(); let addR = 0, addP = 0;
+      Object.keys(rib).forEach(p => Object.keys(rib[p]).forEach(s => {
+        if (!db[p]?.[s]) { const it = { ...rib[p][s] }; delete it.synced; (db[p] = db[p] || {})[s] = it; addR++; }
+      }));
+      saveRibattitureData(db);
+      const all = getPositions();
+      Object.keys(pos).forEach(k => { if (!all[k]) { const it = { ...pos[k] }; delete it.synced; all[k] = it; addP++; } });
+      savePositions(all);
+      if (b.tecnico && !getTecnico()) setTecnico(b.tecnico);
+      if (Array.isArray(b.barcode) && !getRecentBarcodes().length) lsSet(BC_RECENT_KEY, JSON.stringify(b.barcode.slice(0, 8)));
+      toast(`Ripristinate ${addR} ribattiture e ${addP} posizioni.`);
+      if ($('ribattituraScreen').classList.contains('active')) loadRibattitureArchive();
+      if ($('pfsPosScreen').classList.contains('active')) renderPositions();
+    }
+
+    /* ---------- Impostazioni ---------- */
+    async function openSettings() {
+      const v = scriptVersion;
+      const status = v >= 3 ? ['ok', 'Script v3 attivo: ribattiture, posizioni PFS, foto, storico ed eliminazioni sincronizzati']
+        : v >= 2 ? ['warn', 'Script v2: manca il supporto a posizioni PFS, foto e storico']
+        : ['warn', 'Script originale: eliminazioni, posizioni e foto restano solo sul telefono'];
+      const nQ = getQueue().length;
+      const ok = await openModal({
+        title: 'Impostazioni',
+        bodyHtml: `
+          <div class="field-group">
+            <label class="field-label" for="setTech">Nome tecnico</label>
+            <input id="setTech" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI" value="${escapeHtml(getTecnico())}">
+          </div>
+          <div class="field-group" style="margin-top:10px">
+            <label class="field-label" for="setTeam">Codice squadra</label>
+            <div class="stepper">
+              <input id="setTeam" type="password" class="custom-input" style="text-align:left" autocomplete="off" placeholder="Fornito dal responsabile" value="${escapeHtml(getTeamKey())}">
+              <button type="button" class="step-btn" id="setTeamShow" aria-label="Mostra codice"><svg width="18" height="18"><use href="#i-eye"/></svg></button>
+            </div>
+            <span class="small" style="color:var(--muted)">Serve per leggere e scrivere sul foglio Google quando è protetto.</span>
+          </div>
+          <hr>
+          <div class="field-group">
+            <span class="field-label">Google Sheets</span>
+            <div class="status-line ${status[0]}"><span class="dot"></span>${status[1]}</div>
+            ${v < 3 ? `<p class="small">Installa lo script v3: <a href="${REPO_URL}#script-google-sheets-v3" target="_blank" rel="noopener">istruzioni</a>.</p>` : ''}
+            <div class="status-line ${nQ ? 'warn' : 'ok'}"><span class="dot"></span>${nQ ? `${nQ} modifiche in attesa di invio` : 'Nessuna modifica in attesa'}</div>
+            <button type="button" class="btn-secondary" id="setUpload" style="margin-top:6px"><svg><use href="#i-cloud"/></svg> Invia tutto l’archivio a Sheets</button>
+          </div>
+          <hr>
+          <div class="field-group">
+            <span class="field-label">Backup</span>
+            <div class="grid-2" style="margin-bottom:0">
+              <button type="button" class="btn-secondary" id="setBackup"><svg><use href="#i-download"/></svg> Scarica</button>
+              <button type="button" class="btn-secondary" id="setRestore"><svg><use href="#i-sync"/></svg> Ripristina</button>
+            </div>
+            <input type="file" id="setRestoreFile" accept="application/json,.json" hidden>
+            <span class="small" style="color:var(--muted)">Salva ribattiture, posizioni PFS e impostazioni in un file, utile per cambiare telefono.</span>
+          </div>
+          <hr>
+          <p class="small">Fiber Tools • <a href="${REPO_URL}" target="_blank" rel="noopener">codice su GitHub</a></p>`,
+        okText: 'Salva', cancelText: 'Chiudi',
+        onOpen: () => {
+          $('setUpload').addEventListener('click', () => { closeModal(false); uploadWholeArchive(); });
+          $('setBackup').addEventListener('click', downloadBackup);
+          $('setRestore').addEventListener('click', () => $('setRestoreFile').click());
+          $('setRestoreFile').addEventListener('change', e => { const f = e.target.files[0]; closeModal(false); restoreBackup(f); });
+          $('setTeamShow').addEventListener('click', () => { const i = $('setTeam'); i.type = i.type === 'password' ? 'text' : 'password'; });
+        }
+      });
+      if (ok) {
+        const oldKey = getTeamKey();
+        setTecnico($('setTech')?.value || '');
+        lsSet(TEAM_KEY_LS, ($('setTeam')?.value || '').trim());
+        toast('Impostazioni salvate.', 'info');
+        if (getTeamKey() !== oldKey) { processQueue(true); if ($('ribattituraScreen').classList.contains('active')) syncFromGoogleSheets(); }
+      }
+    }
+
+    /* =====================================================================
+       BUDGET OTTICO
+       ===================================================================== */
+    const SPLIT_LOSS = { '0': 0, '2': 3.7, '4': 7.3, '8': 10.5, '16': 13.7, '32': 17.1, '64': 20.5 };
+    const WAVE_COEF = { '1310': 0.35, '1490': 0.25, '1550': 0.22 };
+    const GPON_CLASS = { 'B+': { txMin: 1.5, txMax: 5, sens: -28, over: -8 }, 'C+': { txMin: 3, txMax: 7, sens: -32, over: -12 } };
+    const num = (id, d = 0) => { const v = parseFloat(String($(id).value).replace(',', '.')); return isFinite(v) ? v : d; };
+    const fmtDb = v => (Math.sign(v) * Math.round(Math.abs(v) * 100 + 1e-9) / 100).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function applyWave() { const w = $('bgWave').value; if (WAVE_COEF[w] !== undefined) $('bgCoef').value = String(WAVE_COEF[w]).replace('.', ','); }
+    function applyClass() {
+      const c = GPON_CLASS[$('bgClass').value];
+      if (!c) return;
+      $('bgTxMin').value = String(c.txMin).replace('.', ','); $('bgTxMax').value = String(c.txMax).replace('.', ',');
+      $('bgSens').value = String(c.sens); $('bgOver').value = String(c.over);
+    }
+
+    function calcBudget() {
+      const km = Math.max(0, num('bgKm')), coef = num('bgCoef', 0.35);
+      const nSp = Math.max(0, Math.round(num('bgSplices'))), spLoss = num('bgSpliceLoss', 0.1);
+      const nCo = Math.max(0, Math.round(num('bgConn'))), coLoss = num('bgConnLoss', 0.5);
+      const s1 = SPLIT_LOSS[$('bgSpl1').value] || 0, s2 = SPLIT_LOSS[$('bgSpl2').value] || 0;
+      const margin = Math.max(0, num('bgMargin'));
+      const parts = [
+        { k: 'Fibra', v: km * coef, c: '#0ea5e9' },
+        { k: 'Giunti', v: nSp * spLoss, c: '#8b5cf6' },
+        { k: 'Connettori', v: nCo * coLoss, c: '#f59e0b' },
+        { k: 'Splitter', v: s1 + s2, c: '#ef4444' },
+        { k: 'Margine', v: margin, c: '#64748b' }
+      ];
+      const total = parts.reduce((a, p) => a + p.v, 0);
+      // sensibilità e saturazione sono sempre negative: il segno meno è automatico
+      const txMin = num('bgTxMin', 1.5), txMax = num('bgTxMax', 5), sens = -Math.abs(num('bgSens', -28)), over = -Math.abs(num('bgOver', -8));
+      const rxMin = txMin - total, rxMax = txMax - total;
+      const reserve = rxMin - sens;
+
+      $('bgTotal').textContent = fmtDb(total);
+      $('bgRx').textContent = `${fmtDb(rxMin)} / ${fmtDb(rxMax)} dBm`;
+      $('bgBar').innerHTML = total > 0 ? parts.filter(p => p.v > 0).map(p => `<span style="flex:${p.v};background:${p.c}" title="${p.k}: ${fmtDb(p.v)} dB"></span>`).join('') : '<span style="flex:1;background:var(--border)"></span>';
+      $('bgLegend').innerHTML = parts.map(p => `<span><i style="background:${p.c}"></i>${p.k} <b>${fmtDb(p.v)}</b></span>`).join('');
+
+      const verdict = $('bgVerdict');
+      let cls, text;
+      if (rxMax > over) { cls = 'warn'; text = `Potenza troppo alta per l’ONT (oltre ${over} dBm): serve più attenuazione.`; }
+      else if (reserve < 0) { cls = 'bad'; text = `Fuori budget di ${fmtDb(-reserve)} dB: il collegamento rischia di non funzionare.`; }
+      else if (reserve < 3) { cls = 'warn'; text = `Nel budget, ma con solo ${fmtDb(reserve)} dB di riserva.`; }
+      else { cls = 'ok'; text = `Nel budget con ${fmtDb(reserve)} dB di riserva.`; }
+      verdict.className = `bg-verdict ${cls}`; verdict.textContent = text;
+      $('bgCard').style.setProperty('--accent', cls === 'ok' ? '#10b981' : cls === 'warn' ? '#f59e0b' : '#ef4444');
+
+      // verifica della misura
+      const mRaw = String($('bgMeasured').value).trim();
+      const mBox = $('bgMeasureResult');
+      if (!mRaw) { mBox.hidden = true; return; }
+      const mVal = parseFloat(mRaw.replace(',', '.'));
+      if (!isFinite(mVal)) { mBox.hidden = true; return; }
+      const m = -Math.abs(mVal);   // la potenza ricevuta è sempre negativa: il segno meno è automatico
+      mBox.hidden = false;
+      const excess = rxMin - m;   // quanto la misura è peggiore del caso peggiore previsto
+      let mc, mt;
+      if (m > over) { mc = 'warn'; mt = `${fmtDb(m)} dBm: potenza troppo alta (sopra ${over} dBm), rischio saturazione ONT.`; }
+      else if (m < sens) { mc = 'bad'; mt = `${fmtDb(m)} dBm: sotto la sensibilità (${sens} dBm). ${excess > 0 ? `Mancano ${fmtDb(excess)} dB rispetto al previsto: controlla connettori, giunti e curvature.` : ''}`; }
+      else if (excess > 2) { mc = 'warn'; mt = `${fmtDb(m)} dBm: funziona, ma è ${fmtDb(excess)} dB peggio del previsto. Pulisci i connettori e verifica i giunti.`; }
+      else { mc = 'ok'; mt = `${fmtDb(m)} dBm: valore corretto, in linea con il calcolo.`; }
+      mBox.className = `bg-verdict ${mc}`; mBox.textContent = mt;
+    }
+
+    /* =====================================================================
+       PFS QUI: posizioni dei PFS divise per anello
+       ===================================================================== */
+    let posNearMode = false, posView = 'list', myPos = null, posEditing = null;
+    let posPhoto = { data: null, thumb: '', fotoId: '' };
+    let map = null, mapLayer = null, myMarker = null, leafletPromise = null, pendingFocus = null;
+
+    function anelloFrom(pfs) {
+      const p = String(pfs || '').trim().toUpperCase();
+      const m = /^([A-Z]+_\d+)/.exec(p);
+      if (m) return m[1];
+      return p.split(/[\/\s-]/)[0] || 'SENZA ANELLO';
+    }
+
+    function normalizePositions(data) {
+      const out = {};
+      Object.keys(data || {}).forEach(k => {
+        const it = data[k];
+        if (!it || typeof it !== 'object') return;
+        const pfs = String(it.pfs || k).trim().toUpperCase();
+        const lat = Number(it.lat), lng = Number(it.lng);
+        if (!pfs || !isFinite(lat) || !isFinite(lng)) return;
+        out[pfs] = { ...it, pfs, lat, lng, anello: String(it.anello || anelloFrom(pfs)).trim().toUpperCase() };
+      });
+      return out;
+    }
+    function getPositions() { try { return normalizePositions(JSON.parse(lsGet(POS_KEY, '{}'))); } catch (e) { return {}; } }
+    function savePositions(all) { try { localStorage.setItem(POS_KEY, JSON.stringify(all)); } catch (e) { toast('Memoria del telefono piena.', 'error'); } }
+
+    function posPayload(it) {
+      return { action: 'savePos', pfs: it.pfs, anello: it.anello, lat: it.lat, lng: it.lng, note: it.note || '', tecnico: it.tecnico || '', timestamp: it.updatedAt || nowStamp(), fotoId: it.fotoId || '' };
+    }
+
+    /** Riconosce coordinate scritte a mano o dentro un link di Google Maps / Apple Maps. */
+    function parseCoords(text) {
+      const t = String(text || '').trim();
+      if (!t) return null;
+      const pats = [
+        /!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/,                       // link "luogo" di Google Maps
+        /@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/,                        // .../@40.85,14.26,17z
+        /[?&](?:q|query|destination|ll|daddr|sll|center)=(-?\d+(?:\.\d+)?)(?:,|%2C)\s*(-?\d+(?:\.\d+)?)/i,
+        /^\s*(-?\d{1,2}(?:[.,]\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:[.,]\d+)?)\s*$/ // "40.8518, 14.2681"
+      ];
+      for (const re of pats) {
+        const m = re.exec(t);
+        if (m) {
+          const lat = parseFloat(m[1].replace(',', '.')), lng = parseFloat(m[2].replace(',', '.'));
+          if (isFinite(lat) && isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && !(lat === 0 && lng === 0)) return { lat, lng };
+        }
+      }
+      return null;
+    }
+    const fmtCoord = (lat, lng) => `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`;
+
+    function distanceM(a, b) {
+      const R = 6371000, toR = x => x * Math.PI / 180;
+      const dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+    const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toLocaleString('it-IT', { maximumFractionDigits: m < 10000 ? 1 : 0 })} km`;
+    const navUrl = it => `https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}&travelmode=driving`;
+    const mapsUrl = it => `https://www.google.com/maps/search/?api=1&query=${it.lat},${it.lng}`;
+    function navigateTo(it) { window.open(navUrl(it), '_blank', 'noopener'); }
+
+    function locateMe(highAccuracy = true) {
+      return new Promise((res, rej) => {
+        if (!navigator.geolocation) { rej(new Error('Posizione non disponibile su questo dispositivo')); return; }
+        navigator.geolocation.getCurrentPosition(
+          p => { myPos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }; res(myPos); },
+          err => rej(new Error(err.code === 1 ? 'Permesso posizione negato: abilitalo nelle impostazioni del browser' : err.code === 3 ? 'Tempo scaduto: prova all’aperto' : 'Posizione non disponibile')),
+          { enableHighAccuracy: highAccuracy, timeout: 15000, maximumAge: 10000 }
+        );
+      });
+    }
+
+    function anelloColor(anello) {
+      let h = 0; for (const ch of String(anello)) h = (h * 31 + ch.charCodeAt(0)) % 360;
+      return `hsl(${h}, 70%, 45%)`;
+    }
+
+    function posItemHtml(it, i) {
+      const dist = myPos ? `<span>📍 ${fmtDist(distanceM(myPos, it))}</span>` : '';
+      const pend = (it.synced !== true && scriptVersion >= 3) || hasPending('pos', it.pfs) ? '<span class="pend">⏳ da inviare</span>' : '';
+      const ph = photoSrc(it);
+      return `
+        <div class="pos-item" data-pos="${escapeHtml(it.pfs)}" style="--i:${i};--anello:${anelloColor(it.anello)}">
+          <div class="pos-main">
+            ${ph ? `<button type="button" class="pos-thumb" data-pact="photo"><img src="${escapeHtml(ph)}" alt="" loading="lazy"></button>` : ''}
+            <div class="pos-body">
+              <div class="pos-name">${escapeHtml(it.pfs)}</div>
+              ${it.note ? `<div class="pos-note">${escapeHtml(it.note)}</div>` : ''}
+              <div class="pos-meta">${dist}<span>${escapeHtml(it.updatedAt || '')}</span>${it.tecnico ? `<span>👤 ${escapeHtml(it.tecnico)}</span>` : ''}${pend}</div>
+            </div>
+          </div>
+          <div class="pos-actions">
+            <button type="button" class="btn-nav" data-pact="nav"><svg><use href="#i-nav"/></svg> Naviga</button>
+            <button type="button" class="btn-xs" data-pact="map" aria-label="Mostra sulla mappa"><svg><use href="#i-map"/></svg></button>
+            <button type="button" class="btn-xs" data-pact="share" aria-label="Condividi posizione"><svg><use href="#i-share"/></svg></button>
+            <button type="button" class="btn-xs" data-pact="copy" aria-label="Copia coordinate"><svg><use href="#i-copy"/></svg></button>
+            <button type="button" class="btn-xs" data-pact="history" aria-label="Storico"><svg><use href="#i-clock"/></svg></button>
+            <button type="button" class="btn-xs" data-pact="edit" aria-label="Modifica"><svg><use href="#i-edit"/></svg></button>
+            <button type="button" class="btn-xs danger" data-pact="delete" aria-label="Elimina"><svg><use href="#i-x"/></svg></button>
+          </div>
+        </div>`;
+    }
+
+    function filteredPositions() {
+      const q = ($('posSearch').value || '').trim().toUpperCase();
+      return Object.values(getPositions()).filter(it => !q || it.pfs.includes(q) || it.anello.includes(q) || String(it.note || '').toUpperCase().includes(q));
+    }
+
+    function renderPositions() {
+      const list = $('posList');
+      const items = filteredPositions();
+      const all = getPositions();
+      const anelli = new Set(Object.values(all).map(i => i.anello));
+      $('posCount').textContent = `${Object.keys(all).length} PFS • ${anelli.size} anell${anelli.size === 1 ? 'o' : 'i'}`;
+      $('posNearBtn').classList.toggle('active', posNearMode);
+
+      if (posView === 'map') { renderMap(items); }
+      if (!Object.keys(all).length) {
+        list.innerHTML = `<div class="empty-state"><svg><use href="#i-pin"/></svg><div>Nessun PFS salvato. Aggiungi il primo con il modulo qui sopra.</div></div>`;
+        return;
+      }
+      if (!items.length) { list.innerHTML = `<div class="empty-state">Nessun PFS trovato.</div>`; return; }
+
+      if (posNearMode && myPos) {
+        const sorted = items.map(it => ({ it, d: distanceM(myPos, it) })).sort((a, b) => a.d - b.d).slice(0, 30);
+        list.innerHTML = `<div class="hits-title" style="margin-bottom:8px">I più vicini a te${myPos.acc ? ` (precisione ±${Math.round(myPos.acc)} m)` : ''}</div>` + sorted.map((x, i) => posItemHtml(x.it, i)).join('');
+        return;
+      }
+      const q = ($('posSearch').value || '').trim();
+      const openNow = new Set([...list.querySelectorAll('.pfs-folder.open')].map(f => f.dataset.anello));
+      const groups = {};
+      items.forEach(it => (groups[it.anello] = groups[it.anello] || []).push(it));
+      const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      list.innerHTML = keys.map((an, gi) => {
+        const arr = groups[an].sort((a, b) => a.pfs.localeCompare(b.pfs, 'it', { numeric: true }));
+        const isOpen = openNow.has(an) || !!q || keys.length === 1;
+        return `
+          <div class="pfs-folder ${isOpen ? 'open' : ''}" data-anello="${escapeHtml(an)}" style="--i:${gi}">
+            <button type="button" class="pfs-folder-header" aria-expanded="${isOpen}">
+              <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(an)}"></span>Anello ${escapeHtml(an)}</span>
+              <span class="folder-meta">${arr.length} PFS <svg><use href="#i-down"/></svg></span>
+            </button>
+            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${arr.map(posItemHtml).join('')}</div></div></div>
+          </div>`;
+      }).join('');
+    }
+
+    function resetPosForm(prefillPfs) {
+      posEditing = null;
+      $('posPfs').value = prefillPfs || ''; $('posAnello').value = prefillPfs ? anelloFrom(prefillPfs) : '';
+      $('posCoords').value = ''; $('posNote').value = '';
+      $('posAcc').textContent = ''; $('posFormTitle').textContent = 'Aggiungi PFS';
+      $('posCancel').hidden = true;
+      posPhoto = { data: null, thumb: '', fotoId: '' }; renderPosPhoto();
+      ['posPfs', 'posCoords'].forEach(id => setInvalid(id, ''));
+    }
+
+    function renderPosPhoto() {
+      const src = posPhoto.thumb || (posPhoto.fotoId ? driveThumb(posPhoto.fotoId, 300) : '');
+      $('posPhotoPreview').hidden = !src; $('posPhotoImg').src = src || '';
+      $('posPhotoBtnText').textContent = src ? 'Cambia foto' : 'Foto del PFS';
+    }
+
+    function editPosition(pfs) {
+      const it = getPositions()[pfs]; if (!it) return;
+      posEditing = pfs;
+      $('posPfs').value = it.pfs; $('posAnello').value = it.anello;
+      $('posCoords').value = fmtCoord(it.lat, it.lng); $('posNote').value = it.note || '';
+      $('posAcc').textContent = '';
+      $('posFormTitle').textContent = `Modifica ${it.pfs}`; $('posCancel').hidden = false;
+      posPhoto = { data: null, thumb: it.thumb || '', fotoId: it.fotoId || '' }; renderPosPhoto();
+      $('posForm').open = true;
+      $('posForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function savePosition() {
+      const pfs = $('posPfs').value.trim().toUpperCase();
+      const coords = parseCoords($('posCoords').value);
+      setInvalid('posPfs', pfs ? '' : 'x');
+      setInvalid('posCoords', coords ? '' : 'x');
+      if (!pfs) { toast('Inserisci il codice del PFS.', 'error'); return; }
+      if (!coords) {
+        toast(/goo\.gl|maps\.app/i.test($('posCoords').value) ? 'Link abbreviato: aprilo in Maps e copia le coordinate, oppure usa "Posizione attuale".' : 'Coordinate non valide: usa "Posizione attuale" o incolla es. 40.851800, 14.268100', 'error', 5000);
+        return;
+      }
+      const all = getPositions();
+      if (all[pfs] && posEditing !== pfs) {
+        const ok = await confirmBox('PFS già presente', `${pfs} ha già una posizione salvata. Vuoi sostituirla?`, 'Sostituisci');
+        if (!ok) return;
+      }
+      const tecnico = await ensureTecnico();
+      const it = {
+        pfs, anello: ($('posAnello').value.trim() || anelloFrom(pfs)).toUpperCase(),
+        lat: coords.lat, lng: coords.lng, note: $('posNote').value.trim(),
+        tecnico, updatedAt: nowStamp(),
+        fotoId: posPhoto.data ? '' : (posPhoto.fotoId || ''), thumb: posPhoto.thumb || ''
+      };
+      if (posPhoto.data) it.photoPending = true;
+      const renamedFrom = posEditing && posEditing !== pfs ? posEditing : null;
+      if (renamedFrom && isAdminLoggedIn) delete all[renamedFrom];   // rinominare = eliminare la vecchia voce: solo admin
+      all[pfs] = it;
+      savePositions(all);
+      if (scriptVersion >= 3) {
+        const payload = posPayload(it);
+        if (posPhoto.data) payload.photo = posPhoto.data;
+        if (renamedFrom && isAdminLoggedIn) enqueue({ action: 'deletePos', pfs: renamedFrom, tecnico });
+        const sending = enqueue(payload);
+        renderPositions();
+        reportSend(await sending, { label: `Posizione di ${pfs} salvata`, key: ['pos', pfs, ''] });
+      } else {
+        toast(`Posizione di ${pfs} salvata sul telefono. Con lo script v3 viene condivisa con la squadra.`, 'info', 4500);
+      }
+      if (renamedFrom && !isAdminLoggedIn) toast(`Salvato come nuovo PFS: ${renamedFrom} resta in archivio (solo l’admin può eliminarlo).`, 'info', 5000);
+      resetPosForm();
+      $('posForm').open = false;
+      renderPositions();
+    }
+
+    async function deletePosition(pfs) {
+      if (!isAdminLoggedIn) { toast('Solo l’amministratore può eliminare i PFS.', 'error'); return; }
+      const ok = await confirmBox('Elimina PFS', `Eliminare definitivamente la posizione di ${pfs}?`, 'Elimina', true);
+      if (!ok) return;
+      const all = getPositions(); delete all[pfs]; savePositions(all);
+      if (scriptVersion >= 3) enqueue({ action: 'deletePos', pfs, tecnico: getTecnico() });
+      toast(`${pfs} eliminato.`, 'info');
+      renderPositions();
+    }
+
+    function sharePosition(it) {
+      const text = `PFS ${it.pfs}${it.note ? ' – ' + it.note : ''}\n${fmtCoord(it.lat, it.lng)}\n${mapsUrl(it)}`;
+      shareText(text, `Posizione PFS ${it.pfs}`);
+    }
+
+    /* ---------- Mappa (Leaflet + OpenStreetMap) ---------- */
+    function loadLeaflet() {
+      if (window.L) return Promise.resolve(window.L);
+      if (!leafletPromise) {
+        leafletPromise = new Promise((res, rej) => {
+          const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'vendor/leaflet/leaflet.css'; document.head.appendChild(css);
+          const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js';
+          s.onload = () => res(window.L); s.onerror = () => { leafletPromise = null; rej(new Error('Mappa non disponibile')); };
+          document.head.appendChild(s);
+        });
+      }
+      return leafletPromise;
+    }
+
+    async function renderMap(items) {
+      let L;
+      try { L = await loadLeaflet(); } catch (e) { $('posMapMsg').textContent = 'Impossibile caricare la mappa.'; return; }
+      if (!map) {
+        map = L.map('posMap', { zoomControl: true, attributionControl: true }).setView([40.85, 14.27], 11);
+        const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+        tiles.on('tileerror', () => { $('posMapMsg').textContent = navigator.onLine === false ? 'Senza rete la mappa non si carica: usa l’elenco e "Naviga".' : ''; });
+        tiles.on('load', () => { $('posMapMsg').textContent = ''; });
+        mapLayer = L.layerGroup().addTo(map);
+      }
+      setTimeout(() => map.invalidateSize(), 60);
+      mapLayer.clearLayers();
+      const pts = [];
+      items.forEach(it => {
+        const m = L.circleMarker([it.lat, it.lng], { radius: 9, weight: 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 1 });
+        m.bindTooltip(it.pfs, { direction: 'top', offset: [0, -8] });
+        m.bindPopup(`<div class="map-pop"><b>${escapeHtml(it.pfs)}</b><br><small>Anello ${escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
+        m._pfs = it.pfs;
+        m.addTo(mapLayer); pts.push([it.lat, it.lng]);
+      });
+      if (myPos) {
+        if (myMarker) myMarker.remove();
+        myMarker = L.circleMarker([myPos.lat, myPos.lng], { radius: 7, weight: 3, color: '#fff', fillColor: '#2563eb', fillOpacity: 1 }).bindTooltip('Tu sei qui').addTo(map);
+        pts.push([myPos.lat, myPos.lng]);
+      }
+      if (pendingFocus) {
+        const target = items.find(i => i.pfs === pendingFocus); pendingFocus = null;
+        if (target) {
+          map.setView([target.lat, target.lng], 17);
+          mapLayer.eachLayer(l => { if (l._pfs === target.pfs) l.openPopup(); });
+          return;
+        }
+      }
+      if (pts.length === 1) map.setView(pts[0], 16);
+      else if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30], maxZoom: 16 });
+    }
+
+    function setPosView(v) {
+      posView = v;
+      document.querySelectorAll('[data-seg="pos"] .pfs-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === v));
+      positionSeg(document.querySelector('[data-seg="pos"]'));
+      $('posMapWrap').hidden = v !== 'map';
+      $('posList').hidden = v === 'map';
+      renderPositions();
+    }
+
+    function openPfsPos(prefillPfs) {
+      openScreen('pfsPosScreen', 'PFS Qui', 'Posizioni PFS per anello');
+      if (prefillPfs) {
+        const it = getPositions()[prefillPfs];
+        if (it) { $('posSearch').value = prefillPfs; renderPositions(); }
+        else { resetPosForm(prefillPfs); $('posForm').open = true; setTimeout(() => $('posForm').scrollIntoView({ behavior: 'smooth' }), 200); }
+      }
+    }
+
+    /* ---------- Aggiornamento app ---------- */
+    function watchForUpdates() {
+      if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+      const hadController = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) $('updateBar').hidden = false; });
+      setInterval(() => navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}), 30 * 60 * 1000);
+    }
+
+    /* ---------- Eventi V3 ---------- */
+    function bindV3Events() {
+      // coda
+      $('queuePill').addEventListener('click', () => processQueue(true));
+      window.addEventListener('online', () => processQueue());
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) processQueue(); });
+      setInterval(() => { if (getQueue().length) processQueue(); }, 45000);
+      $('updateBtn').addEventListener('click', () => location.reload());
+
+      // controlli duplicati mentre si scrive
+      ['ribPfsInput', 'ribSplitterInput'].forEach(id => $(id).addEventListener('input', () => checkRibDuplicates()));
+
+      // foto ribattitura
+      $('ribPhotoBtn').addEventListener('click', () => $('ribPhotoFile').click());
+      $('ribPhotoFile').addEventListener('change', async e => {
+        const f = e.target.files[0]; e.target.value = '';
+        if (!f) return;
+        try { const r = await processPhoto(f); ribPhoto = { data: r.data, thumb: r.thumb, fotoId: '' }; renderRibPhoto(); toast('Foto pronta: verrà inviata al salvataggio.', 'info'); }
+        catch (err) { toast('Impossibile leggere la foto.', 'error'); }
+      });
+      $('ribPhotoImg').addEventListener('click', () => viewPhoto(ribPhoto, 'Foto splitter'));
+      $('ribPhotoRemove').addEventListener('click', () => { clearRibPhoto(); });
+
+      // budget
+      ['bgKm', 'bgCoef', 'bgSplices', 'bgSpliceLoss', 'bgConn', 'bgConnLoss', 'bgMargin', 'bgTxMin', 'bgTxMax', 'bgSens', 'bgOver', 'bgMeasured'].forEach(id => $(id).addEventListener('input', calcBudget));
+      ['bgSpl1', 'bgSpl2'].forEach(id => $(id).addEventListener('change', calcBudget));
+      $('bgWave').addEventListener('change', () => { applyWave(); calcBudget(); });
+      $('bgClass').addEventListener('change', () => { applyClass(); calcBudget(); });
+      ['bgTxMin', 'bgTxMax', 'bgSens', 'bgOver'].forEach(id => $(id).addEventListener('input', () => { $('bgClass').value = 'custom'; }));
+      $('bgCoef').addEventListener('input', () => { $('bgWave').value = 'custom'; });
+
+      // PFS Qui
+      $('posSearch').addEventListener('input', renderPositions);
+      $('posPfs').addEventListener('input', () => {
+        setInvalid('posPfs', '');
+        if (!$('posAnello').dataset.touched) $('posAnello').value = anelloFrom($('posPfs').value);
+      });
+      $('posAnello').addEventListener('input', () => { $('posAnello').dataset.touched = $('posAnello').value ? '1' : ''; });
+      $('posCoords').addEventListener('input', () => {
+        const c = parseCoords($('posCoords').value);
+        setInvalid('posCoords', '');
+        $('posAcc').textContent = c ? `✓ ${fmtCoord(c.lat, c.lng)}` : '';
+      });
+      $('posGps').addEventListener('click', async () => {
+        const b = $('posGps'); b.disabled = true; $('posAcc').textContent = 'Ricerca posizione…';
+        try {
+          const p = await locateMe(true);
+          $('posCoords').value = fmtCoord(p.lat, p.lng); setInvalid('posCoords', '');
+          $('posAcc').textContent = `✓ Precisione ±${Math.round(p.acc)} m${p.acc > 30 ? ' – per più precisione spostati all’aperto e riprova' : ''}`;
+        } catch (e) { $('posAcc').textContent = ''; toast(e.message, 'error', 4500); }
+        b.disabled = false;
+      });
+      $('posPaste').addEventListener('click', async () => {
+        try {
+          const t = await navigator.clipboard.readText();
+          $('posCoords').value = t.trim(); $('posCoords').dispatchEvent(new Event('input'));
+          if (!parseCoords(t)) toast('Negli appunti non ci sono coordinate valide.', 'error');
+        } catch (e) { toast('Incolla manualmente nel campo (tieni premuto → Incolla).', 'info'); $('posCoords').focus(); }
+      });
+      $('posSave').addEventListener('click', savePosition);
+      $('posCancel').addEventListener('click', () => { resetPosForm(); $('posForm').open = false; });
+      $('posPhotoBtn').addEventListener('click', () => $('posPhotoFile').click());
+      $('posPhotoFile').addEventListener('change', async e => {
+        const f = e.target.files[0]; e.target.value = '';
+        if (!f) return;
+        try { const r = await processPhoto(f); posPhoto = { data: r.data, thumb: r.thumb, fotoId: '' }; renderPosPhoto(); }
+        catch (err) { toast('Impossibile leggere la foto.', 'error'); }
+      });
+      $('posPhotoRemove').addEventListener('click', () => { posPhoto = { data: null, thumb: '', fotoId: '' }; renderPosPhoto(); });
+      $('posNearBtn').addEventListener('click', async () => {
+        if (posNearMode) { posNearMode = false; renderPositions(); return; }
+        $('posNearBtn').disabled = true;
+        try { await locateMe(false); posNearMode = true; renderPositions(); }
+        catch (e) { toast(e.message, 'error', 4500); }
+        $('posNearBtn').disabled = false;
+      });
+      document.querySelectorAll('[data-seg="pos"] .pfs-mode-btn').forEach(b => b.addEventListener('click', () => setPosView(b.dataset.mode)));
+
+      $('posList').addEventListener('click', e => {
+        const header = e.target.closest('.pfs-folder-header');
+        if (header) { const f = header.parentElement; f.classList.toggle('open'); header.setAttribute('aria-expanded', f.classList.contains('open')); return; }
+        const b = e.target.closest('[data-pact]'); if (!b) return;
+        const pfs = b.closest('[data-pos]').dataset.pos;
+        const it = getPositions()[pfs]; if (!it) return;
+        switch (b.dataset.pact) {
+          case 'nav': navigateTo(it); break;
+          case 'map': pendingFocus = pfs; setPosView('map'); break;
+          case 'share': sharePosition(it); break;
+          case 'copy': copyText(fmtCoord(it.lat, it.lng)).then(ok => toast(ok ? 'Coordinate copiate.' : 'Copia non riuscita.', ok ? 'success' : 'error')); break;
+          case 'history': showHistory(pfs, '', 'PFS'); break;
+          case 'edit': editPosition(pfs); break;
+          case 'delete': deletePosition(pfs); break;
+          case 'photo': viewPhoto(it, `Foto ${pfs}`); break;
+        }
+      });
+      // pulsante "Naviga" dentro i fumetti della mappa
+      document.addEventListener('click', e => {
+        const b = e.target.closest('[data-nav]'); if (!b) return;
+        const it = getPositions()[b.dataset.nav]; if (it) navigateTo(it);
+      });
+      $('posLocateMap').addEventListener('click', async () => {
+        try { await locateMe(true); renderPositions(); if (map) map.setView([myPos.lat, myPos.lng], 16); }
+        catch (e) { toast(e.message, 'error', 4500); }
+      });
+    }
+
+    function initV3() {
+      updateQueueUI();
+      watchForUpdates();
+      setTimeout(() => processQueue(), 1500);
+      applyWave(); applyClass();
+    }
+
     /* ---------- Effetti ---------- */
     function addRipple(e) {
       const btn = e.target.closest('.btn-main, .btn-action, .btn-secondary');
@@ -3109,6 +4318,10 @@
           case 'folder-xls': exportCsv(pfs, null); break;
           case 'folder-share': shareText(buildRibTextFor(pfs, null), `Ribattiture ${pfs}`); break;
           case 'delete': deleteSplitter(pfs, spl); break;
+          case 'history': showHistory(pfs, spl, 'splitter'); break;
+          case 'photo': viewPhoto(getRibattitureData()[pfs]?.[spl], `Foto ${pfs} → ${spl}`); break;
+          case 'folder-nav': { const it = getPositions()[pfs]; if (it) navigateTo(it); break; }
+          case 'folder-pos': openPfsPos(pfs); break;
         }
       });
 
@@ -3139,6 +4352,7 @@
 
       // Nuove funzioni
       bindExtraEvents();
+      bindV3Events();
 
       // Modal
       $('modalOk').addEventListener('click', () => closeModal(true));
@@ -3159,6 +4373,7 @@
       bindEvents();
       initPwa();
       loadScriptVersion();
+      initV3();
       history.replaceState({}, '', location.pathname + location.search);
     });
   </script>

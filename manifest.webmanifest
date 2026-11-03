@@ -1,0 +1,17 @@
+{
+  "name": "Fiber Tools",
+  "short_name": "Fiber Tools",
+  "description": "Codici colore fibra ottica, PFS, PTE, FiberCop, ribattitura ottici e generatore barcode.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1220",
+  "theme_color": "#0369a1",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,3166 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="Codici colore fibra ottica, PFS, PTE, FiberCop, ribattitura ottici e generatore barcode Code 128.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fiber Tools">
+  <title>Fiber Tools - Codice Colori Fibra Ottica</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --bg-grad-1: rgba(14, 165, 233, 0.10);
+      --bg-grad-2: rgba(168, 85, 247, 0.07);
+      --card: #ffffff;
+      --card-2: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #0284c7;
+      --primary-2: #6366f1;
+      --primary-soft: #e0f2fe;
+      --primary-ink: #075985;
+      --success: #059669;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -8px rgba(15, 23, 42, 0.10);
+      --shadow-lg: 0 20px 40px -12px rgba(2, 132, 199, 0.28);
+      --badge-border: rgba(0, 0, 0, 0.15);
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      color-scheme: light;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --bg-grad-1: rgba(56, 189, 248, 0.14);
+      --bg-grad-2: rgba(129, 140, 248, 0.12);
+      --card: #121b2e;
+      --card-2: #0f1727;
+      --text: #e8eef8;
+      --muted: #8a9bb5;
+      --border: #22304a;
+      --primary: #38bdf8;
+      --primary-2: #818cf8;
+      --primary-soft: rgba(56, 189, 248, 0.12);
+      --primary-ink: #7dd3fc;
+      --success: #34d399;
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.12);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+      --shadow-lg: 0 20px 40px -12px rgba(56, 189, 248, 0.25);
+      --badge-border: rgba(255, 255, 255, 0.25);
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    [hidden] { display: none !important; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% -10%, var(--bg-grad-1), transparent 60%),
+        radial-gradient(700px 500px at 110% 10%, var(--bg-grad-2), transparent 60%),
+        var(--bg);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+      transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+    /* ---------- HEADER ---------- */
+    header {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--card) 72%, transparent);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      box-shadow: var(--shadow);
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+    .brand-logo {
+      width: 36px; height: 36px; flex-shrink: 0;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      display: grid; place-items: center;
+      box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--primary) 60%, transparent);
+    }
+    .brand-logo svg { width: 20px; height: 20px; }
+
+    .brand-text { min-width: 0; }
+    header h1 {
+      font-size: 1.02rem; font-weight: 800; letter-spacing: -0.3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    header p {
+      font-size: 0.72rem; color: var(--muted); font-weight: 600;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .swap { animation: swapIn 0.35s var(--ease); }
+    @keyframes swapIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .icon-btn {
+      height: 36px; min-width: 36px;
+      padding: 0 10px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 0.78rem; font-weight: 700;
+      transition: transform 0.15s var(--ease), border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .icon-btn:active { transform: scale(0.92); }
+    .icon-btn svg { width: 17px; height: 17px; }
+    .icon-btn.admin-active { border-color: var(--success); color: var(--success); background: color-mix(in srgb, var(--success) 10%, var(--card)); }
+    .icon-btn .lbl { display: none; }
+    @media (min-width: 420px) { .icon-btn .lbl { display: inline; } }
+
+    .theme-icon { transition: transform 0.5s var(--spring); }
+    [data-theme="dark"] .theme-icon { transform: rotate(-180deg); }
+
+    /* ---------- LAYOUT ---------- */
+    .container { width: 100%; max-width: 520px; display: flex; flex-direction: column; flex: 1; }
+
+    .screen { display: none; width: 100%; flex-direction: column; flex: 1; }
+    .screen.active { display: flex; animation: screenIn 0.45s var(--ease) both; }
+    .screen.active.back { animation-name: screenBack; }
+    @keyframes screenIn { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+    @keyframes screenBack { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+
+    /* ---------- HOME ---------- */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      padding: 22px 20px;
+      margin-bottom: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #0369a1 0%, #4f46e5 100%);
+      box-shadow: var(--shadow-lg);
+    }
+    [data-theme="dark"] .hero { background: linear-gradient(135deg, #0c4a6e 0%, #312e81 100%); }
+
+    .hero-fibers { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.55; pointer-events: none; }
+    .hero-fibers path { fill: none; stroke-width: 1.6; stroke-linecap: round; }
+    .hero-fibers .base { stroke: rgba(255,255,255,0.18); }
+    .hero-fibers .pulse { stroke-dasharray: 40 400; animation: fiberPulse 4.5s linear infinite; }
+    .hero-fibers .pulse:nth-of-type(2n) { animation-duration: 6s; animation-delay: -2s; }
+    .hero-fibers .pulse:nth-of-type(3n) { animation-duration: 5.2s; animation-delay: -3.5s; }
+    @keyframes fiberPulse { from { stroke-dashoffset: 440; } to { stroke-dashoffset: 0; } }
+
+    .hero-content { position: relative; }
+    .hero-kicker {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.68rem; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+      background: rgba(255,255,255,0.16); padding: 4px 10px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+    .hero-kicker .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74,222,128,0.7); animation: ping 2s infinite; }
+    @keyframes ping { 70% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+    .hero h2 { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.8px; margin-top: 12px; line-height: 1.05; }
+    .hero p { font-size: 0.85rem; opacity: 0.85; margin-top: 6px; font-weight: 500; max-width: 300px; }
+
+    .hero-colors { display: flex; gap: 5px; margin-top: 16px; }
+    .hero-colors span {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.55);
+      animation: popIn 0.5s var(--spring) both;
+    }
+
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn-main {
+      position: relative; overflow: hidden;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 14px;
+      min-height: 128px;
+      text-align: left;
+      display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start;
+      box-shadow: var(--shadow);
+      transition: transform 0.25s var(--ease), border-color 0.25s, box-shadow 0.25s;
+      animation: riseIn 0.55s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 60ms + 80ms);
+    }
+    .btn-main::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(300px 120px at var(--mx, 50%) var(--my, 0%), var(--primary-soft), transparent 70%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .btn-main:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--primary) 50%, var(--border)); box-shadow: var(--shadow-lg); }
+    .btn-main:hover::before { opacity: 1; }
+    .btn-main:active { transform: scale(0.97); }
+    .btn-main > * { position: relative; }
+
+    .btn-main.full-width {
+      grid-column: span 2; min-height: 88px;
+      flex-direction: row; align-items: center; gap: 14px;
+    }
+
+    @keyframes riseIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+
+    .tile-icon {
+      width: 42px; height: 42px; border-radius: 13px;
+      display: grid; place-items: center;
+      background: var(--tile-bg, var(--primary-soft));
+      color: var(--tile-fg, var(--primary));
+      margin-bottom: 12px;
+      transition: transform 0.35s var(--spring);
+    }
+    .tile-icon svg { width: 22px; height: 22px; }
+    .btn-main:hover .tile-icon { transform: rotate(-6deg) scale(1.08); }
+    .full-width .tile-icon { margin-bottom: 0; flex-shrink: 0; }
+
+    .t-blue   { --tile-bg: color-mix(in srgb, #0ea5e9 14%, transparent); --tile-fg: #0ea5e9; }
+    .t-amber  { --tile-bg: color-mix(in srgb, #f59e0b 16%, transparent); --tile-fg: #d97706; }
+    .t-violet { --tile-bg: color-mix(in srgb, #8b5cf6 14%, transparent); --tile-fg: #8b5cf6; }
+    .t-green  { --tile-bg: color-mix(in srgb, #10b981 14%, transparent); --tile-fg: #059669; }
+    .t-rose   { --tile-bg: color-mix(in srgb, #f43f5e 14%, transparent); --tile-fg: #e11d48; }
+
+    .btn-title { display: block; font-size: 0.98rem; font-weight: 800; letter-spacing: -0.2px; }
+    .btn-desc { display: block; font-size: 0.74rem; color: var(--muted); font-weight: 500; line-height: 1.3; margin-top: 2px; }
+    .full-width .btn-main-content { flex: 1; }
+
+    .badge-num {
+      position: absolute; top: 12px; right: 12px;
+      font-size: 0.66rem; font-weight: 800; color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      background: var(--card-2); padding: 2px 7px; border-radius: 7px; border: 1px solid var(--border);
+    }
+    .full-width .badge-num { position: static; }
+    .chev { color: var(--muted); transition: transform 0.25s var(--ease); }
+    .btn-main:hover .chev { transform: translateX(3px); color: var(--primary); }
+
+    .app-footer { text-align: center; padding: 26px 0 8px; margin-top: auto; }
+    .app-footer p { font-size: 0.72rem; font-weight: 700; color: var(--muted); letter-spacing: 0.4px; text-transform: uppercase; }
+    .app-footer span { color: var(--primary); }
+
+    /* ---------- COMMON ---------- */
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--primary); font-weight: 700; font-size: 0.84rem;
+      padding: 8px 14px 8px 10px; border-radius: 11px; margin-bottom: 14px;
+      width: fit-content; box-shadow: var(--shadow);
+      transition: transform 0.15s var(--ease), gap 0.2s var(--ease);
+    }
+    .btn-back:hover { gap: 9px; }
+    .btn-back:active { transform: scale(0.95); }
+    .btn-back svg { width: 16px; height: 16px; }
+
+    .controls-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 14px;
+      animation: riseIn 0.5s var(--ease) both 0.05s;
+    }
+
+    .section-title {
+      font-size: 0.72rem; font-weight: 800; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--muted);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .row-fields { display: flex; gap: 10px; }
+    .row-fields .field-group { flex: 1; min-width: 0; }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+
+    .custom-select, .custom-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px; /* evita lo zoom automatico su iOS */
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background-color: var(--card-2);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+      -webkit-appearance: none; appearance: none;
+    }
+    .custom-select {
+      padding-right: 36px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+    .custom-select:focus, .custom-input:focus {
+      border-color: var(--primary);
+      background-color: var(--card);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent);
+    }
+    .custom-input.invalid { border-color: var(--danger); box-shadow: 0 0 0 4px var(--danger-soft); }
+    .custom-input.shake { animation: shake 0.35s; }
+    @keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+    input[data-upper] { text-transform: uppercase; }
+    input[data-upper]::placeholder { text-transform: none; }
+
+    .hint { font-size: 0.72rem; color: var(--danger); font-weight: 600; min-height: 0; }
+
+    .stepper { display: flex; gap: 6px; }
+    .stepper .custom-input { flex: 1; min-width: 0; text-align: center; }
+    .step-btn {
+      width: 46px; flex-shrink: 0; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border); background: var(--card-2);
+      font-size: 1.2rem; font-weight: 700; color: var(--primary);
+      transition: transform 0.12s, background 0.2s;
+    }
+    .step-btn:active { transform: scale(0.9); background: var(--primary-soft); }
+
+    .btn-action {
+      position: relative; overflow: hidden;
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px;
+      border: none; border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #fff; font-size: 0.95rem; font-weight: 800;
+      box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--primary) 70%, transparent);
+      margin-bottom: 10px;
+      transition: transform 0.15s var(--ease), filter 0.2s, box-shadow 0.2s;
+    }
+    [data-theme="dark"] .btn-action { color: #04121f; }
+    .btn-action:hover { filter: brightness(1.06); }
+    .btn-action:active { transform: scale(0.98); }
+    .btn-action:disabled { opacity: 0.6; pointer-events: none; }
+    .btn-action.green { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 8px 20px -8px rgba(16,185,129,0.6); }
+    .btn-action svg { width: 18px; height: 18px; }
+
+    .btn-row { display: flex; gap: 10px; margin-bottom: 18px; }
+    .btn-secondary {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: var(--card); color: var(--text);
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px; font-size: 0.88rem; font-weight: 700;
+      transition: transform 0.15s var(--ease), border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--primary); }
+    .btn-secondary:active { transform: scale(0.97); }
+    .btn-secondary svg { width: 17px; height: 17px; }
+
+    .spin { animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ripple */
+    .ripple {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      background: currentColor; opacity: 0.18;
+      transform: scale(0); animation: ripple 0.6s var(--ease) forwards;
+    }
+    @keyframes ripple { to { transform: scale(1); opacity: 0; } }
+
+    /* Segmented control */
+    .pfs-mode-selector {
+      position: relative;
+      display: flex;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 4px;
+    }
+    .seg-indicator {
+      position: absolute; top: 4px; bottom: 4px; left: 4px;
+      border-radius: 9px; background: var(--card);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.10);
+      border: 1px solid var(--border);
+      transition: transform 0.35s var(--ease), width 0.35s var(--ease);
+    }
+    .pfs-mode-btn {
+      position: relative; z-index: 1;
+      flex: 1; padding: 10px 4px;
+      border: none; background: transparent;
+      color: var(--muted); font-weight: 800; font-size: 0.76rem;
+      border-radius: 9px; text-align: center;
+      transition: color 0.25s;
+    }
+    .pfs-mode-btn.active { color: var(--primary); }
+
+    .mode-panel { display: flex; flex-direction: column; gap: 10px; }
+    .mode-panel[hidden] { display: none; }
+    .mode-panel:not([hidden]) { animation: fadeUp 0.35s var(--ease); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* Color grid */
+    .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .color-grid-btn {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 12px 4px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card-2);
+      transition: transform 0.2s var(--spring), border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+      animation: popIn 0.35s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 18ms);
+    }
+    .color-grid-btn:hover { transform: translateY(-2px); }
+    .color-grid-btn:active { transform: scale(0.93); }
+    .color-grid-btn.active {
+      border-color: var(--primary);
+      background-color: var(--primary-soft);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+    }
+    .color-grid-btn .swatch { width: 24px; height: 24px; }
+    .color-grid-btn.active .swatch { animation: bounce 0.4s var(--spring); }
+    @keyframes bounce { 50% { transform: scale(1.25); } }
+    .color-grid-btn .color-name-sub {
+      font-size: 0.58rem; font-weight: 800; margin-top: 6px;
+      text-transform: uppercase; text-align: center; letter-spacing: 0.3px;
+    }
+    .color-grid-btn .pos-badge {
+      position: absolute; top: 4px; right: 4px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--muted); font-size: 0.55rem; padding: 1px 4px; border-radius: 5px; font-weight: 800;
+      transition: background 0.2s, color 0.2s;
+    }
+    .color-grid-btn.active .pos-badge { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .color-grid-btn .check {
+      position: absolute; top: 4px; left: 4px; width: 14px; height: 14px; border-radius: 50%;
+      background: var(--primary); color: #fff; display: grid; place-items: center;
+      transform: scale(0); transition: transform 0.25s var(--spring);
+    }
+    .color-grid-btn .check svg { width: 9px; height: 9px; }
+    .color-grid-btn.active .check { transform: scale(1); }
+
+    .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      font-size: 0.72rem; font-weight: 700; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--card-2); color: var(--muted);
+      transition: transform 0.15s, color 0.2s, border-color 0.2s;
+    }
+    .chip:hover { color: var(--primary); border-color: var(--primary); }
+    .chip:active { transform: scale(0.94); }
+
+    /* Result card */
+    .search-result-card {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, var(--card), color-mix(in srgb, var(--primary) 7%, var(--card)));
+      border: 1.5px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+      border-radius: var(--radius);
+      padding: 16px 16px 16px 20px;
+      margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      box-shadow: var(--shadow);
+    }
+    .search-result-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+      background: var(--accent, var(--primary));
+      transition: background 0.3s;
+    }
+    .search-result-card[hidden] { display: none; }
+    .search-result-card.pop { animation: resultPop 0.45s var(--spring); }
+    @keyframes resultPop { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+    .result-info { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .result-title { font-size: 0.7rem; font-weight: 800; color: var(--primary-ink); text-transform: uppercase; letter-spacing: 0.6px; }
+    .result-detail { font-size: 1.12rem; font-weight: 900; letter-spacing: -0.2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .result-subtext { font-size: 0.8rem; color: var(--muted); font-weight: 600; line-height: 1.4; }
+
+    .result-swatch { width: 54px; height: 54px; flex-shrink: 0; }
+    .result-swatch .color-badge { box-shadow: 0 6px 18px -4px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.35); }
+    .result-swatch .color-badge::before {
+      content: ''; position: absolute; inset: -6px; border-radius: 50%;
+      border: 2px solid currentColor; opacity: 0; color: var(--accent, var(--primary));
+    }
+    .pop .result-swatch .color-badge::before { animation: ringOut 0.8s var(--ease) 0.1s; }
+    @keyframes ringOut { from { opacity: 0.7; transform: scale(0.8); } to { opacity: 0; transform: scale(1.35); } }
+
+    .copy-mini {
+      border: 1px solid var(--border); background: var(--card); border-radius: 8px;
+      font-size: 0.66rem; font-weight: 800; padding: 3px 7px; color: var(--muted);
+      width: fit-content; margin-top: 2px;
+    }
+    .copy-mini:active { transform: scale(0.94); }
+
+    /* Color list */
+    .color-card {
+      background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+      overflow: hidden; border: 1px solid var(--border);
+    }
+    .color-list { list-style: none; }
+    .color-item {
+      display: flex; align-items: center;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      animation: fadeUp 0.35s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 22ms);
+      transition: background 0.2s;
+    }
+    .color-item:last-child { border-bottom: none; }
+    .color-item:hover { background: var(--card-2); }
+    .color-item.highlight { background: var(--primary-soft); box-shadow: inset 4px 0 0 var(--primary); }
+    .color-number { font-size: 0.85rem; font-weight: 800; color: var(--muted); width: 34px; font-variant-numeric: tabular-nums; }
+
+    .color-badge-wrapper { position: relative; width: 28px; height: 28px; margin-right: 14px; flex-shrink: 0; }
+    .swatch, .result-swatch { position: relative; }
+    .color-badge {
+      width: 100%; height: 100%; border-radius: 50%;
+      border: 1px solid var(--badge-border);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35);
+      position: relative;
+      transition: background-color 0.3s;
+    }
+    .has-stripe::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 55%; height: 16%; min-height: 3px;
+      background-color: #ffffff; border: 1px solid rgba(0, 0, 0, 0.4); border-radius: 2px;
+    }
+    .bg-bianco.has-stripe::after, .bg-giallo.has-stripe::after { background-color: #000000; }
+
+    .color-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .color-name { font-size: 0.88rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    .stripe-tag {
+      font-size: 0.64rem; font-weight: 800; letter-spacing: 0.3px;
+      color: #be123c; background-color: #ffe4e6;
+      padding: 2px 7px; border-radius: 6px; border: 1px solid #fecdd3;
+    }
+    [data-theme="dark"] .stripe-tag { background-color: rgba(244,63,94,0.14); color: #fda4af; border-color: rgba(244,63,94,0.35); }
+    .stripe-tag[hidden] { display: none; }
+
+    .bg-rosso { background-color: #ef4444; }
+    .bg-verde { background-color: #10b981; }
+    .bg-giallo { background-color: #facc15; }
+    .bg-marrone { background-color: #92400e; }
+    .bg-blu { background-color: #3b82f6; }
+    .bg-viola { background-color: #8b5cf6; }
+    .bg-nero { background-color: #111827; }
+    .bg-rosa { background-color: #f472b6; }
+    .bg-arancio { background-color: #f97316; }
+    .bg-turchese { background-color: #06b6d4; }
+    .bg-bianco { background-color: #ffffff; }
+    .bg-grigio { background-color: #94a3b8; }
+
+    /* ---------- RIBATTITURA ---------- */
+    .ottici-grid { display: flex; flex-direction: column; gap: 8px; }
+    .ottico-row {
+      display: grid; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 40px; gap: 6px; align-items: center;
+      background: var(--card-2);
+      padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+      transition: border-color 0.2s, background 0.2s;
+      animation: fadeUp 0.35s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 20ms);
+    }
+    .ottico-row.filled { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card-2)); }
+    .ottico-num {
+      width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+      font-size: 0.8rem; font-weight: 900; color: var(--muted);
+      background: var(--card); border: 1px solid var(--border);
+      transition: background 0.25s, color 0.25s, border-color 0.25s;
+    }
+    .ottico-row.filled .ottico-num { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .ottico-row .custom-input { padding: 10px 11px; font-size: 15px; }
+    .ottici-head { display: grid; grid-template-columns: 30px minmax(0,1fr) minmax(0,1fr) 40px; gap: 6px; padding: 0 8px; }
+
+    .progress { height: 6px; border-radius: 999px; background: var(--card-2); border: 1px solid var(--border); overflow: hidden; }
+    .progress > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--primary), var(--primary-2)); transition: width 0.4s var(--ease); }
+
+    .archive-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow);
+    }
+    .archive-tools { display: flex; gap: 8px; margin: 12px 0; }
+    .archive-tools .custom-input { padding: 10px 12px; font-size: 15px; }
+
+    .count-pill {
+      font-size: 0.7rem; font-weight: 800; color: var(--primary);
+      background: var(--primary-soft); padding: 3px 9px; border-radius: 999px;
+      text-transform: none; letter-spacing: 0;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .count-pill svg { width: 12px; height: 12px; }
+
+    .pfs-folder {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      margin-bottom: 8px; overflow: hidden; background: var(--card-2);
+      animation: fadeUp 0.35s var(--ease) both;
+      animation-delay: calc(var(--i, 0) * 40ms);
+    }
+    .pfs-folder-header {
+      width: 100%; border: none; background: var(--card);
+      padding: 13px 14px; font-weight: 800; font-size: 0.92rem;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px; text-align: left;
+    }
+    .pfs-folder-title { display: flex; align-items: center; gap: 8px; color: var(--primary); min-width: 0; overflow-wrap: anywhere; }
+    .pfs-folder-title svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .folder-meta { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .folder-meta svg { width: 14px; height: 14px; transition: transform 0.3s var(--ease); }
+    .pfs-folder.open .folder-meta svg { transform: rotate(180deg); }
+
+    .pfs-folder-content {
+      display: grid; grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s var(--ease);
+    }
+    .pfs-folder.open .pfs-folder-content { grid-template-rows: 1fr; }
+    .pfs-folder-inner { overflow: hidden; }
+    .pfs-folder-inner > div { padding: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+
+    .splitter-item {
+      background: var(--card); border: 1px solid var(--border); border-radius: 11px;
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .splitter-name { font-weight: 800; font-size: 0.86rem; overflow-wrap: anywhere; }
+    .splitter-date { font-size: 0.68rem; color: var(--muted); font-weight: 600; }
+    .splitter-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .btn-xs {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 6px 10px; font-size: 0.74rem; font-weight: 800;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card-2); color: var(--text);
+      transition: transform 0.12s, border-color 0.2s, color 0.2s;
+    }
+    .btn-xs svg { width: 13px; height: 13px; }
+    .btn-xs:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-xs:active { transform: scale(0.94); }
+    .btn-xs.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); margin-left: auto; }
+    .btn-xs.danger:hover { background: var(--danger-soft); }
+
+    .empty-state { text-align: center; padding: 18px 10px; color: var(--muted); font-size: 0.82rem; font-weight: 600; }
+    .empty-state svg { width: 34px; height: 34px; opacity: 0.5; margin-bottom: 6px; }
+
+    .skeleton { height: 46px; border-radius: 12px; margin-bottom: 8px;
+      background: linear-gradient(90deg, var(--card-2) 0%, var(--border) 50%, var(--card-2) 100%);
+      background-size: 200% 100%; animation: shimmer 1.2s infinite linear; }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+    /* ---------- BARCODE ---------- */
+    .t-slate { --tile-bg: color-mix(in srgb, #0f172a 10%, transparent); --tile-fg: #334155; }
+    [data-theme="dark"] .t-slate { --tile-bg: rgba(226,232,240,0.12); --tile-fg: #e2e8f0; }
+
+    .bc-input { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 20px; letter-spacing: 1px; text-align: center; }
+    .bc-meta { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+    .bc-meta .err { color: var(--danger); }
+
+    .bc-stage {
+      background: #ffffff;           /* sempre bianco: serve contrasto per lo scanner */
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 22px 12px 16px;
+      margin-bottom: 14px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 190px;
+      overflow: hidden;
+      animation: riseIn 0.5s var(--ease) both 0.1s;
+    }
+    .bc-stage svg { display: block; max-width: 100%; height: auto; }
+    .bc-stage svg.draw rect.bar { transform-origin: bottom; animation: barIn 0.45s var(--ease) both; animation-delay: calc(var(--d, 0) * 1ms); }
+    @keyframes barIn { from { transform: scaleY(0); opacity: 0; } to { transform: none; opacity: 1; } }
+    .bc-empty { color: #94a3b8; font-size: 0.85rem; font-weight: 600; text-align: center; }
+    .bc-empty svg { width: 64px; height: 64px; opacity: 0.45; margin: 0 auto 8px; display: block; }
+
+    .bc-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .bc-actions .btn-secondary { flex-direction: column; gap: 4px; padding: 10px 4px; font-size: 0.74rem; }
+    .bc-actions .btn-secondary:disabled { opacity: 0.45; pointer-events: none; }
+
+    .bc-full {
+      position: fixed; inset: 0; z-index: 95;
+      background: #ffffff;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+      animation: fadeIn 0.25s var(--ease);
+    }
+    .bc-full[hidden] { display: none; }
+    .bc-full svg { width: 100%; max-width: 1400px; height: auto; }
+    #bcFullStage { width: 100%; display: flex; justify-content: center; }
+    .bc-full.rotate #bcFullStage { flex-shrink: 0; transform: rotate(90deg); }
+    .bc-full .bc-close {
+      position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px;
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1px solid #e2e8f0; background: #f8fafc; color: #0f172a;
+      display: grid; place-items: center;
+    }
+    .bc-full .bc-close svg { width: 20px; height: 20px; }
+    .bc-full .bc-tip { position: absolute; bottom: max(20px, env(safe-area-inset-bottom)); color: #64748b; font-size: 0.8rem; font-weight: 600; }
+
+    /* ---------- NUOVE FUNZIONI ---------- */
+    .scan-btn {
+      width: 40px; height: 40px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--card);
+      color: var(--primary); display: grid; place-items: center;
+      transition: transform 0.12s, background 0.2s, border-color 0.2s;
+    }
+    .scan-btn svg { width: 19px; height: 19px; }
+    .scan-btn:hover { border-color: var(--primary); }
+    .scan-btn:active { transform: scale(0.9); background: var(--primary-soft); }
+    .ottico-row.scan-target { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
+    .ottico-row.flash { animation: rowFlash 0.9s var(--ease); }
+    @keyframes rowFlash { 0% { background: color-mix(in srgb, var(--success) 30%, var(--card-2)); } 100% { background: var(--card-2); } }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+    .chip svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; }
+
+    .install-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card); border: 1px dashed color-mix(in srgb, var(--primary) 50%, var(--border));
+      border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px;
+      animation: riseIn 0.5s var(--ease) both 0.15s;
+    }
+    .install-card img { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+    .install-card .txt { flex: 1; min-width: 0; }
+    .install-card b { display: block; font-size: 0.88rem; font-weight: 800; }
+    .install-card small { display: block; font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+    .install-card .btn-xs { flex-shrink: 0; }
+    .install-card .close { border: none; background: none; color: var(--muted); padding: 4px; }
+    .install-card .close svg { width: 16px; height: 16px; }
+
+    .folder-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; padding-bottom: 2px; }
+    .folder-actions .lbl { font-size: 0.68rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 2px; }
+    .splitter-tech { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 700; color: var(--primary-ink);
+      background: var(--primary-soft); padding: 1px 7px; border-radius: 999px; margin-top: 4px; }
+
+    .hits { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .hits-title { font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .hit {
+      display: flex; align-items: center; gap: 10px; text-align: left; width: 100%;
+      background: color-mix(in srgb, var(--success) 8%, var(--card)); border: 1px solid color-mix(in srgb, var(--success) 35%, var(--border));
+      border-radius: 11px; padding: 10px 12px;
+      animation: fadeUp 0.3s var(--ease) both; animation-delay: calc(var(--i, 0) * 30ms);
+    }
+    .hit .num { width: 30px; height: 30px; border-radius: 9px; background: var(--success); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 0.8rem; flex-shrink: 0; }
+    .hit .body { flex: 1; min-width: 0; }
+    .hit .main { font-weight: 800; font-size: 0.86rem; overflow-wrap: anywhere; }
+    .hit .sub { font-size: 0.72rem; color: var(--muted); font-weight: 600; overflow-wrap: anywhere; }
+    .hit mark { background: color-mix(in srgb, #facc15 55%, transparent); color: inherit; border-radius: 3px; padding: 0 2px; }
+
+    .opt-list { display: flex; flex-direction: column; gap: 8px; }
+    .opt-list .btn-secondary { justify-content: flex-start; padding: 13px 14px; }
+    .status-line { font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .status-line .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .status-line.ok .dot { background: var(--success); }
+    .status-line.warn .dot { background: #f59e0b; }
+    .modal hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+    .modal .small { font-size: 0.74rem; }
+    .modal ol { font-size: 0.85rem; color: var(--muted); padding-left: 20px; line-height: 1.6; font-weight: 500; }
+
+    /* Scanner fotocamera */
+    .scanner {
+      position: fixed; inset: 0; z-index: 96; background: #000; color: #fff;
+      display: flex; flex-direction: column;
+      animation: fadeIn 0.2s var(--ease);
+    }
+    .scanner video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .scan-frame {
+      position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+      width: min(84vw, 420px); height: min(34vw, 170px);
+      border-radius: 18px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+      transition: box-shadow 0.2s;
+    }
+    .scan-frame::before, .scan-frame::after {
+      content: ''; position: absolute; inset: 0; border-radius: 18px;
+      border: 3px solid rgba(255,255,255,0.9);
+      -webkit-mask: linear-gradient(#000 0 0) top left / 34px 34px no-repeat, linear-gradient(#000 0 0) top right / 34px 34px no-repeat,
+                    linear-gradient(#000 0 0) bottom left / 34px 34px no-repeat, linear-gradient(#000 0 0) bottom right / 34px 34px no-repeat;
+              mask: linear-gradient(#000 0 0) top left / 34px 34px no-repeat, linear-gradient(#000 0 0) top right / 34px 34px no-repeat,
+                    linear-gradient(#000 0 0) bottom left / 34px 34px no-repeat, linear-gradient(#000 0 0) bottom right / 34px 34px no-repeat;
+    }
+    .scan-frame::after { border: none; -webkit-mask: none; mask: none; inset: auto 12px; top: 50%; height: 2px; border-radius: 2px;
+      background: linear-gradient(90deg, transparent, #ef4444, transparent); box-shadow: 0 0 12px #ef4444; animation: laser 1.6s ease-in-out infinite alternate; }
+    @keyframes laser { from { transform: translateY(-60px); } to { transform: translateY(60px); } }
+    .scanner.hit-ok .scan-frame::before { border-color: #22c55e; }
+    .scan-top, .scan-bottom { position: relative; z-index: 2; padding: max(16px, env(safe-area-inset-top)) 16px 16px; display: flex; align-items: center; gap: 10px; }
+    .scan-top { justify-content: space-between; background: linear-gradient(rgba(0,0,0,0.6), transparent); }
+    .scan-bottom { margin-top: auto; flex-direction: column; align-items: stretch; padding-bottom: max(18px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(0,0,0,0.75)); }
+    .scan-title { font-weight: 800; font-size: 1rem; }
+    .scan-sub { font-size: 0.78rem; opacity: 0.8; font-weight: 600; }
+    .scan-round { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.12);
+      color: #fff; display: grid; place-items: center; flex-shrink: 0; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .scan-round svg { width: 20px; height: 20px; }
+    .scan-round.on { background: #facc15; color: #111; }
+    .scan-row { display: flex; gap: 8px; align-items: center; justify-content: center; }
+    .scan-pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700;
+      background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .scan-pill input { accent-color: #22c55e; width: 18px; height: 18px; }
+    .scan-last { text-align: center; font-family: ui-monospace, Menlo, monospace; font-weight: 700; font-size: 1.05rem; min-height: 1.4em; margin-bottom: 10px; }
+    .scan-msg { position: absolute; left: 16px; right: 16px; top: 42%; transform: translateY(-50%); text-align: center; z-index: 3; font-weight: 700; padding: 0 10px; }
+
+    /* Con lo scanner aperto le notifiche vanno in alto, per non coprire i comandi */
+    .scanner:not([hidden]) ~ .toast-wrap { bottom: auto; top: calc(max(16px, env(safe-area-inset-top)) + 70px); }
+
+    /* Stampa / PDF */
+    #printArea { display: none; }
+    @media print {
+      @page { size: A4; margin: 14mm; }
+      body { background: #fff !important; color: #000 !important; padding: 0 !important; display: block; }
+      body > *:not(#printArea) { display: none !important; }
+      #printArea { display: block !important; font-family: Arial, Helvetica, sans-serif; color: #000; }
+      #printArea h1 { font-size: 18pt; margin-bottom: 2pt; }
+      #printArea .meta { font-size: 9pt; color: #444; margin-bottom: 10pt; }
+      #printArea section { break-inside: avoid; margin-bottom: 14pt; }
+      #printArea h2 { font-size: 12pt; margin: 0 0 4pt; padding: 4pt 6pt; background: #e0f2fe; border-left: 4pt solid #0284c7; }
+      #printArea .sub { font-size: 8.5pt; color: #444; margin-bottom: 4pt; }
+      #printArea table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+      #printArea th, #printArea td { border: 0.6pt solid #999; padding: 3pt 6pt; text-align: left; }
+      #printArea th { background: #f1f5f9; }
+      #printArea td.empty { color: #aaa; }
+      #printArea .foot { font-size: 8pt; color: #666; margin-top: 10pt; }
+    }
+
+    /* ---------- TOAST ---------- */
+    .toast-wrap {
+      position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center;
+      width: calc(100% - 32px); max-width: 420px; pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      display: flex; align-items: center; gap: 10px;
+      width: 100%;
+      background: #0f172a; color: #f8fafc;
+      padding: 12px 14px; border-radius: 14px;
+      font-size: 0.86rem; font-weight: 600; line-height: 1.35;
+      box-shadow: 0 16px 40px -10px rgba(0,0,0,0.5);
+      animation: toastIn 0.4s var(--spring) both;
+    }
+    [data-theme="dark"] .toast { background: #e8eef8; color: #0b1220; }
+    .toast.out { animation: toastOut 0.3s var(--ease) forwards; }
+    .toast .t-ico { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; color: #fff; }
+    .toast .t-ico svg { width: 13px; height: 13px; }
+    .toast.success .t-ico { background: #10b981; }
+    .toast.error .t-ico { background: #ef4444; }
+    .toast.info .t-ico { background: #0ea5e9; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: none; } }
+    @keyframes toastOut { to { opacity: 0; transform: translateY(12px) scale(0.96); } }
+
+    /* ---------- MODAL ---------- */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 90;
+      background: rgba(2, 6, 23, 0.5);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 16px;
+      animation: fadeIn 0.25s var(--ease);
+    }
+    .modal-backdrop[hidden] { display: none; }
+    @media (min-width: 560px) { .modal-backdrop { align-items: center; } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal {
+      width: 100%; max-width: 400px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 22px; padding: 20px;
+      box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+      animation: sheetUp 0.4s var(--spring);
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    @keyframes sheetUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+    .modal h3 { font-size: 1.1rem; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+    .modal p { font-size: 0.85rem; color: var(--muted); font-weight: 500; line-height: 1.45; }
+    .modal .btn-row { margin-bottom: 0; }
+    .modal .btn-action { margin-bottom: 0; flex: 1; width: auto; }
+    .modal .btn-action.danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 8px 20px -8px rgba(239,68,68,0.6); color: #fff; }
+
+    /* Accessibilità: niente animazioni se richiesto dal sistema */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .hero-fibers .pulse { display: none; }
+    }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+  <!-- Icone SVG riutilizzabili -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+      <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-2.93 1.41-1.41M17.66 6.34l1.41-1.41M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+      <symbol id="i-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+      <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+      <symbol id="i-calc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></symbol>
+      <symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+      <symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+      <symbol id="i-eraser" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16v-4M12 8h.01"/></symbol>
+      <symbol id="i-barcode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5v14M7 5v14M10 5v14M14 5v14M17 5v14M21 5v14"/><path d="M5 5v14M19 5v14" stroke-width="1"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+      <symbol id="i-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></symbol>
+      <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10 8v8M13 8v8M17 8v8"/></symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.2 2h-.4a2 2 0 0 0-2 2v.2a2 2 0 0 1-1 1.7l-.4.3a2 2 0 0 1-2 0l-.2-.1a2 2 0 0 0-2.7.7l-.2.4a2 2 0 0 0 .7 2.7l.2.1a2 2 0 0 1 1 1.7v.5a2 2 0 0 1-1 1.7l-.2.1a2 2 0 0 0-.7 2.7l.2.4a2 2 0 0 0 2.7.7l.2-.1a2 2 0 0 1 2 0l.4.3a2 2 0 0 1 1 1.7v.2a2 2 0 0 0 2 2h.4a2 2 0 0 0 2-2v-.2a2 2 0 0 1 1-1.7l.4-.3a2 2 0 0 1 2 0l.2.1a2 2 0 0 0 2.7-.7l.2-.4a2 2 0 0 0-.7-2.7l-.2-.1a2 2 0 0 1-1-1.7v-.5a2 2 0 0 1 1-1.7l.2-.1a2 2 0 0 0 .7-2.7l-.2-.4a2 2 0 0 0-2.7-.7l-.2.1a2 2 0 0 1-2 0l-.4-.3a2 2 0 0 1-1-1.7V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+      <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+      <symbol id="i-torch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 6l2 5v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-9z"/><path d="M6 2h12v4H6zM12 13v3"/></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+      <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z"/></symbol>
+    </defs>
+  </svg>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M3 17c4 0 5-10 9-10s5 10 9 10"/><circle cx="12" cy="7" r="1.6" fill="#fff"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1 id="headerTitle">Fiber Tools</h1>
+        <p id="headerSubtitle">Gestione e Colori</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="settingsBtn" type="button" aria-label="Impostazioni"><svg><use href="#i-gear"/></svg></button>
+      <button class="icon-btn" id="adminLoginBtn" type="button" aria-label="Accesso amministratore">
+        <svg id="adminIcon"><use href="#i-lock"/></svg> <span class="lbl" id="adminText">Admin</span>
+      </button>
+      <button class="icon-btn" id="themeToggleBtn" type="button" aria-label="Cambia tema">
+        <svg class="theme-icon" id="themeIcon"><use href="#i-moon"/></svg> <span class="lbl" id="themeText">Scuro</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ================= HOME ================= -->
+    <section id="homeScreen" class="screen active">
+      <div class="hero">
+        <svg class="hero-fibers" viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true">
+          <path class="base" d="M-10 150 C 100 150, 150 60, 410 70"/>
+          <path class="base" d="M-10 170 C 120 170, 180 100, 410 110"/>
+          <path class="base" d="M-10 130 C 90 120, 200 20, 410 30"/>
+          <path class="pulse" stroke="#fde047" d="M-10 150 C 100 150, 150 60, 410 70"/>
+          <path class="pulse" stroke="#67e8f9" d="M-10 170 C 120 170, 180 100, 410 110"/>
+          <path class="pulse" stroke="#f9a8d4" d="M-10 130 C 90 120, 200 20, 410 30"/>
+        </svg>
+        <div class="hero-content">
+          <span class="hero-kicker"><span class="dot"></span>Toolkit tecnico FTTH</span>
+          <h2>Fiber Tools</h2>
+          <p>Codici colore, permute, cartoline e ribattiture in un solo posto.</p>
+          <div class="hero-colors" id="heroColors" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="install-card" id="installCard" hidden>
+        <img src="icons/icon-192.png" alt="">
+        <div class="txt">
+          <b>Installa Fiber Tools</b>
+          <small>Icona sul telefono, apertura a schermo intero, funziona offline</small>
+        </div>
+        <button type="button" class="btn-xs" id="installBtn"><svg><use href="#i-phone"/></svg> Installa</button>
+        <button type="button" class="close" id="installClose" aria-label="Nascondi"><svg><use href="#i-x"/></svg></button>
+      </div>
+
+      <div class="menu-grid">
+        <button class="btn-main" type="button" style="--i:0" data-open="pfsScreen" data-title="PFS Calculator" data-sub="Punto di Flessione Secondario">
+          <div class="tile-icon t-blue"><svg><use href="#i-pin"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">PFS</span>
+            <span class="btn-desc">Permute e cartoline</span>
+          </div>
+          <span class="badge-num">01</span>
+        </button>
+
+        <button class="btn-main" type="button" style="--i:1" data-open="pteScreen" data-title="PTE Priorità" data-sub="Scelta prioritaria fibra">
+          <div class="tile-icon t-amber"><svg><use href="#i-bolt"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">PTE</span>
+            <span class="btn-desc">Verifica tubetto</span>
+          </div>
+          <span class="badge-num">02</span>
+        </button>
+
+        <button class="btn-main" type="button" style="--i:2" data-open="calculatorScreen" data-title="Fiber Calculator" data-sub="Calcolo codice colori">
+          <div class="tile-icon t-violet"><svg><use href="#i-calc"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">Calculator</span>
+            <span class="btn-desc">Tabelle complete</span>
+          </div>
+          <span class="badge-num">03</span>
+        </button>
+
+        <button class="btn-main" type="button" style="--i:3" data-open="fibercopScreen" data-title="FiberCop" data-sub="Cartoline e quartine">
+          <div class="tile-icon t-green"><svg><use href="#i-grid"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">FiberCop</span>
+            <span class="btn-desc">Gestione moduli</span>
+          </div>
+          <span class="badge-num">04</span>
+        </button>
+
+        <button class="btn-main full-width" type="button" style="--i:4" data-open="ribattituraScreen" data-title="Ribattitura" data-sub="Controllo e riscontro fibre">
+          <div class="tile-icon t-rose"><svg><use href="#i-clip"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">Ribattitura Ottici</span>
+            <span class="btn-desc">Salvataggio cartelle PFS, sync Google Sheets e testi</span>
+          </div>
+          <span class="badge-num">05</span>
+          <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
+        </button>
+
+        <button class="btn-main full-width" type="button" style="--i:5" data-open="barcodeScreen" data-title="Barcode" data-sub="Generatore Code 128">
+          <div class="tile-icon t-slate"><svg><use href="#i-barcode"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">Generatore Barcode</span>
+            <span class="btn-desc">Codice a barre Code 128 leggibile da scanner</span>
+          </div>
+          <span class="badge-num">06</span>
+          <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
+        </button>
+      </div>
+
+      <footer class="app-footer">
+        <p>Creato e realizzato da <span>Marigliano Massimiliano</span></p>
+      </footer>
+    </section>
+
+    <!-- ================= RIBATTITURA ================= -->
+    <section id="ribattituraScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="controls-card">
+        <div class="field-group">
+          <label class="field-label" for="ribPfsInput">Nome / Codice PFS (es. NA_05/08w22)</label>
+          <input type="text" id="ribPfsInput" class="custom-input" data-upper placeholder="Inserisci PFS..." autocomplete="off" autocapitalize="characters">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="ribSplitterInput">Splitter (es. Splitter 1, Primary...)</label>
+          <input type="text" id="ribSplitterInput" class="custom-input" data-upper placeholder="Inserisci Splitter..." autocomplete="off" autocapitalize="characters">
+        </div>
+      </div>
+
+      <div class="controls-card">
+        <div class="section-title">
+          <span>Ottici 1 – 16</span>
+          <span class="count-pill" id="ribFillCount">0 / 16</span>
+        </div>
+        <div class="progress" aria-hidden="true"><div id="ribProgress"></div></div>
+        <div class="ottici-head">
+          <span></span>
+          <span class="field-label">Permuta</span>
+          <span class="field-label">ID</span>
+          <span></span>
+        </div>
+        <div class="ottici-grid" id="ribOtticiContainer"></div>
+      </div>
+
+      <button class="btn-action" type="button" id="ribSaveBtn"><svg><use href="#i-save"/></svg> Salva in Cartella PFS &amp; Google Sheets</button>
+      <button class="btn-action green" type="button" id="ribSyncBtn"><svg id="ribSyncIcon"><use href="#i-sync"/></svg> Aggiorna da Google Sheets</button>
+      <div class="grid-2">
+        <button class="btn-secondary" type="button" id="ribCopyBtn"><svg><use href="#i-copy"/></svg> Copia testo</button>
+        <button class="btn-secondary" type="button" id="ribShareBtn"><svg><use href="#i-share"/></svg> Condividi</button>
+        <button class="btn-secondary" type="button" id="ribExportBtn"><svg><use href="#i-file"/></svg> PDF / Excel</button>
+        <button class="btn-secondary" type="button" id="ribClearBtn"><svg><use href="#i-eraser"/></svg> Svuota modulo</button>
+      </div>
+
+      <div class="archive-card">
+        <div class="section-title">
+          <span>Archivio cartelle PFS</span>
+          <span class="count-pill" id="archiveCountBadge">0 Cartelle</span>
+        </div>
+        <div class="archive-tools">
+          <input type="search" id="archiveSearch" class="custom-input" data-upper autocapitalize="characters" placeholder="Cerca PFS, splitter, ID o permuta..." autocomplete="off">
+        </div>
+        <div id="pfsArchiveContainer"></div>
+      </div>
+    </section>
+
+    <!-- ================= FIBERCOP ================= -->
+    <section id="fibercopScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="controls-card">
+        <div class="pfs-mode-selector" data-seg="fc">
+          <span class="seg-indicator"></span>
+          <button id="fcModeQuartinaBtn" type="button" class="pfs-mode-btn active" data-mode="quartina">Da Quartina</button>
+          <button id="fcModeCartolinaBtn" type="button" class="pfs-mode-btn" data-mode="cartolina">Da Cartolina</button>
+          <button id="fcModeFiberBtn" type="button" class="pfs-mode-btn" data-mode="fiber">Da N° Fibra</button>
+        </div>
+
+        <div id="fcGroupQuartina" class="mode-panel">
+          <div class="row-fields">
+            <div class="field-group">
+              <label class="field-label" for="fcQuartinaInput">N° Quartina (1 – 48)</label>
+              <input type="number" inputmode="numeric" id="fcQuartinaInput" class="custom-input" placeholder="es. 3" min="1" max="48">
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="fcPostoInput">Posizione (1 – 4)</label>
+              <input type="number" inputmode="numeric" id="fcPostoInput" class="custom-input" placeholder="1 – 4" min="1" max="4">
+            </div>
+          </div>
+          <div class="hint" id="fcQuartinaHint"></div>
+        </div>
+
+        <div id="fcGroupCartolina" class="mode-panel" hidden>
+          <div class="field-group">
+            <label class="field-label" for="fcCardInput">Numero Cartolina (8 fibre / cad.)</label>
+            <input type="number" inputmode="numeric" id="fcCardInput" class="custom-input" placeholder="es. 2" min="1">
+          </div>
+          <label class="field-label">Seleziona colore in cartolina (1 – 8)</label>
+          <div id="fcColorGrid" class="color-grid"></div>
+        </div>
+
+        <div id="fcGroupFiber" class="mode-panel" hidden>
+          <label class="field-label" for="fcFiberInput">Numero Fibra Globale</label>
+          <input type="number" inputmode="numeric" id="fcFiberInput" class="custom-input" placeholder="es. 9" min="1">
+        </div>
+      </div>
+
+      <div id="fcResultCard" class="search-result-card" hidden aria-live="polite">
+        <div class="result-info">
+          <div class="result-title" id="fcResTitle">Risultato FiberCop</div>
+          <div class="result-detail"><span id="fcResName"></span></div>
+          <div class="result-subtext" id="fcResSubtext"></div>
+        </div>
+        <div class="result-swatch"><div id="fcResBadge" class="color-badge"></div></div>
+      </div>
+    </section>
+
+    <!-- ================= PFS ================= -->
+    <section id="pfsScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="controls-card">
+        <div class="pfs-mode-selector" data-seg="pfs">
+          <span class="seg-indicator"></span>
+          <button id="pfsModePermutaBtn" type="button" class="pfs-mode-btn active" data-mode="permuta">Da N° Permuta</button>
+          <button id="pfsModeCartolinaBtn" type="button" class="pfs-mode-btn" data-mode="cartolina">Da Cartolina + Colore</button>
+        </div>
+
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label" for="pfsOperatorSelect">Codice Colore</label>
+            <select id="pfsOperatorSelect" class="custom-select">
+              <option value="openfiber">OPEN FIBER</option>
+              <option value="enel">ENEL</option>
+              <option value="bull_infratel">BULL / INFRATEL</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="pfsCardTypeSelect">Tipo Cartolina</label>
+            <select id="pfsCardTypeSelect" class="custom-select">
+              <option value="12">12 Permute</option>
+              <option value="24">24 Permute</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="pfsGroupPermuta" class="mode-panel">
+          <label class="field-label" for="pfsInput">Numero Permuta PFS (1 – 256)</label>
+          <div class="stepper">
+            <button type="button" class="step-btn" data-step="-1" data-target="pfsInput" aria-label="Diminuisci">−</button>
+            <input type="number" inputmode="numeric" id="pfsInput" class="custom-input" placeholder="es. 45" min="1" max="256">
+            <button type="button" class="step-btn" data-step="1" data-target="pfsInput" aria-label="Aumenta">+</button>
+          </div>
+          <div class="hint" id="pfsHint"></div>
+        </div>
+
+        <div id="pfsGroupCartolina" class="mode-panel" hidden>
+          <div class="field-group">
+            <label class="field-label" for="pfsCardInput">Numero Cartolina</label>
+            <input type="number" inputmode="numeric" id="pfsCardInput" class="custom-input" placeholder="es. 2" min="1">
+          </div>
+          <label class="field-label">Seleziona colore fibra</label>
+          <div id="pfsColorGrid" class="color-grid"></div>
+          <div class="hint" id="pfsCardHint"></div>
+        </div>
+      </div>
+
+      <div id="pfsResultCard" class="search-result-card" hidden aria-live="polite">
+        <div class="result-info">
+          <div class="result-title" id="pfsResTitle">Risultato Permuta</div>
+          <div class="result-detail">
+            <span id="pfsResName"></span>
+            <span id="pfsResTag" class="stripe-tag" hidden>RIGA BIANCA</span>
+          </div>
+          <div class="result-subtext" id="pfsResSubtext"></div>
+        </div>
+        <div class="result-swatch"><div id="pfsResBadge" class="color-badge"></div></div>
+      </div>
+    </section>
+
+    <!-- ================= PTE ================= -->
+    <section id="pteScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="controls-card">
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label" for="pteOperatorSelect">Codice Colore</label>
+            <select id="pteOperatorSelect" class="custom-select">
+              <option value="openfiber">OPEN FIBER</option>
+              <option value="enel">ENEL</option>
+              <option value="bull_infratel">BULL / INFRATEL</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="pteTypeSelect">Fibre Tubetto</label>
+            <select id="pteTypeSelect" class="custom-select">
+              <option value="12">12 (solo lisce)</option>
+              <option value="24">24 (lisce + tacchettate)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="section-title">
+            <span>Fibre disponibili nel tubetto</span>
+            <span class="count-pill" id="pteCount">0 selezionate</span>
+          </div>
+          <div class="chip-row">
+            <button type="button" class="chip" id="pteSelectAll">Seleziona tutte</button>
+            <button type="button" class="chip" id="pteClear">Deseleziona</button>
+          </div>
+          <div id="pteColorGrid" class="color-grid"></div>
+        </div>
+      </div>
+
+      <div id="pteResultCard" class="search-result-card" hidden aria-live="polite">
+        <div class="result-info">
+          <div class="result-title">Fibra da utilizzare (priorità)</div>
+          <div class="result-detail">
+            <span id="pteResName"></span>
+            <span id="pteResTag" class="stripe-tag" hidden>RIGA BIANCA</span>
+          </div>
+          <div class="result-subtext" id="pteResSubtext"></div>
+        </div>
+        <div class="result-swatch"><div id="pteResBadge" class="color-badge"></div></div>
+      </div>
+    </section>
+
+    <!-- ================= CALCULATOR ================= -->
+    <section id="calculatorScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="controls-card">
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label" for="operatorSelect">Operatore</label>
+            <select id="operatorSelect" class="custom-select">
+              <option value="fibercop">FIBERCOP</option>
+              <option value="tim">TIM</option>
+              <option value="openfiber">OPEN FIBER</option>
+              <option value="enel">ENEL</option>
+              <option value="bull_infratel">BULL / INFRATEL</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="tubeSizeSelect">Tipo Tubetto</label>
+            <select id="tubeSizeSelect" class="custom-select">
+              <option value="12">12 fibre</option>
+              <option value="24">24 fibre</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="fiberInput">Cerca numero fibra (es. 52)</label>
+          <div class="stepper">
+            <button type="button" class="step-btn" data-step="-1" data-target="fiberInput" aria-label="Diminuisci">−</button>
+            <input type="number" inputmode="numeric" id="fiberInput" class="custom-input" placeholder="Numero fibra..." min="1">
+            <button type="button" class="step-btn" data-step="1" data-target="fiberInput" aria-label="Aumenta">+</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="rangeSelect">Visualizza elenco base</label>
+          <select id="rangeSelect" class="custom-select">
+            <option value="1-12">Fibre 1 – 12 (lisce)</option>
+            <option value="13-24">Fibre 13 – 24 (tacchettate)</option>
+            <option value="all">Fibre 1 – 24 (tutte)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="searchResultCard" class="search-result-card" hidden aria-live="polite">
+        <div class="result-info">
+          <div class="result-title" id="resTitle">Risultato Fibra</div>
+          <div class="result-detail">
+            <span id="resName"></span>
+            <span id="resTag" class="stripe-tag" hidden>RIGA BIANCA</span>
+          </div>
+          <div class="result-subtext" id="resSubtext"></div>
+        </div>
+        <div class="result-swatch"><div id="resBadge" class="color-badge"></div></div>
+      </div>
+
+      <div class="color-card">
+        <ul id="colorList" class="color-list"></ul>
+      </div>
+    </section>
+
+    <!-- ================= BARCODE ================= -->
+    <section id="barcodeScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="controls-card">
+        <div class="field-group">
+          <label class="field-label" for="bcInput">Numero / testo da codificare</label>
+          <input type="text" id="bcInput" class="custom-input bc-input" data-upper autocapitalize="characters" placeholder="es. 1234567890" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="48">
+          <div class="bc-meta"><span id="bcInfo">Code 128 • lettere, numeri e simboli</span><span id="bcLen">0 / 48</span></div>
+          <div class="chip-row"><button type="button" class="chip" data-scan="bcInput"><svg><use href="#i-camera"/></svg>Scansiona un codice esistente</button></div>
+        </div>
+        <div class="row-fields">
+          <div class="field-group">
+            <label class="field-label" for="bcKeyboard">Tastiera</label>
+            <select id="bcKeyboard" class="custom-select">
+              <option value="numeric">Solo numeri</option>
+              <option value="text">Testo completo</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="bcHeight">Altezza barre</label>
+            <select id="bcHeight" class="custom-select">
+              <option value="60">Bassa</option>
+              <option value="90" selected>Media</option>
+              <option value="130">Alta</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bc-stage" id="bcStage" aria-live="polite"></div>
+
+      <div class="bc-actions">
+        <button type="button" class="btn-secondary" id="bcFullBtn" disabled><svg><use href="#i-expand"/></svg> Schermo intero</button>
+        <button type="button" class="btn-secondary" id="bcDownloadBtn" disabled><svg><use href="#i-download"/></svg> Scarica PNG</button>
+        <button type="button" class="btn-secondary" id="bcCopyBtn" disabled><svg><use href="#i-copy"/></svg> Copia numero</button>
+      </div>
+
+      <div class="controls-card" id="bcRecentCard" hidden>
+        <div class="section-title">
+          <span>Ultimi codici</span>
+          <button type="button" class="chip" id="bcRecentClear">Cancella</button>
+        </div>
+        <div class="chip-row" id="bcRecent"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Barcode a schermo intero (per farlo leggere allo scanner) -->
+  <div class="bc-full" id="bcFull" hidden>
+    <button type="button" class="bc-close" id="bcFullClose" aria-label="Chiudi"><svg><use href="#i-x"/></svg></button>
+    <div id="bcFullStage"></div>
+    <div class="bc-tip">Alza la luminosità dello schermo per una lettura migliore</div>
+  </div>
+
+  <!-- Scanner fotocamera -->
+  <div class="scanner" id="scanner" hidden>
+    <video id="scanVideo" playsinline muted></video>
+    <div class="scan-frame"></div>
+    <div class="scan-msg" id="scanMsg"></div>
+    <div class="scan-top">
+      <div>
+        <div class="scan-title" id="scanTitle">Scansiona codice</div>
+        <div class="scan-sub" id="scanSub">Inquadra il codice a barre nel riquadro</div>
+      </div>
+      <button type="button" class="scan-round" id="scanClose" aria-label="Chiudi scanner"><svg><use href="#i-x"/></svg></button>
+    </div>
+    <div class="scan-bottom">
+      <div class="scan-last" id="scanLast"></div>
+      <div class="scan-row">
+        <label class="scan-pill" id="scanContinuousWrap"><input type="checkbox" id="scanContinuous"> Passa all'ottico successivo</label>
+      </div>
+      <div class="scan-row" style="margin-top:10px">
+        <button type="button" class="scan-round" id="scanTorch" aria-label="Torcia" hidden><svg><use href="#i-torch"/></svg></button>
+        <label class="scan-pill" style="cursor:pointer"><svg width="18" height="18"><use href="#i-image"/></svg> Da foto
+          <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenuto per stampa / PDF -->
+  <div id="printArea" aria-hidden="true"></div>
+
+  <!-- Toast -->
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+  <!-- Modal generico -->
+  <div class="modal-backdrop" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <div class="btn-row">
+        <button type="button" class="btn-secondary" id="modalCancel">Annulla</button>
+        <button type="button" class="btn-action" id="modalOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwBNct-ZWI5DRkag_GKr3twEop4-IzLcz9egtUKO5P-lbs4xHndMsiJvZa-KiXs834BeQ/exec";
+    const STORAGE_KEY = 'fiber_tools_ribattiture';
+
+    // Credenziali Amministratore: nel codice resta solo l'impronta SHA-256 di "UTENTE:PASSWORD",
+    // non più la password in chiaro.
+    const ADMIN_HASH = "0d0f74169a365a0362977ab09e2e3e46c040e576db19c5b24f66dd583b888b95";
+    let isAdminLoggedIn = false;
+
+    const C = {
+      ROSSO: "bg-rosso", VERDE: "bg-verde", GIALLO: "bg-giallo", MARRONE: "bg-marrone",
+      BLU: "bg-blu", VIOLA: "bg-viola", NERO: "bg-nero", ROSA: "bg-rosa",
+      ARANCIO: "bg-arancio", TURCHESE: "bg-turchese", BIANCO: "bg-bianco", GRIGIO: "bg-grigio"
+    };
+    const HEX = {
+      ROSSO: "#ef4444", VERDE: "#10b981", GIALLO: "#facc15", MARRONE: "#92400e", BLU: "#3b82f6",
+      VIOLA: "#8b5cf6", NERO: "#111827", ROSA: "#f472b6", ARANCIO: "#f97316", TURCHESE: "#06b6d4",
+      BIANCO: "#cbd5e1", GRIGIO: "#94a3b8"
+    };
+    const mk = names => names.map(n => ({ name: n, class: C[n] }));
+    const STD = ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","NERO","ROSA","ARANCIO","TURCHESE","BIANCO","GRIGIO"];
+
+    const baseColors = {
+      fibercop: mk(STD),
+      tim: mk(STD),
+      openfiber: mk(["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","GRIGIO","ARANCIO","ROSA","BIANCO","NERO","TURCHESE"]),
+      enel: mk(["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","ROSA","ARANCIO","GRIGIO","NERO","TURCHESE","BIANCO"]),
+      bull_infratel: mk(["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","BIANCO","ROSA","NERO","ARANCIO","GRIGIO","TURCHESE"])
+    };
+
+    let selectedPfsPos = null;      // posizione 1..12/24 in cartolina
+    let pfsSearchMode = 'permuta';
+    let selectedPteFibers = new Set();
+    let selectedFcCardPos = null;
+    let fcSearchMode = 'quartina';
+
+    const $ = id => document.getElementById(id);
+
+    /* ---------- Utilità ---------- */
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    /** Posizione 1..24 -> { color, striped } */
+    function fiberAt(palette, pos) {
+      const striped = pos > 12;
+      return { color: palette[(pos - 1) % 12], striped };
+    }
+
+    /** Divide un numero in gruppo/posizione (1-based). */
+    function split(num, size) {
+      return { group: Math.ceil(num / size), pos: ((num - 1) % size) + 1 };
+    }
+
+    function intVal(id) {
+      const v = $(id).value.trim();
+      if (v === '') return null;
+      const n = Number(v);
+      return Number.isInteger(n) ? n : NaN;
+    }
+
+    function setInvalid(id, msg, hintId) {
+      const el = $(id);
+      const was = el.classList.contains('invalid');
+      el.classList.toggle('invalid', !!msg);
+      if (msg && !was) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+      if (hintId) $(hintId).textContent = msg || '';
+    }
+
+    function swatchHtml(color, striped, extra = '') {
+      return `<div class="color-badge ${color.class}${striped ? ' has-stripe' : ''}" ${extra}></div>`;
+    }
+
+    /** Mostra il risultato con animazione solo se il contenuto cambia. */
+    function showResult(cardId, data) {
+      const card = $(cardId);
+      const key = JSON.stringify(data);
+      const wasHidden = card.hidden;
+      card.hidden = false;
+      if (card.dataset.key !== key || wasHidden) {
+        card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+      }
+      card.dataset.key = key;
+      card.style.setProperty('--accent', data.hex || 'var(--primary)');
+    }
+    function hideResult(cardId) { const c = $(cardId); c.hidden = true; c.dataset.key = ''; }
+
+    function setBadge(id, color, striped) {
+      $(id).className = `color-badge ${color.class}` + (striped ? ' has-stripe' : '');
+    }
+    function setTag(id, striped) { $(id).hidden = !striped; }
+
+    /* ---------- Toast ---------- */
+    function toast(msg, type = 'success', ms = 2800) {
+      const icons = { success: 'i-check', error: 'i-x', info: 'i-info' };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.setAttribute('role', 'status');
+      el.innerHTML = `<span class="t-ico"><svg><use href="#${icons[type]}"/></svg></span><span></span>`;
+      el.lastElementChild.textContent = msg;
+      $('toastWrap').appendChild(el);
+      const close = () => { el.classList.add('out'); setTimeout(() => el.remove(), 300); };
+      el.addEventListener('click', close);
+      setTimeout(close, ms);
+    }
+
+    /* ---------- Modal ---------- */
+    let modalResolve = null;
+    function openModal({ title, bodyHtml, okText = 'OK', cancelText = 'Annulla', danger = false, onOpen }) {
+      $('modalTitle').textContent = title;
+      $('modalBody').innerHTML = bodyHtml;
+      $('modalOk').textContent = okText;
+      $('modalCancel').textContent = cancelText;
+      $('modalOk').classList.toggle('danger', danger);
+      $('modal').hidden = false;
+      if (onOpen) onOpen(); else $('modalOk').focus();
+      return new Promise(res => { modalResolve = res; });
+    }
+    function closeModal(result) {
+      $('modal').hidden = true;
+      if (modalResolve) { const r = modalResolve; modalResolve = null; r(result); }
+    }
+    function confirmBox(title, text, okText = 'Conferma', danger = false) {
+      return openModal({ title, bodyHtml: `<p>${escapeHtml(text)}</p>`, okText, danger });
+    }
+
+    /* ---------- Clipboard con fallback ---------- */
+    async function copyText(text) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (e) { /* passa al fallback */ }
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      return ok;
+    }
+
+    /* ---------- SHA-256 (puro JS, funziona anche da file:// o http) ---------- */
+    function sha256(ascii) {
+      const rr = (v, a) => (v >>> a) | (v << (32 - a));
+      const maxWord = 2 ** 32;
+      const bytes = new TextEncoder().encode(ascii);
+      const words = [];
+      const bitLen = bytes.length * 8;
+      const hash = [], k = [];
+      let primeCounter = 0;
+      const isComposite = {};
+      for (let c = 2; primeCounter < 64; c++) {
+        if (!isComposite[c]) {
+          for (let i = 0; i < 313; i += c) isComposite[i] = c;
+          hash[primeCounter] = (c ** 0.5 * maxWord) | 0;
+          k[primeCounter++] = (c ** (1 / 3) * maxWord) | 0;
+        }
+      }
+      const data = [...bytes, 0x80];
+      while (data.length % 64 - 56) data.push(0);
+      for (let i = 0; i < data.length; i++) words[i >> 2] |= data[i] << ((3 - i) % 4) * 8;
+      words[words.length] = (bitLen / maxWord) | 0;
+      words[words.length] = bitLen;
+      let H = hash.slice(0, 8);
+      for (let j = 0; j < words.length;) {
+        const w = words.slice(j, j += 16);
+        const old = H;
+        H = H.slice(0, 8);
+        for (let i = 0; i < 64; i++) {
+          const w15 = w[i - 15], w2 = w[i - 2];
+          const a = H[0], e = H[4];
+          const t1 = H[7] + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & H[5]) ^ (~e & H[6])) + k[i] +
+            (w[i] = i < 16 ? w[i] : (w[i - 16] + (rr(w15, 7) ^ rr(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rr(w2, 17) ^ rr(w2, 19) ^ (w2 >>> 10))) | 0);
+          const t2 = (rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & H[1]) ^ (a & H[2]) ^ (H[1] & H[2]));
+          H = [(t1 + t2) | 0].concat(H);
+          H[4] = (H[4] + t1) | 0;
+        }
+        for (let i = 0; i < 8; i++) H[i] = (H[i] + old[i]) | 0;
+      }
+      return H.slice(0, 8).map(v => (v >>> 0).toString(16).padStart(8, '0')).join('');
+    }
+
+    /* ---------- Admin ---------- */
+    async function handleAdminAuth() {
+      if (isAdminLoggedIn) {
+        const ok = await confirmBox('Esci da Admin', 'Vuoi uscire dalla modalità amministratore?', 'Esci');
+        if (ok) { isAdminLoggedIn = false; updateAdminUI(); toast('Logout effettuato.', 'info'); }
+        return;
+      }
+      const ok = await openModal({
+        title: 'Accesso amministratore',
+        bodyHtml: `
+          <div class="field-group" style="margin-bottom:10px">
+            <label class="field-label" for="admUser">Username</label>
+            <input id="admUser" class="custom-input" autocomplete="username" autocapitalize="characters">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="admPass">Password</label>
+            <input id="admPass" type="password" class="custom-input" autocomplete="current-password">
+          </div>`,
+        okText: 'Accedi',
+        onOpen: () => setTimeout(() => $('admUser').focus(), 50)
+      });
+      if (!ok) return;
+      const user = ($('admUser')?.value || '').trim().toUpperCase();
+      const pass = $('admPass')?.value || '';
+      if (sha256(`${user}:${pass}`) === ADMIN_HASH) {
+        isAdminLoggedIn = true;
+        updateAdminUI();
+        toast('Accesso amministratore eseguito!');
+      } else {
+        toast('Credenziali errate. Accesso negato.', 'error');
+      }
+    }
+
+    function updateAdminUI() {
+      const btn = $('adminLoginBtn');
+      btn.classList.toggle('admin-active', isAdminLoggedIn);
+      $('adminIcon').innerHTML = `<use href="#${isAdminLoggedIn ? 'i-unlock' : 'i-lock'}"/>`;
+      $('adminText').textContent = isAdminLoggedIn ? 'Admin ✓' : 'Admin';
+    }
+
+    /* ---------- Navigazione ---------- */
+    function setHeader(title, sub) {
+      const t = $('headerTitle'), s = $('headerSubtitle');
+      t.textContent = title; s.textContent = sub;
+      [t, s].forEach(el => { el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap'); });
+    }
+
+    function showScreen(id, back = false) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'back'));
+      const el = $(id);
+      el.classList.add('active');
+      if (back) el.classList.add('back');
+      window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    }
+
+    function openScreen(screenId, title, subtitle, fromHistory = false) {
+      showScreen(screenId);
+      setHeader(title, subtitle);
+      if (!fromHistory) history.pushState({ screen: screenId, title, subtitle }, '', '#' + screenId);
+
+      if (screenId === 'calculatorScreen') updateApp();
+      else if (screenId === 'pfsScreen') { renderPfsColors(); updatePFS(); }
+      else if (screenId === 'pteScreen') { renderPteColors(); calculatePTE(); }
+      else if (screenId === 'fibercopScreen') { renderFcColors(); updateFiberCop(); }
+      else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
+      else if (screenId === 'barcodeScreen') {
+        renderBarcode(false); renderRecentBarcodes();
+        if (!fromHistory && window.matchMedia('(pointer: fine)').matches) setTimeout(() => $('bcInput').focus(), 300);
+      }
+
+      requestAnimationFrame(() => document.querySelectorAll(`#${screenId} .pfs-mode-selector`).forEach(positionSeg));
+    }
+
+    function goHome(fromHistory = false) {
+      showScreen('homeScreen', true);
+      setHeader('Fiber Tools', 'Gestione e Colori');
+      if (!fromHistory && history.state && history.state.screen) history.back();
+    }
+
+    // Il tasto "indietro" del telefono torna al menu invece di chiudere la pagina
+    let suppressPop = false;
+    window.addEventListener('popstate', e => {
+      const st = e.state;
+      if (suppressPop) { suppressPop = false; return; }
+      if (!$('scanner').hidden) { closeScanner(true); return; }
+      if (!$('bcFull').hidden) { closeBarcodeFull(true); return; }
+      if (st && st.screen) openScreen(st.screen, st.title, st.subtitle, true);
+      else goHome(true);
+    });
+
+    /* ---------- Tema ---------- */
+    function initTheme() {
+      let saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      const theme = saved || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      applyTheme(theme);
+    }
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#0b1220' : '#f3f6fb';
+      $('themeIcon').innerHTML = `<use href="#${theme === 'dark' ? 'i-sun' : 'i-moon'}"/>`;
+      $('themeText').textContent = theme === 'dark' ? 'Chiaro' : 'Scuro';
+    }
+    function toggleTheme() {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+    }
+
+    /* ---------- Segmented control ---------- */
+    function positionSeg(seg) {
+      const active = seg.querySelector('.pfs-mode-btn.active');
+      const ind = seg.querySelector('.seg-indicator');
+      if (!active || !ind || !active.offsetWidth) return;
+      ind.style.width = active.offsetWidth + 'px';
+      ind.style.transform = `translateX(${active.offsetLeft - 4}px)`;
+    }
+
+    function setMode(segName, mode, panels) {
+      const seg = document.querySelector(`[data-seg="${segName}"]`);
+      seg.querySelectorAll('.pfs-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+      Object.entries(panels).forEach(([m, id]) => { $(id).hidden = m !== mode; });
+      positionSeg(seg);
+    }
+
+    /* ---------- FIBER CALCULATOR ---------- */
+    function updateApp() {
+      const op = $('operatorSelect').value;
+      const tubeSize = parseInt($('tubeSizeSelect').value, 10);
+      const range = $('rangeSelect').value;
+      const palette = baseColors[op];
+      const num = intVal('fiberInput');
+      let highlightPos = null;
+
+      if (num !== null && !(num > 0)) setInvalid('fiberInput', 'x'); else setInvalid('fiberInput', '');
+
+      if (num > 0) {
+        const { group: tubeNum, pos } = split(num, tubeSize);
+        const { color, striped } = fiberAt(palette, pos);
+        highlightPos = pos;
+
+        $('resTitle').textContent = `Fibra N° ${num}`;
+        $('resName').textContent = color.name;
+        setTag('resTag', striped);
+        $('resSubtext').textContent = `Tubetto N° ${tubeNum} • Posizione ${pos} su ${tubeSize}`;
+        setBadge('resBadge', color, striped);
+        showResult('searchResultCard', { op, tubeSize, num, hex: HEX[color.name] });
+      } else {
+        hideResult('searchResultCard');
+      }
+
+      let start = 1, end = 12;
+      if (range === '13-24') { start = 13; end = 24; }
+      else if (range === 'all') { start = 1; end = 24; }
+
+      const listKey = `${op}|${range}`;
+      const list = $('colorList');
+      if (list.dataset.key !== listKey) {
+        let html = '';
+        for (let i = start; i <= end; i++) {
+          const { color, striped } = fiberAt(palette, i);
+          html += `
+            <li class="color-item" data-pos="${i}" style="--i:${i - start}">
+              <span class="color-number">${i}</span>
+              <div class="color-badge-wrapper">${swatchHtml(color, striped)}</div>
+              <div class="color-info">
+                <span class="color-name">${color.name}</span>
+                ${striped ? '<span class="stripe-tag">RIGA BIANCA</span>' : ''}
+              </div>
+            </li>`;
+        }
+        list.innerHTML = html;
+        list.dataset.key = listKey;
+      }
+      list.querySelectorAll('.color-item').forEach(li => li.classList.toggle('highlight', Number(li.dataset.pos) === highlightPos));
+    }
+
+    /* ---------- PFS ---------- */
+    function setPfsSearchMode(mode) {
+      pfsSearchMode = mode;
+      setMode('pfs', mode, { permuta: 'pfsGroupPermuta', cartolina: 'pfsGroupCartolina' });
+      updatePFS();
+    }
+
+    function renderPfsColors() {
+      const palette = baseColors[$('pfsOperatorSelect').value];
+      const cardType = parseInt($('pfsCardTypeSelect').value, 10);
+      if (selectedPfsPos !== null && selectedPfsPos > cardType) selectedPfsPos = null;
+      const grid = $('pfsColorGrid');
+      let html = '';
+      for (let pos = 1; pos <= cardType; pos++) {
+        const { color, striped } = fiberAt(palette, pos);
+        html += `
+          <button type="button" class="color-grid-btn ${selectedPfsPos === pos ? 'active' : ''}" data-pos="${pos}" style="--i:${pos - 1}" aria-pressed="${selectedPfsPos === pos}">
+            <span class="check"><svg><use href="#i-check"/></svg></span>
+            <span class="pos-badge">${pos}</span>
+            <div class="swatch">${swatchHtml(color, striped)}</div>
+            <span class="color-name-sub">${color.name}</span>
+          </button>`;
+      }
+      grid.innerHTML = html;
+    }
+
+    function updatePFS() {
+      const op = $('pfsOperatorSelect').value;
+      const cardType = parseInt($('pfsCardTypeSelect').value, 10);
+      const palette = baseColors[op];
+
+      if (pfsSearchMode === 'permuta') {
+        const permuta = intVal('pfsInput');
+        if (permuta === null) { setInvalid('pfsInput', '', 'pfsHint'); hideResult('pfsResultCard'); return; }
+        if (!(permuta >= 1 && permuta <= 256)) {
+          setInvalid('pfsInput', 'Inserisci una permuta tra 1 e 256.', 'pfsHint');
+          hideResult('pfsResultCard'); return;
+        }
+        setInvalid('pfsInput', '', 'pfsHint');
+
+        const { group: cardNum, pos } = split(permuta, cardType);
+        const { color, striped } = fiberAt(palette, pos);
+
+        $('pfsResTitle').textContent = `Permuta N° ${permuta}`;
+        $('pfsResName').textContent = color.name;
+        setTag('pfsResTag', striped);
+        $('pfsResSubtext').textContent = `Cartolina N° ${cardNum} • Posizione ${pos} su ${cardType}`;
+        setBadge('pfsResBadge', color, striped);
+        showResult('pfsResultCard', { m: 'p', op, cardType, permuta, hex: HEX[color.name] });
+      } else {
+        const cardNum = intVal('pfsCardInput');
+        if (cardNum !== null && !(cardNum > 0)) setInvalid('pfsCardInput', 'x'); else setInvalid('pfsCardInput', '');
+        if (!(cardNum > 0) || selectedPfsPos === null) { $('pfsCardHint').textContent = ''; hideResult('pfsResultCard'); return; }
+
+        const pos = selectedPfsPos;
+        const { color, striped } = fiberAt(palette, pos);
+        const permuta = (cardNum - 1) * cardType + pos;
+
+        if (permuta > 256) {
+          $('pfsCardHint').textContent = `Permuta ${permuta} oltre il limite di 256: controlla il numero di cartolina.`;
+        } else {
+          $('pfsCardHint').textContent = '';
+        }
+
+        $('pfsResTitle').textContent = `Cartolina ${cardNum} • ${color.name}${striped ? ' (riga bianca)' : ''}`;
+        $('pfsResName').textContent = `PERMUTA N° ${permuta}`;
+        setTag('pfsResTag', striped);
+        $('pfsResSubtext').textContent = `Posizione in cartolina: ${pos} su ${cardType}`;
+        setBadge('pfsResBadge', color, striped);
+        showResult('pfsResultCard', { m: 'c', op, cardType, cardNum, pos, hex: HEX[color.name] });
+      }
+    }
+
+    /* ---------- PTE ---------- */
+    function renderPteColors() {
+      const palette = baseColors[$('pteOperatorSelect').value];
+      const count = $('pteTypeSelect').value === '24' ? 24 : 12;
+      // Rimuove selezioni non più valide se si passa da 24 a 12
+      [...selectedPteFibers].forEach(f => { if (f > count) selectedPteFibers.delete(f); });
+
+      let html = '';
+      for (let i = 1; i <= count; i++) {
+        const { color, striped } = fiberAt(palette, i);
+        const sel = selectedPteFibers.has(i);
+        html += `
+          <button type="button" class="color-grid-btn ${sel ? 'active' : ''}" data-pos="${i}" style="--i:${i - 1}" aria-pressed="${sel}">
+            <span class="check"><svg><use href="#i-check"/></svg></span>
+            <span class="pos-badge">${i}</span>
+            <div class="swatch">${swatchHtml(color, striped)}</div>
+            <span class="color-name-sub">${color.name}</span>
+          </button>`;
+      }
+      $('pteColorGrid').innerHTML = html;
+    }
+
+    function togglePteFiber(btn) {
+      const i = Number(btn.dataset.pos);
+      if (selectedPteFibers.has(i)) selectedPteFibers.delete(i); else selectedPteFibers.add(i);
+      const sel = selectedPteFibers.has(i);
+      btn.classList.toggle('active', sel);
+      btn.setAttribute('aria-pressed', sel);
+      calculatePTE();
+    }
+
+    function calculatePTE() {
+      const n = selectedPteFibers.size;
+      $('pteCount').textContent = `${n} selezionat${n === 1 ? 'a' : 'e'}`;
+      if (n === 0) { hideResult('pteResultCard'); return; }
+
+      const op = $('pteOperatorSelect').value;
+      const palette = baseColors[op];
+      const priority = Math.min(...selectedPteFibers);
+      const { color, striped } = fiberAt(palette, priority);
+
+      $('pteResName').textContent = `FIBRA N° ${priority} (${color.name})`;
+      setTag('pteResTag', striped);
+      $('pteResSubtext').textContent = `Prima fibra disponibile in ordine numerico tra le ${n} selezionate.`;
+      setBadge('pteResBadge', color, striped);
+      showResult('pteResultCard', { op, priority, hex: HEX[color.name] });
+    }
+
+    /* ---------- FIBERCOP ---------- */
+    function setFcSearchMode(mode) {
+      fcSearchMode = mode;
+      setMode('fc', mode, { quartina: 'fcGroupQuartina', cartolina: 'fcGroupCartolina', fiber: 'fcGroupFiber' });
+      updateFiberCop();
+    }
+
+    function renderFcColors() {
+      const palette = baseColors.fibercop.slice(0, 8);
+      $('fcColorGrid').innerHTML = palette.map((color, idx) => `
+        <button type="button" class="color-grid-btn ${selectedFcCardPos === idx + 1 ? 'active' : ''}" data-pos="${idx + 1}" style="--i:${idx}" aria-pressed="${selectedFcCardPos === idx + 1}">
+          <span class="check"><svg><use href="#i-check"/></svg></span>
+          <span class="pos-badge">${idx + 1}</span>
+          <div class="swatch">${swatchHtml(color, false)}</div>
+          <span class="color-name-sub">${color.name}</span>
+        </button>`).join('');
+    }
+
+    function updateFiberCop() {
+      const palette = baseColors.fibercop;
+      let fiberNum = null, title = '', name = '', sub = '';
+
+      if (fcSearchMode === 'quartina') {
+        const q = intVal('fcQuartinaInput'), p = intVal('fcPostoInput');
+        const qBad = q !== null && !(q >= 1 && q <= 48);
+        const pBad = p !== null && !(p >= 1 && p <= 4);
+        setInvalid('fcQuartinaInput', qBad ? 'x' : '');
+        setInvalid('fcPostoInput', pBad ? 'x' : '');
+        $('fcQuartinaHint').textContent = qBad ? 'La quartina va da 1 a 48.' : pBad ? 'La posizione va da 1 a 4.' : '';
+        if (q === null || p === null || qBad || pBad) { hideResult('fcResultCard'); return; }
+
+        fiberNum = (q - 1) * 4 + p;
+        const card = split(fiberNum, 8);
+        const color = palette[card.pos - 1];
+        title = `Quartina ${q} • Posto ${p}`;
+        name = `FIBRA N° ${fiberNum} (${color.name})`;
+        sub = `Cartolina N° ${card.group} • Posizione colore ${card.pos} su 8`;
+        finishFc(color, title, name, sub, { m: 'q', q, p });
+
+      } else if (fcSearchMode === 'cartolina') {
+        const cardNum = intVal('fcCardInput');
+        setInvalid('fcCardInput', cardNum !== null && !(cardNum > 0) ? 'x' : '');
+        if (!(cardNum > 0) || selectedFcCardPos === null) { hideResult('fcResultCard'); return; }
+
+        fiberNum = (cardNum - 1) * 8 + selectedFcCardPos;
+        const quart = split(fiberNum, 4);
+        const color = palette[selectedFcCardPos - 1];
+        title = `Cartolina ${cardNum} • Posizione ${selectedFcCardPos}`;
+        name = `FIBRA N° ${fiberNum} (${color.name})`;
+        sub = `Quartina N° ${quart.group} • Posto N° ${quart.pos}`;
+        finishFc(color, title, name, sub, { m: 'c', cardNum, p: selectedFcCardPos });
+
+      } else {
+        const f = intVal('fcFiberInput');
+        setInvalid('fcFiberInput', f !== null && !(f > 0) ? 'x' : '');
+        if (!(f > 0)) { hideResult('fcResultCard'); return; }
+
+        const quart = split(f, 4), card = split(f, 8);
+        const color = palette[card.pos - 1];
+        title = `Fibra N° ${f}`;
+        name = `COLORE: ${color.name}`;
+        sub = `Quartina ${quart.group} (posto ${quart.pos}) • Cartolina ${card.group} (pos. ${card.pos})`;
+        finishFc(color, title, name, sub, { m: 'f', f });
+      }
+    }
+
+    function finishFc(color, title, name, sub, key) {
+      $('fcResTitle').textContent = title;
+      $('fcResName').textContent = name;
+      $('fcResSubtext').textContent = sub;
+      setBadge('fcResBadge', color, false);
+      showResult('fcResultCard', { ...key, hex: HEX[color.name] });
+    }
+
+    /* ---------- RIBATTITURA ---------- */
+    function renderRibattituraOttici() {
+      const container = $('ribOtticiContainer');
+      if (container.children.length > 0) return;
+      let html = '';
+      for (let i = 1; i <= 16; i++) {
+        html += `
+          <div class="ottico-row" id="ribRow${i}" style="--i:${i - 1}">
+            <span class="ottico-num" aria-hidden="true">${i}</span>
+            <input type="text" id="ribPte${i}" class="custom-input" data-upper placeholder="Permuta" aria-label="Permuta ottico ${i}" autocomplete="off" autocapitalize="characters">
+            <input type="text" id="ribFibra${i}" class="custom-input" data-upper placeholder="ID" aria-label="ID ottico ${i}" autocomplete="off" autocapitalize="characters">
+            <button type="button" class="scan-btn" data-scan="ribFibra${i}" aria-label="Scansiona ID ottico ${i}"><svg><use href="#i-camera"/></svg></button>
+          </div>`;
+      }
+      container.innerHTML = html;
+      refreshRibProgress();
+    }
+
+    function refreshRibProgress() {
+      let filled = 0;
+      for (let i = 1; i <= 16; i++) {
+        const row = $(`ribRow${i}`);
+        if (!row) return;
+        const f = $(`ribPte${i}`).value.trim() || $(`ribFibra${i}`).value.trim();
+        row.classList.toggle('filled', !!f);
+        if (f) filled++;
+      }
+      $('ribFillCount').textContent = `${filled} / 16`;
+      $('ribProgress').style.width = `${(filled / 16) * 100}%`;
+    }
+
+    /** Porta tutti i nomi PFS/splitter in maiuscolo (unendo eventuali doppioni "na_05" / "NA_05"). */
+    function normalizeRibDb(data) {
+      const out = {};
+      Object.keys(data || {}).forEach(pfs => {
+        const P = String(pfs).trim().toUpperCase();
+        if (!data[pfs] || typeof data[pfs] !== 'object') return;
+        out[P] = out[P] || {};
+        Object.keys(data[pfs]).forEach(spl => {
+          const S = String(spl).trim().toUpperCase();
+          // in caso di doppione prevale l'ultima versione letta
+          if (data[pfs][spl]) out[P][S] = data[pfs][spl];
+        });
+      });
+      return out;
+    }
+
+    function getRibattitureData() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return data && typeof data === 'object' && !Array.isArray(data) ? normalizeRibDb(data) : {};
+      } catch (e) { return {}; }
+    }
+
+    function saveRibattitureData(data) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+      catch (e) { toast('Impossibile salvare in memoria locale.', 'error'); }
+    }
+
+    let syncing = false;
+    function setSyncing(on) {
+      syncing = on;
+      $('ribSyncBtn').disabled = on;
+      $('ribSyncIcon').classList.toggle('spin', on);
+    }
+
+    async function syncFromGoogleSheets(silent = false) {
+      if (syncing) return;
+      setSyncing(true);
+      const badge = $('archiveCountBadge');
+      badge.innerHTML = `<svg class="spin"><use href="#i-sync"/></svg> Sincronizzazione…`;
+      if (!Object.keys(getRibattitureData()).length) {
+        $('pfsArchiveContainer').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      }
+
+      const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timer = setTimeout(() => ctrl && ctrl.abort(), 15000);
+      try {
+        const res = await fetch(GOOGLE_SHEET_WEB_APP_URL, ctrl ? { signal: ctrl.signal } : {});
+        const json = await res.json();
+        if (json.status === 'success' && json.data && typeof json.data === 'object') {
+          const local = getRibattitureData();
+          setScriptVersion(Number(json.version) || 1);
+          const remote = normalizeRibDb(json.data);
+          Object.keys(remote).forEach(pfs => {
+            if (!local[pfs] || typeof local[pfs] !== 'object') local[pfs] = {};
+            Object.keys(remote[pfs]).forEach(spl => { local[pfs][spl] = remote[pfs][spl]; });
+          });
+          saveRibattitureData(local);
+          if (!silent) toast('Archivio aggiornato da Google Sheets.');
+        } else if (!silent) {
+          toast('Google Sheets non ha restituito dati validi.', 'error');
+        }
+      } catch (err) {
+        console.error('Errore sincronizzazione:', err);
+        toast(silent ? 'Offline: mostro l’archivio locale.' : 'Sincronizzazione fallita. Archivio locale mostrato.', silent ? 'info' : 'error');
+      } finally {
+        clearTimeout(timer);
+        setSyncing(false);
+        loadRibattitureArchive();
+      }
+    }
+
+    function collectOttici() {
+      const out = [];
+      for (let i = 1; i <= 16; i++) {
+        out.push({ ottico: i, pte: $(`ribPte${i}`).value.trim(), fibra: $(`ribFibra${i}`).value.trim() });
+      }
+      return out;
+    }
+
+    async function saveRibattitura() {
+      const pfsRaw = $('ribPfsInput').value.trim();
+      const splRaw = $('ribSplitterInput').value.trim();
+      setInvalid('ribPfsInput', pfsRaw ? '' : 'x');
+      setInvalid('ribSplitterInput', splRaw ? '' : 'x');
+      if (!pfsRaw || !splRaw) { toast('Inserisci sia il PFS che lo splitter per salvare.', 'error'); return; }
+
+      const pfsKey = pfsRaw.toUpperCase();
+      const splitterKey = splRaw.toUpperCase();
+      const now = new Date();
+      const timestamp = now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      const ottici = collectOttici();
+
+      const db = getRibattitureData();
+      const exists = db[pfsKey] && db[pfsKey][splitterKey];
+      if (exists) {
+        const ok = await confirmBox('Sovrascrivere?', `Esiste già una ribattitura per ${pfsKey} → ${splitterKey}. Vuoi aggiornarla?`, 'Aggiorna');
+        if (!ok) return;
+      }
+      const tecnico = await ensureTecnico();
+      if (!db[pfsKey]) db[pfsKey] = {};
+      db[pfsKey][splitterKey] = { updatedAt: timestamp, tecnico, ottici };
+      saveRibattitureData(db);
+      loadRibattitureArchive(pfsKey);
+
+      const btn = $('ribSaveBtn');
+      btn.disabled = true;
+      try {
+        await postToSheets({ action: 'save', pfs: pfsKey, splitter: splitterKey, timestamp, tecnico, ottici });
+        toast(`Salvata in ${pfsKey} → ${splitterKey} e inviata a Google Sheets.`);
+      } catch (err) {
+        toast('Salvata in locale, ma l’invio a Google Sheets non è riuscito (sei offline?).', 'error', 4000);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function loadRibattitureArchive(openPfs) {
+      const container = $('pfsArchiveContainer');
+      const db = getRibattitureData();
+      const q = ($('archiveSearch').value || '').trim().toUpperCase();
+      const openNow = new Set([...container.querySelectorAll('.pfs-folder.open')].map(f => f.dataset.pfs));
+      if (openPfs) openNow.add(openPfs);
+
+      const pfsKeys = Object.keys(db).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      $('archiveCountBadge').textContent = `${pfsKeys.length} Cartell${pfsKeys.length === 1 ? 'a' : 'e'}`;
+
+      if (pfsKeys.length === 0) {
+        container.innerHTML = `<div class="empty-state"><svg><use href="#i-folder"/></svg><div>Nessuna ribattitura salvata.</div></div>`;
+        return;
+      }
+
+      let html = '', shown = 0;
+      pfsKeys.forEach(pfs => {
+        const spls = Object.keys(db[pfs] || {}).filter(spl => !q || pfs.toUpperCase().includes(q) || spl.toUpperCase().includes(q)
+          || (db[pfs][spl]?.ottici || []).some(o => String(o.fibra || '').toUpperCase().includes(q) || String(o.pte || '').toUpperCase().includes(q)));
+        if (!spls.length) return;
+        const isOpen = openNow.has(pfs) || (q && spls.length);
+        const items = spls.map(spl => `
+          <div class="splitter-item" data-pfs="${escapeHtml(pfs)}" data-spl="${escapeHtml(spl)}">
+            <div>
+              <div class="splitter-name">${escapeHtml(spl)}</div>
+              <div class="splitter-date">Aggiornato: ${escapeHtml(db[pfs][spl]?.updatedAt || '—')}</div>
+              ${db[pfs][spl]?.tecnico ? `<span class="splitter-tech"><svg width="11" height="11"><use href="#i-user"/></svg>${escapeHtml(db[pfs][spl].tecnico)}</span>` : ''}
+            </div>
+            <div class="splitter-actions">
+              <button type="button" class="btn-xs" data-act="load"><svg><use href="#i-eye"/></svg> Apri</button>
+              <button type="button" class="btn-xs" data-act="copy"><svg><use href="#i-copy"/></svg> Copia</button>
+              <button type="button" class="btn-xs" data-act="share" aria-label="Condividi"><svg><use href="#i-share"/></svg></button>
+              <button type="button" class="btn-xs" data-act="export" aria-label="PDF o Excel"><svg><use href="#i-file"/></svg></button>
+              <button type="button" class="btn-xs danger" data-act="delete" aria-label="Elimina"><svg><use href="#i-x"/></svg></button>
+            </div>
+          </div>`).join('');
+        html += `
+          <div class="pfs-folder ${isOpen ? 'open' : ''}" data-pfs="${escapeHtml(pfs)}" style="--i:${shown++}">
+            <button type="button" class="pfs-folder-header" aria-expanded="${!!isOpen}">
+              <span class="pfs-folder-title"><svg><use href="#i-folder"/></svg>${escapeHtml(pfs)}</span>
+              <span class="folder-meta">${spls.length} splitter <svg><use href="#i-down"/></svg></span>
+            </button>
+            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>
+              <div class="folder-actions">
+                <span class="lbl">Cartella:</span>
+                <button type="button" class="btn-xs" data-act="folder-pdf"><svg><use href="#i-file"/></svg> PDF</button>
+                <button type="button" class="btn-xs" data-act="folder-xls"><svg><use href="#i-table"/></svg> Excel</button>
+                <button type="button" class="btn-xs" data-act="folder-share"><svg><use href="#i-share"/></svg> Condividi</button>
+              </div>
+              ${items}
+            </div></div></div>
+          </div>`;
+      });
+      const hitsHtml = q ? renderIdHits(db, q) : '';
+      container.innerHTML = (hitsHtml + html) || `<div class="empty-state">Nessun risultato per “${escapeHtml(q)}”.</div>`;
+    }
+
+    function loadSplitterToForm(pfs, splitter, focusOttico) {
+      const item = getRibattitureData()[pfs]?.[splitter];
+      if (!item) return;
+      $('ribPfsInput').value = pfs;
+      $('ribSplitterInput').value = splitter;
+      for (let i = 1; i <= 16; i++) { $(`ribPte${i}`).value = ''; $(`ribFibra${i}`).value = ''; }
+      (item.ottici || []).forEach(o => {
+        const n = Number(o.ottico);
+        if (n >= 1 && n <= 16) {
+          $(`ribPte${n}`).value = String(o.pte ?? '').toUpperCase();
+          $(`ribFibra${n}`).value = String(o.fibra ?? '').toUpperCase();
+        }
+      });
+      refreshRibProgress();
+      setInvalid('ribPfsInput', ''); setInvalid('ribSplitterInput', '');
+      if (focusOttico >= 1 && focusOttico <= 16) {
+        const row = $(`ribRow${focusOttico}`);
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
+        toast(`${pfs} → ${splitter} • Ottico ${focusOttico}`, 'info', 2500);
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        toast(`Caricato ${pfs} → ${splitter}`, 'info', 2000);
+      }
+    }
+
+    function buildRibText(pfs, splitter, ottici, dateLine) {
+      let t = `=== RIBATTITURA OTTICI ===\nPFS: ${String(pfs).toUpperCase()}\nSPLITTER: ${String(splitter).toUpperCase()}\n`;
+      if (dateLine) t += `DATA: ${dateLine}\n`;
+      t += `-------------------------\n`;
+      let has = false;
+      (ottici || []).forEach(o => {
+        if (o.pte || o.fibra) {
+          has = true;
+          t += `Ottico ${o.ottico}: PERMUTA -> ${String(o.pte || '-').toUpperCase()} | ID -> ${String(o.fibra || 'NO IDR').toUpperCase()}\n`;
+        }
+      });
+      if (!has) t += '(Nessun dato ottico inserito)\n';
+      t += '-------------------------';
+      return t;
+    }
+
+    async function copySplitterText(pfs, splitter) {
+      const item = getRibattitureData()[pfs]?.[splitter];
+      if (!item) return;
+      const ok = await copyText(buildRibText(pfs, splitter, item.ottici, item.updatedAt));
+      toast(ok ? 'Ribattitura copiata negli appunti!' : 'Copia non riuscita su questo dispositivo.', ok ? 'success' : 'error');
+    }
+
+    async function deleteSplitter(pfs, splitter) {
+      if (!isAdminLoggedIn) { toast('Solo l’amministratore può eliminare le ribattiture.', 'error'); return; }
+      const ok = await confirmBox('Elimina ribattitura', `Eliminare definitivamente lo splitter ${splitter} dal PFS ${pfs}?`, 'Elimina', true);
+      if (!ok) return;
+      const db = getRibattitureData();
+      if (db[pfs] && db[pfs][splitter]) {
+        delete db[pfs][splitter];
+        if (!Object.keys(db[pfs]).length) delete db[pfs];
+        saveRibattitureData(db);
+        loadRibattitureArchive();
+        if (scriptVersion >= 2) {
+          try {
+            await postToSheets({ action: 'delete', pfs, splitter });
+            toast('Ribattitura eliminata anche da Google Sheets.');
+          } catch (e) { toast('Eliminata in locale, ma Google Sheets non è raggiungibile.', 'error', 4000); }
+        } else {
+          toast('Eliminata in locale. Installa lo script v2 per eliminarla anche da Google Sheets.', 'info', 4500);
+        }
+      }
+    }
+
+    async function copyRibattituraText() {
+      const pfs = $('ribPfsInput').value.trim() || 'N/D';
+      const spl = $('ribSplitterInput').value.trim() || 'N/D';
+      const text = buildRibText(pfs, spl, collectOttici()) + `\nData: ${new Date().toLocaleDateString('it-IT')}`;
+      const ok = await copyText(text);
+      toast(ok ? 'Dati ribattitura copiati negli appunti!' : 'Copia non riuscita su questo dispositivo.', ok ? 'success' : 'error');
+    }
+
+    async function clearRibForm() {
+      const any = $('ribPfsInput').value || $('ribSplitterInput').value || collectOttici().some(o => o.pte || o.fibra);
+      if (!any) return;
+      const ok = await confirmBox('Svuota modulo', 'Cancellare tutti i campi del modulo? L’archivio salvato non viene toccato.', 'Svuota', true);
+      if (!ok) return;
+      $('ribPfsInput').value = ''; $('ribSplitterInput').value = '';
+      for (let i = 1; i <= 16; i++) { $(`ribPte${i}`).value = ''; $(`ribFibra${i}`).value = ''; }
+      refreshRibProgress();
+    }
+
+    /* ---------- GENERATORE BARCODE CODE 128 ---------- */
+    // Larghezze barra/spazio dei 107 simboli Code 128 (valori 0-105, 106 = STOP).
+    const C128 = (
+      "212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 " +
+      "221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 " +
+      "221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 " +
+      "212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 " +
+      "231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 " +
+      "231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 " +
+      "314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 " +
+      "112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 " +
+      "111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 " +
+      "214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 " +
+      "114131 311141 411131 211412 211214 211232 2331112"
+    ).split(' ');
+    const C128_START_B = 104, C128_START_C = 105, C128_TO_B = 100, C128_TO_C = 99, C128_STOP = 106;
+    const BC_MAX = 48;
+    const BC_RECENT_KEY = 'fiber_tools_barcodes';
+
+    function digitRun(s, i) { let n = 0; while (i + n < s.length && s.charCodeAt(i + n) >= 48 && s.charCodeAt(i + n) <= 57) n++; return n; }
+
+    /** Codifica una stringa ASCII 32-126 in valori Code 128 (con start, checksum e stop).
+        Usa il set C (2 cifre per simbolo) per le sequenze di cifre, il set B per il resto. */
+    function encodeCode128(text) {
+      for (const ch of text) {
+        const c = ch.charCodeAt(0);
+        if (c < 32 || c > 126) throw new Error(`Carattere non supportato: "${ch}"`);
+      }
+      const vals = [];
+      let i = 0, set;
+      const lead = digitRun(text, 0);
+      if (lead === text.length && lead >= 2 || lead >= 4) { set = 'C'; vals.push(C128_START_C); }
+      else { set = 'B'; vals.push(C128_START_B); }
+
+      while (i < text.length) {
+        if (set === 'C') {
+          if (digitRun(text, i) >= 2) { vals.push(Number(text.substr(i, 2))); i += 2; }
+          else { vals.push(C128_TO_B); set = 'B'; }
+        } else {
+          const run = digitRun(text, i);
+          const toEnd = i + run === text.length;
+          if (run >= 6 || (run >= 4 && toEnd)) {
+            if (run % 2 === 1) { vals.push(text.charCodeAt(i) - 32); i++; }  // cifra dispari in B
+            vals.push(C128_TO_C); set = 'C';
+          } else { vals.push(text.charCodeAt(i) - 32); i++; }
+        }
+      }
+      let sum = vals[0];
+      for (let k = 1; k < vals.length; k++) sum += vals[k] * k;
+      vals.push(sum % 103, C128_STOP);
+      return vals;
+    }
+
+    /** Restituisce l'SVG del codice a barre con il testo leggibile sotto. */
+    function code128Svg(text, { height = 90, module = 2, quiet = 10, showText = true, animate = false } = {}) {
+      const vals = encodeCode128(text);
+      const widths = vals.map(v => C128[v]).join('');
+      const totalModules = [...widths].reduce((a, w) => a + Number(w), 0) + quiet * 2;
+      const W = totalModules * module;
+      const fontSize = Math.max(14, Math.round(module * 9));
+      const textGap = showText ? fontSize + 10 : 0;
+      const H = height + textGap;
+      let x = quiet * module, rects = '', barIdx = 0;
+      for (let k = 0; k < widths.length; k++) {
+        const w = Number(widths[k]) * module;
+        if (k % 2 === 0) {
+          rects += `<rect class="bar" x="${x}" y="0" width="${w}" height="${height}"${animate ? ` style="--d:${barIdx * 8}"` : ''}/>`;
+          barIdx++;
+        }
+        x += w;
+      }
+      const label = showText
+        ? `<text x="${W / 2}" y="${height + fontSize + 4}" text-anchor="middle" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Courier New', monospace" font-size="${fontSize}" font-weight="600" letter-spacing="${module}" fill="#000">${escapeHtml(text)}</text>`
+        : '';
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Codice a barre Code 128: ${escapeHtml(text)}" shape-rendering="crispEdges"${animate ? ' class="draw"' : ''}><rect width="100%" height="100%" fill="#fff"/><g fill="#000">${rects}</g>${label}</svg>`;
+    }
+
+    let bcCurrent = '';
+    let bcTimer = null;
+
+    function renderBarcode(animate = true) {
+      const raw = $('bcInput').value;
+      const text = raw.trim();
+      const stage = $('bcStage');
+      $('bcLen').textContent = `${raw.length} / ${BC_MAX}`;
+      const enable = on => ['bcFullBtn', 'bcDownloadBtn', 'bcCopyBtn'].forEach(id => $(id).disabled = !on);
+
+      if (!text) {
+        bcCurrent = '';
+        setInvalid('bcInput', '');
+        $('bcInfo').className = '';
+        $('bcInfo').textContent = 'Code 128 • lettere, numeri e simboli';
+        stage.innerHTML = `<div class="bc-empty"><svg><use href="#i-barcode"/></svg>Scrivi un numero per generare il codice a barre</div>`;
+        enable(false);
+        return;
+      }
+      try {
+        const height = Number($('bcHeight').value);
+        const svg = code128Svg(text, { height, module: 2, animate: animate && text !== bcCurrent });
+        stage.innerHTML = svg;
+        setInvalid('bcInput', '');
+        $('bcInfo').className = '';
+        $('bcInfo').textContent = /^\d+$/.test(text) ? `Code 128 • ${text.length} cifre` : `Code 128 • ${text.length} caratteri`;
+        if (encodeCode128(text).length > 16) $('bcInfo').textContent += ' • lungo: usa Schermo intero';
+        bcCurrent = text;
+        enable(true);
+        clearTimeout(bcTimer);
+        bcTimer = setTimeout(() => addRecentBarcode(text), 1500);
+      } catch (e) {
+        bcCurrent = '';
+        setInvalid('bcInput', 'x');
+        $('bcInfo').className = 'err';
+        $('bcInfo').textContent = e.message;
+        stage.innerHTML = `<div class="bc-empty">${escapeHtml(e.message)}</div>`;
+        enable(false);
+      }
+    }
+
+    function getRecentBarcodes() {
+      try { const a = JSON.parse(localStorage.getItem(BC_RECENT_KEY) || '[]'); return Array.isArray(a) ? a : []; }
+      catch (e) { return []; }
+    }
+    function addRecentBarcode(text) {
+      if (!text || text !== bcCurrent) return;
+      const list = [text, ...getRecentBarcodes().filter(t => t !== text)].slice(0, 8);
+      try { localStorage.setItem(BC_RECENT_KEY, JSON.stringify(list)); } catch (e) {}
+      renderRecentBarcodes();
+    }
+    function renderRecentBarcodes() {
+      const list = getRecentBarcodes();
+      $('bcRecentCard').hidden = !list.length;
+      $('bcRecent').innerHTML = list.map(t => `<button type="button" class="chip" data-code="${escapeHtml(t)}" style="font-family:ui-monospace,Menlo,monospace">${escapeHtml(t)}</button>`).join('');
+    }
+
+    function openBarcodeFull() {
+      if (!bcCurrent) return;
+      $('bcFullStage').innerHTML = code128Svg(bcCurrent, { height: 160, module: 3 });
+      $('bcFull').hidden = false;
+      updateBarcodeFullRotation();
+      history.pushState({ screen: 'barcodeScreen', title: 'Barcode', subtitle: 'Generatore Code 128', full: true }, '', '#barcode-full');
+      // Prova a ruotare in orizzontale e a tenere lo schermo acceso (se supportato)
+      try { document.documentElement.requestFullscreen?.().then(() => screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => {}); } catch (e) {}
+    }
+    /** In verticale ruota il codice di 90° così usa il lato lungo dello schermo (barre più larghe = lettura più facile). */
+    function updateBarcodeFullRotation() {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const rotate = vh > vw;
+      const full = $('bcFull'), stage = $('bcFullStage');
+      full.classList.toggle('rotate', rotate);
+      const svg = stage.querySelector('svg');
+      if (!svg) return;
+      const [, , w, h] = svg.getAttribute('viewBox').split(' ').map(Number);
+      const ratio = w / h;
+      // Spazio disponibile lungo il codice e di traverso (margini per pulsante chiudi e suggerimento)
+      const along = rotate ? vh - 150 : vw - 48;
+      const across = rotate ? vw - 48 : vh - 150;
+      stage.style.width = Math.max(120, Math.min(along, across * ratio)) + 'px';
+    }
+    window.addEventListener('resize', () => { if (!$('bcFull').hidden) updateBarcodeFullRotation(); });
+
+    function closeBarcodeFull(fromHistory = false) {
+      if ($('bcFull').hidden) return;
+      $('bcFull').hidden = true;
+      try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+      if (!fromHistory && history.state && history.state.full) { suppressPop = true; history.back(); }
+    }
+
+    function downloadBarcodePng() {
+      if (!bcCurrent) return;
+      const svg = code128Svg(bcCurrent, { height: Number($('bcHeight').value) * 2, module: 4 });
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(blob => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `barcode_${bcCurrent.replace(/[^\w-]+/g, '_')}.png`;
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+          toast('Immagine PNG scaricata.');
+        }, 'image/png');
+      };
+      img.onerror = () => toast('Impossibile creare l’immagine.', 'error');
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    /* =====================================================================
+       NUOVE FUNZIONI: tecnico, script v2, ricerca ID, condivisione,
+       esportazione PDF/Excel, scanner fotocamera, installazione app
+       ===================================================================== */
+    const TECH_KEY = 'fiber_tools_tecnico';
+    const SCRIPT_VER_KEY = 'fiber_tools_script_version';
+    const SCAN_CONT_KEY = 'fiber_tools_scan_continuous';
+    const INSTALL_DISMISS_KEY = 'fiber_tools_install_dismissed';
+    const REPO_URL = 'https://github.com/napoltano/fiber-tools';
+    let scriptVersion = 1;
+
+    const lsGet = (k, d = null) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } };
+    const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+    /* ---------- Nome tecnico ---------- */
+    function getTecnico() { return (lsGet(TECH_KEY, '') || '').trim(); }
+    function setTecnico(name) { lsSet(TECH_KEY, String(name || '').trim().toUpperCase()); }
+
+    /** Restituisce il nome del tecnico; la prima volta lo chiede (si può saltare). */
+    async function ensureTecnico() {
+      if (lsGet(TECH_KEY) !== null) return getTecnico();
+      const ok = await openModal({
+        title: 'Chi sta salvando?',
+        bodyHtml: `
+          <p style="margin-bottom:10px">Il tuo nome comparirà sulle ribattiture che salvi, così i colleghi sanno chi le ha fatte. Puoi cambiarlo nelle impostazioni.</p>
+          <div class="field-group">
+            <label class="field-label" for="techAsk">Nome e cognome</label>
+            <input id="techAsk" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI">
+          </div>`,
+        okText: 'Salva nome', cancelText: 'Salta',
+        onOpen: () => setTimeout(() => $('techAsk')?.focus(), 50)
+      });
+      setTecnico(ok ? ($('techAsk')?.value || '') : '');
+      return getTecnico();
+    }
+
+    /* ---------- Script Google Sheets ---------- */
+    function setScriptVersion(v) { scriptVersion = v; lsSet(SCRIPT_VER_KEY, String(v)); }
+    function loadScriptVersion() { scriptVersion = Number(lsGet(SCRIPT_VER_KEY, '1')) || 1; }
+
+    /** Invia dati allo script. no-cors: Apps Script non restituisce intestazioni CORS, la risposta non è leggibile. */
+    function postToSheets(payload) {
+      return fetch(GOOGLE_SHEET_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    async function uploadWholeArchive() {
+      const db = getRibattitureData();
+      const list = [];
+      Object.keys(db).forEach(p => Object.keys(db[p]).forEach(s => list.push([p, s, db[p][s]])));
+      if (!list.length) { toast('L’archivio è vuoto.', 'info'); return; }
+      const ok = await confirmBox('Invia tutto a Google Sheets', `Verranno inviate ${list.length} ribattiture. Quelle già presenti sul foglio saranno aggiornate.`, 'Invia');
+      if (!ok) return;
+      let sent = 0;
+      try {
+        for (const [pfs, splitter, item] of list) {
+          await postToSheets({ action: 'save', pfs, splitter, timestamp: item.updatedAt || '', tecnico: item.tecnico || '', ottici: item.ottici || [] });
+          sent++;
+        }
+        toast(`${sent} ribattiture inviate a Google Sheets.`);
+      } catch (e) {
+        toast(`Invio interrotto dopo ${sent} su ${list.length}: controlla la connessione.`, 'error', 4500);
+      }
+    }
+
+    async function openSettings() {
+      const v2 = scriptVersion >= 2;
+      const ok = await openModal({
+        title: 'Impostazioni',
+        bodyHtml: `
+          <div class="field-group">
+            <label class="field-label" for="setTech">Nome tecnico</label>
+            <input id="setTech" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI" value="${escapeHtml(getTecnico())}">
+          </div>
+          <hr>
+          <div class="field-group">
+            <span class="field-label">Google Sheets</span>
+            <div class="status-line ${v2 ? 'ok' : 'warn'}"><span class="dot"></span>${v2 ? 'Script v2 attivo: salvataggi, tecnico ed eliminazioni sincronizzati' : 'Script originale: le eliminazioni restano solo sul telefono'}</div>
+            ${v2 ? '' : `<p class="small">Per sincronizzare anche eliminazioni e nome tecnico installa lo script v2: <a href="${REPO_URL}#script-google-sheets-v2" target="_blank" rel="noopener">istruzioni</a>.</p>`}
+            <button type="button" class="btn-secondary" id="setUpload" style="margin-top:6px"><svg><use href="#i-cloud"/></svg> Invia tutto l’archivio a Sheets</button>
+          </div>
+          <hr>
+          <p class="small">Fiber Tools • <a href="${REPO_URL}" target="_blank" rel="noopener">codice su GitHub</a></p>`,
+        okText: 'Salva', cancelText: 'Chiudi',
+        onOpen: () => $('setUpload').addEventListener('click', () => { closeModal(false); uploadWholeArchive(); })
+      });
+      if (ok) { setTecnico($('setTech')?.value || ''); toast(getTecnico() ? `Nome tecnico: ${getTecnico()}` : 'Nome tecnico rimosso.', 'info'); }
+    }
+
+    /* ---------- Ricerca per ID / permuta ---------- */
+    function markMatch(text, q) {
+      const t = String(text || ''), i = t.toUpperCase().indexOf(q);
+      if (i < 0) return escapeHtml(t);
+      return escapeHtml(t.slice(0, i)) + '<mark>' + escapeHtml(t.slice(i, i + q.length)) + '</mark>' + escapeHtml(t.slice(i + q.length));
+    }
+
+    function renderIdHits(db, q) {
+      const hits = [];
+      Object.keys(db).forEach(pfs => Object.keys(db[pfs]).forEach(spl => {
+        (db[pfs][spl]?.ottici || []).forEach(o => {
+          const id = String(o.fibra || ''), pte = String(o.pte || '');
+          if (id.toUpperCase().includes(q) || pte.toUpperCase().includes(q)) hits.push({ pfs, spl, o });
+        });
+      }));
+      if (!hits.length) return '';
+      const shown = hits.slice(0, 30);
+      return `<div class="hits"><div class="hits-title">${hits.length} ottic${hits.length === 1 ? 'o trovato' : 'i trovati'}${hits.length > 30 ? ' (primi 30)' : ''}</div>` +
+        shown.map((h, i) => `
+          <button type="button" class="hit" data-act="hit" data-pfs="${escapeHtml(h.pfs)}" data-spl="${escapeHtml(h.spl)}" data-ottico="${Number(h.o.ottico)}" style="--i:${i}">
+            <span class="num">${Number(h.o.ottico)}</span>
+            <span class="body">
+              <span class="main" style="display:block">ID ${h.o.fibra ? markMatch(h.o.fibra, q) : '—'} • Permuta ${h.o.pte ? markMatch(h.o.pte, q) : '—'}</span>
+              <span class="sub" style="display:block">${escapeHtml(h.pfs)} → ${escapeHtml(h.spl)} • Ottico ${Number(h.o.ottico)}</span>
+            </span>
+            <svg width="16" height="16" style="color:var(--muted)"><use href="#i-chev"/></svg>
+          </button>`).join('') + '</div>';
+    }
+
+    /* ---------- Dati per condivisione ed esportazione ---------- */
+    /** Elenco di { pfs, spl, item } dall'archivio (spls = null -> tutta la cartella). */
+    function entriesFor(pfs, spls) {
+      const db = getRibattitureData();
+      const names = spls || Object.keys(db[pfs] || {}).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      return names.filter(s => db[pfs]?.[s]).map(s => ({ pfs, spl: s, item: db[pfs][s] }));
+    }
+
+    function formEntry() {
+      const now = new Date();
+      return {
+        pfs: ($('ribPfsInput').value.trim() || 'N/D').toUpperCase(),
+        spl: ($('ribSplitterInput').value.trim() || 'N/D').toUpperCase(),
+        item: {
+          updatedAt: now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+          tecnico: getTecnico(),
+          ottici: collectOttici()
+        }
+      };
+    }
+
+    function entryText(e) {
+      let t = buildRibText(e.pfs, e.spl, e.item.ottici, e.item.updatedAt);
+      if (e.item.tecnico) t = t.replace('-------------------------\n', `TECNICO: ${e.item.tecnico}\n-------------------------\n`);
+      return t;
+    }
+    function buildRibTextFor(pfs, spls) { return entriesFor(pfs, spls).map(entryText).join('\n\n'); }
+
+    async function shareText(text, title) {
+      if (!text) return;
+      if (navigator.share) {
+        try { await navigator.share({ title, text }); return; }
+        catch (e) { if (e && e.name === 'AbortError') return; }
+      }
+      // Ripiego: WhatsApp (app o web)
+      window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+    }
+
+    function safeName(s) { return String(s).replace(/[^\w-]+/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '') || 'export'; }
+
+    function downloadBlob(blob, filename) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    }
+
+    /** Excel: CSV con separatore ";" e BOM, si apre direttamente in Excel italiano. */
+    function entriesToCsv(entries) {
+      const cell = v => {
+        let s = String(v ?? '');
+        if (/^[=+@]/.test(s)) s = "'" + s;           // evita che Excel lo interpreti come formula
+        return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      };
+      const rows = [['PFS', 'SPLITTER', 'OTTICO', 'PERMUTA', 'ID', 'DATA', 'TECNICO']];
+      entries.forEach(e => {
+        const byNum = {};
+        (e.item.ottici || []).forEach(o => { byNum[Number(o.ottico)] = o; });
+        for (let n = 1; n <= 16; n++) {
+          const o = byNum[n] || {};
+          rows.push([e.pfs, e.spl, n, String(o.pte || '').toUpperCase(), String(o.fibra || '').toUpperCase(), e.item.updatedAt || '', e.item.tecnico || '']);
+        }
+      });
+      return '﻿' + rows.map(r => r.map(cell).join(';')).join('\r\n');
+    }
+
+    function exportCsvEntries(entries, baseName) {
+      if (!entries.length) { toast('Niente da esportare.', 'error'); return; }
+      downloadBlob(new Blob([entriesToCsv(entries)], { type: 'text/csv;charset=utf-8' }), `${safeName(baseName)}.csv`);
+      toast('File Excel scaricato.');
+    }
+
+    /** PDF: prepara una pagina di stampa pulita e apre "Stampa / Salva come PDF". */
+    function exportPdfEntries(entries, baseName) {
+      if (!entries.length) { toast('Niente da esportare.', 'error'); return; }
+      const area = $('printArea');
+      const title = entries.length === 1 ? `Ribattitura ottici – ${entries[0].pfs}` : `Ribattiture ottici – ${entries[0].pfs}`;
+      area.innerHTML = `
+        <h1>${escapeHtml(title)}</h1>
+        <div class="meta">Generato il ${escapeHtml(new Date().toLocaleString('it-IT'))}${getTecnico() ? ' da ' + escapeHtml(getTecnico()) : ''} • ${entries.length} splitter</div>
+        ${entries.map(e => {
+          const byNum = {};
+          (e.item.ottici || []).forEach(o => { byNum[Number(o.ottico)] = o; });
+          let rows = '';
+          for (let n = 1; n <= 16; n++) {
+            const o = byNum[n] || {};
+            const pte = String(o.pte || '').toUpperCase(), id = String(o.fibra || '').toUpperCase();
+            rows += `<tr><td>${n}</td><td class="${pte ? '' : 'empty'}">${escapeHtml(pte || '—')}</td><td class="${id ? '' : 'empty'}">${escapeHtml(id || (pte ? 'NO IDR' : '—'))}</td></tr>`;
+          }
+          return `<section>
+            <h2>${escapeHtml(e.pfs)} • ${escapeHtml(e.spl)}</h2>
+            <div class="sub">Aggiornato: ${escapeHtml(e.item.updatedAt || '—')}${e.item.tecnico ? ' • Tecnico: ' + escapeHtml(e.item.tecnico) : ''}</div>
+            <table><thead><tr><th style="width:16%">Ottico</th><th>Permuta</th><th>ID</th></tr></thead><tbody>${rows}</tbody></table>
+          </section>`;
+        }).join('')}
+        <div class="foot">Fiber Tools</div>`;
+      const oldTitle = document.title;
+      document.title = safeName(baseName);   // Chrome usa il titolo come nome del PDF
+      const restore = () => { document.title = oldTitle; area.innerHTML = ''; window.removeEventListener('afterprint', restore); };
+      window.addEventListener('afterprint', restore);
+      setTimeout(() => window.print(), 50);
+    }
+
+    const exportPdf = (pfs, spls) => exportPdfEntries(entriesFor(pfs, spls), `Ribattitura_${pfs}${spls && spls.length === 1 ? '_' + spls[0] : ''}`);
+    const exportCsv = (pfs, spls) => exportCsvEntries(entriesFor(pfs, spls), `Ribattitura_${pfs}${spls && spls.length === 1 ? '_' + spls[0] : ''}`);
+
+    /** Finestra di scelta PDF / Excel. entries = funzione che restituisce le voci. */
+    async function chooseExportEntries(getEntries, baseName) {
+      let choice = null;
+      $('modalOk').hidden = true;
+      const done = openModal({
+        title: 'Esporta',
+        bodyHtml: `<div class="opt-list">
+            <button type="button" class="btn-secondary" data-choice="pdf"><svg><use href="#i-file"/></svg> PDF (stampa / salva come PDF)</button>
+            <button type="button" class="btn-secondary" data-choice="xls"><svg><use href="#i-table"/></svg> Excel (.csv)</button>
+          </div>`,
+        cancelText: 'Annulla',
+        onOpen: () => $('modalBody').querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => { choice = b.dataset.choice; closeModal(true); }))
+      });
+      await done;
+      $('modalOk').hidden = false;
+      if (choice === 'pdf') exportPdfEntries(getEntries(), baseName);
+      else if (choice === 'xls') exportCsvEntries(getEntries(), baseName);
+    }
+    const chooseExport = (pfs, spls) => chooseExportEntries(() => entriesFor(pfs, spls), `Ribattitura_${pfs}${spls && spls.length === 1 ? '_' + spls[0] : ''}`);
+
+    /* ---------- Scanner con fotocamera ---------- */
+    const SCAN_FORMATS = ['code_128', 'code_39', 'code_93', 'codabar', 'ean_13', 'ean_8', 'itf', 'upc_a', 'upc_e', 'qr_code', 'data_matrix'];
+    let detectorPromise = null;
+    const scan = { stream: null, timer: null, targetId: null, last: '', lastAt: 0, busy: false, torch: false };
+
+    function getDetector() {
+      if (!detectorPromise) {
+        detectorPromise = (async () => {
+          // 1) lettore integrato del telefono (Android, alcuni Mac)
+          if ('BarcodeDetector' in window) {
+            try {
+              const supported = await window.BarcodeDetector.getSupportedFormats();
+              const formats = SCAN_FORMATS.filter(f => supported.includes(f));
+              if (formats.includes('code_128')) return new window.BarcodeDetector({ formats });
+            } catch (e) { /* passa alla libreria */ }
+          }
+          // 2) libreria inclusa nell'app (iPhone e browser senza lettore integrato), funziona offline
+          const mod = await import('./vendor/barcode-detector.js');
+          mod.prepareZXingModule({
+            overrides: { locateFile: (path, prefix) => path.endsWith('.wasm') ? new URL('vendor/zxing_reader.wasm', location.href).href : prefix + path },
+            fireImmediately: true
+          });
+          return new mod.BarcodeDetector({ formats: SCAN_FORMATS });
+        })();
+        detectorPromise.catch(() => { detectorPromise = null; });
+      }
+      return detectorPromise;
+    }
+
+    function scanTargetLabel(id) {
+      const m = /^ribFibra(\d+)$/.exec(id || '');
+      return m ? `ID ottico ${m[1]}` : 'Codice per il generatore';
+    }
+
+    function setScanTarget(id) {
+      scan.targetId = id;
+      document.querySelectorAll('.ottico-row.scan-target').forEach(r => r.classList.remove('scan-target'));
+      const m = /^ribFibra(\d+)$/.exec(id);
+      if (m) $(`ribRow${m[1]}`)?.classList.add('scan-target');
+      $('scanTitle').textContent = `Scansiona: ${scanTargetLabel(id)}`;
+      $('scanContinuousWrap').hidden = !m;
+    }
+
+    function beep() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = beep.ctx || (beep.ctx = new Ctx());
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.value = 1800; g.gain.value = 0.08;
+        o.connect(g); g.connect(ctx.destination);
+        o.start(); o.stop(ctx.currentTime + 0.09);
+      } catch (e) {}
+    }
+
+    function scanMessage(msg) { $('scanMsg').textContent = msg || ''; }
+
+    async function openScanner(targetId) {
+      setScanTarget(targetId);
+      $('scanContinuous').checked = lsGet(SCAN_CONT_KEY) === '1';
+      $('scanLast').textContent = '';
+      $('scanSub').textContent = 'Inquadra il codice a barre nel riquadro';
+      $('scanTorch').hidden = true; scan.torch = false; $('scanTorch').classList.remove('on');
+      $('scanner').hidden = false;
+      history.pushState({ ...(history.state || {}), scanner: true }, '', location.hash || '#scanner');
+      scan.last = ''; scan.lastAt = 0;
+      scanMessage('Avvio fotocamera…');
+
+      getDetector().catch(() => {});   // carica il lettore mentre parte la fotocamera
+
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        scanMessage('La fotocamera in diretta funziona solo aprendo l’app dal sito (https). Puoi usare "Da foto".');
+        return;
+      }
+      try {
+        scan.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false
+        });
+        if ($('scanner').hidden) { stopStream(); return; }   // chiuso nel frattempo
+        const video = $('scanVideo');
+        video.srcObject = scan.stream;
+        await video.play();
+        scanMessage('');
+        const track = scan.stream.getVideoTracks()[0];
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        $('scanTorch').hidden = !caps.torch;
+        if (caps.focusMode && caps.focusMode.includes('continuous')) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+        scanLoop();
+      } catch (err) {
+        const name = err && err.name;
+        scanMessage(name === 'NotAllowedError' ? 'Permesso fotocamera negato. Abilitalo nelle impostazioni del browser, oppure usa "Da foto".'
+          : name === 'NotFoundError' ? 'Nessuna fotocamera trovata. Usa "Da foto".'
+          : 'Impossibile avviare la fotocamera. Usa "Da foto".');
+      }
+    }
+
+    function stopStream() {
+      clearTimeout(scan.timer); scan.timer = null;
+      if (scan.stream) { scan.stream.getTracks().forEach(t => t.stop()); scan.stream = null; }
+      const v = $('scanVideo'); v.pause?.(); v.srcObject = null;
+    }
+
+    function closeScanner(fromHistory = false) {
+      if ($('scanner').hidden) return;
+      stopStream();
+      $('scanner').hidden = true;
+      $('scanner').classList.remove('hit-ok');
+      document.querySelectorAll('.ottico-row.scan-target').forEach(r => r.classList.remove('scan-target'));
+      if (!fromHistory && history.state && history.state.scanner) { suppressPop = true; history.back(); }
+    }
+
+    async function scanLoop() {
+      if ($('scanner').hidden || !scan.stream) return;
+      const video = $('scanVideo');
+      if (!scan.busy && video.readyState >= 2) {
+        scan.busy = true;
+        try {
+          const det = await getDetector();
+          const codes = await det.detect(video);
+          if (codes && codes.length) handleScanResult(codes[0].rawValue);
+        } catch (e) { /* frame non leggibile: riprova */ }
+        scan.busy = false;
+      }
+      scan.timer = setTimeout(scanLoop, 140);
+    }
+
+    function handleScanResult(raw) {
+      const value = String(raw || '').trim().toUpperCase();
+      if (!value) return;
+      const now = Date.now();
+      const continuous = $('scanContinuous').checked && /^ribFibra\d+$/.test(scan.targetId);
+      // Ignora lo stesso codice letto di continuo (in modalità continua finché non cambia etichetta)
+      if (value === scan.last && (continuous || now - scan.lastAt < 2500)) return;
+      scan.last = value; scan.lastAt = now;
+
+      const input = $(scan.targetId);
+      if (!input) return;
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      navigator.vibrate?.(70); beep();
+      $('scanner').classList.add('hit-ok'); setTimeout(() => $('scanner').classList.remove('hit-ok'), 400);
+      $('scanLast').textContent = `${scanTargetLabel(scan.targetId)}: ${value}`;
+
+      const m = /^ribFibra(\d+)$/.exec(scan.targetId);
+      if (m) { const row = $(`ribRow${m[1]}`); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
+
+      if (continuous && m && Number(m[1]) < 16) {
+        setScanTarget(`ribFibra${Number(m[1]) + 1}`);
+        $('scanSub').textContent = 'Letto! Inquadra la prossima etichetta';
+      } else {
+        toast(`Letto: ${value}`);
+        setTimeout(() => closeScanner(), 350);
+      }
+    }
+
+    async function scanFromFile(file) {
+      if (!file) return;
+      scanMessage('Lettura foto…');
+      try {
+        const det = await getDetector();
+        const bmp = await createImageBitmap(file);
+        const codes = await det.detect(bmp);
+        bmp.close?.();
+        if (codes && codes.length) { scanMessage(''); scan.last = ''; handleScanResult(codes[0].rawValue); }
+        else scanMessage('Nessun codice trovato nella foto. Riprova più vicino e con più luce.');
+      } catch (e) {
+        scanMessage('Impossibile leggere la foto.');
+      }
+      $('scanFile').value = '';
+    }
+
+    async function toggleTorch() {
+      const track = scan.stream?.getVideoTracks()[0];
+      if (!track) return;
+      scan.torch = !scan.torch;
+      try { await track.applyConstraints({ advanced: [{ torch: scan.torch }] }); $('scanTorch').classList.toggle('on', scan.torch); }
+      catch (e) { scan.torch = false; toast('Torcia non disponibile.', 'error'); }
+    }
+
+    /* ---------- Installazione app (PWA) ---------- */
+    let deferredInstall = null;
+    const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    function showInstallCard() {
+      if (isStandalone() || lsGet(INSTALL_DISMISS_KEY) === '1') return;
+      $('installCard').hidden = false;
+    }
+
+    function initPwa() {
+      if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+        navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker non registrato:', err));
+      }
+      window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; showInstallCard(); });
+      window.addEventListener('appinstalled', () => { $('installCard').hidden = true; deferredInstall = null; toast('Fiber Tools installata!'); });
+      if (isIOS() && /^https?:$/.test(location.protocol)) showInstallCard();
+    }
+
+    async function doInstall() {
+      if (deferredInstall) {
+        deferredInstall.prompt();
+        const res = await deferredInstall.userChoice.catch(() => null);
+        deferredInstall = null;
+        if (res && res.outcome === 'accepted') $('installCard').hidden = true;
+        return;
+      }
+      await openModal({
+        title: 'Installa su iPhone / iPad',
+        bodyHtml: `<ol>
+          <li>Apri questa pagina con <b>Safari</b></li>
+          <li>Tocca il pulsante <b>Condividi</b> (quadrato con la freccia in su)</li>
+          <li>Scegli <b>Aggiungi alla schermata Home</b></li>
+          <li>Conferma con <b>Aggiungi</b></li>
+        </ol>`,
+        okText: 'Ho capito', cancelText: 'Chiudi'
+      });
+    }
+
+    /* ---------- Collegamento eventi nuove funzioni ---------- */
+    function bindExtraEvents() {
+      $('settingsBtn').addEventListener('click', openSettings);
+      $('installBtn').addEventListener('click', doInstall);
+      $('installClose').addEventListener('click', () => { $('installCard').hidden = true; lsSet(INSTALL_DISMISS_KEY, '1'); });
+
+      document.addEventListener('click', e => {
+        const b = e.target.closest('[data-scan]');
+        if (b) openScanner(b.dataset.scan);
+      });
+      $('scanClose').addEventListener('click', () => closeScanner());
+      $('scanTorch').addEventListener('click', toggleTorch);
+      $('scanFile').addEventListener('change', e => scanFromFile(e.target.files[0]));
+      $('scanContinuous').addEventListener('change', e => lsSet(SCAN_CONT_KEY, e.target.checked ? '1' : '0'));
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('scanner').hidden) closeScanner(); });
+      document.addEventListener('visibilitychange', () => { if (document.hidden && !$('scanner').hidden) closeScanner(); });
+
+      $('ribShareBtn').addEventListener('click', () => {
+        const e = formEntry();
+        if (!e.item.ottici.some(o => o.pte || o.fibra) && e.pfs === 'N/D') { toast('Compila prima la ribattitura.', 'error'); return; }
+        shareText(entryText(e), `Ribattitura ${e.pfs} ${e.spl}`);
+      });
+      $('ribExportBtn').addEventListener('click', () => {
+        const e = formEntry();
+        if (!e.item.ottici.some(o => o.pte || o.fibra) && e.pfs === 'N/D') { toast('Compila prima la ribattitura.', 'error'); return; }
+        chooseExportEntries(() => [formEntry()], `Ribattitura_${e.pfs}_${e.spl}`);
+      });
+    }
+
+    /* ---------- Effetti ---------- */
+    function addRipple(e) {
+      const btn = e.target.closest('.btn-main, .btn-action, .btn-secondary');
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      const size = Math.max(r.width, r.height) * 2;
+      const span = document.createElement('span');
+      span.className = 'ripple';
+      span.style.width = span.style.height = size + 'px';
+      span.style.left = (e.clientX - r.left - size / 2) + 'px';
+      span.style.top = (e.clientY - r.top - size / 2) + 'px';
+      btn.appendChild(span);
+      setTimeout(() => span.remove(), 650);
+    }
+
+    function renderHeroColors() {
+      $('heroColors').innerHTML = STD.map((n, i) => `<span style="background:${n === 'BIANCO' ? '#fff' : HEX[n]};animation-delay:${300 + i * 45}ms"></span>`).join('');
+    }
+
+    /* ---------- Collegamento eventi ---------- */
+    /** Converte in maiuscolo mentre si scrive, mantenendo la posizione del cursore. */
+    function forceUpper(el) {
+      const up = el.value.toUpperCase();
+      if (up === el.value) return;
+      const s = el.selectionStart, e = el.selectionEnd, sameLen = up.length === el.value.length;
+      el.value = up;
+      if (sameLen && s !== null) { try { el.setSelectionRange(s, e); } catch (err) {} }
+    }
+
+    function bindEvents() {
+      document.addEventListener('input', e => {
+        if (e.target.matches && e.target.matches('input[data-upper]')) forceUpper(e.target);
+      }, true);
+      document.addEventListener('pointerdown', addRipple);
+
+      document.querySelectorAll('[data-open]').forEach(b => {
+        b.addEventListener('click', () => openScreen(b.dataset.open, b.dataset.title, b.dataset.sub));
+        b.addEventListener('pointermove', e => {
+          const r = b.getBoundingClientRect();
+          b.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          b.style.setProperty('--my', `${e.clientY - r.top}px`);
+        });
+      });
+      document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goHome()));
+
+      $('adminLoginBtn').addEventListener('click', handleAdminAuth);
+      $('themeToggleBtn').addEventListener('click', toggleTheme);
+
+      // Stepper +/-
+      document.querySelectorAll('.step-btn').forEach(b => b.addEventListener('click', () => {
+        const input = $(b.dataset.target);
+        const min = Number(input.min || 1), max = input.max ? Number(input.max) : Infinity;
+        let v = parseInt(input.value, 10);
+        v = isNaN(v) ? min : Math.min(max, Math.max(min, v + Number(b.dataset.step)));
+        input.value = v;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }));
+
+      // Calculator
+      ['operatorSelect', 'tubeSizeSelect', 'rangeSelect'].forEach(id => $(id).addEventListener('change', updateApp));
+      $('fiberInput').addEventListener('input', updateApp);
+
+      // PFS
+      document.querySelectorAll('[data-seg="pfs"] .pfs-mode-btn').forEach(b => b.addEventListener('click', () => setPfsSearchMode(b.dataset.mode)));
+      ['pfsOperatorSelect', 'pfsCardTypeSelect'].forEach(id => $(id).addEventListener('change', () => { renderPfsColors(); updatePFS(); }));
+      ['pfsInput', 'pfsCardInput'].forEach(id => $(id).addEventListener('input', updatePFS));
+      $('pfsColorGrid').addEventListener('click', e => {
+        const b = e.target.closest('.color-grid-btn'); if (!b) return;
+        selectedPfsPos = Number(b.dataset.pos);
+        $('pfsColorGrid').querySelectorAll('.color-grid-btn').forEach(x => {
+          const on = x === b; x.classList.toggle('active', on); x.setAttribute('aria-pressed', on);
+        });
+        updatePFS();
+      });
+
+      // PTE
+      ['pteOperatorSelect', 'pteTypeSelect'].forEach(id => $(id).addEventListener('change', () => { renderPteColors(); calculatePTE(); }));
+      $('pteColorGrid').addEventListener('click', e => { const b = e.target.closest('.color-grid-btn'); if (b) togglePteFiber(b); });
+      $('pteSelectAll').addEventListener('click', () => {
+        const count = $('pteTypeSelect').value === '24' ? 24 : 12;
+        for (let i = 1; i <= count; i++) selectedPteFibers.add(i);
+        renderPteColors(); calculatePTE();
+      });
+      $('pteClear').addEventListener('click', () => { selectedPteFibers.clear(); renderPteColors(); calculatePTE(); });
+
+      // FiberCop
+      document.querySelectorAll('[data-seg="fc"] .pfs-mode-btn').forEach(b => b.addEventListener('click', () => setFcSearchMode(b.dataset.mode)));
+      ['fcQuartinaInput', 'fcPostoInput', 'fcFiberInput', 'fcCardInput'].forEach(id => $(id).addEventListener('input', updateFiberCop));
+      $('fcColorGrid').addEventListener('click', e => {
+        const b = e.target.closest('.color-grid-btn'); if (!b) return;
+        selectedFcCardPos = Number(b.dataset.pos);
+        $('fcColorGrid').querySelectorAll('.color-grid-btn').forEach(x => {
+          const on = x === b; x.classList.toggle('active', on); x.setAttribute('aria-pressed', on);
+        });
+        updateFiberCop();
+      });
+
+      // Ribattitura
+      $('ribOtticiContainer').addEventListener('input', refreshRibProgress);
+      $('ribPfsInput').addEventListener('input', () => setInvalid('ribPfsInput', ''));
+      $('ribSplitterInput').addEventListener('input', () => setInvalid('ribSplitterInput', ''));
+      $('ribSaveBtn').addEventListener('click', saveRibattitura);
+      $('ribSyncBtn').addEventListener('click', () => syncFromGoogleSheets(false));
+      $('ribCopyBtn').addEventListener('click', copyRibattituraText);
+      $('ribClearBtn').addEventListener('click', clearRibForm);
+      $('archiveSearch').addEventListener('input', () => loadRibattitureArchive());
+
+      $('pfsArchiveContainer').addEventListener('click', e => {
+        const header = e.target.closest('.pfs-folder-header');
+        if (header) {
+          const f = header.parentElement;
+          f.classList.toggle('open');
+          header.setAttribute('aria-expanded', f.classList.contains('open'));
+          return;
+        }
+        const act = e.target.closest('[data-act]');
+        if (!act) return;
+        const holder = act.closest('[data-pfs]');
+        const pfs = holder.dataset.pfs, spl = holder.dataset.spl;
+        switch (act.dataset.act) {
+          case 'load': loadSplitterToForm(pfs, spl); break;
+          case 'hit': loadSplitterToForm(pfs, spl, Number(holder.dataset.ottico)); break;
+          case 'copy': copySplitterText(pfs, spl); break;
+          case 'share': shareText(buildRibTextFor(pfs, [spl]), `Ribattitura ${pfs} ${spl}`); break;
+          case 'export': chooseExport(pfs, [spl]); break;
+          case 'folder-pdf': exportPdf(pfs, null); break;
+          case 'folder-xls': exportCsv(pfs, null); break;
+          case 'folder-share': shareText(buildRibTextFor(pfs, null), `Ribattiture ${pfs}`); break;
+          case 'delete': deleteSplitter(pfs, spl); break;
+        }
+      });
+
+      // Barcode
+      $('bcInput').addEventListener('input', () => renderBarcode(true));
+      $('bcHeight').addEventListener('change', () => { bcCurrent = ''; renderBarcode(true); });
+      $('bcKeyboard').addEventListener('change', e => {
+        $('bcInput').setAttribute('inputmode', e.target.value);
+        $('bcInput').blur(); setTimeout(() => $('bcInput').focus(), 50);
+      });
+      $('bcFullBtn').addEventListener('click', openBarcodeFull);
+      $('bcFullClose').addEventListener('click', () => closeBarcodeFull());
+      $('bcFull').addEventListener('click', e => { if (e.target === $('bcFull')) closeBarcodeFull(); });
+      $('bcDownloadBtn').addEventListener('click', downloadBarcodePng);
+      $('bcCopyBtn').addEventListener('click', async () => {
+        const ok = await copyText(bcCurrent);
+        toast(ok ? 'Numero copiato negli appunti!' : 'Copia non riuscita.', ok ? 'success' : 'error');
+      });
+      $('bcRecent').addEventListener('click', e => {
+        const c = e.target.closest('[data-code]'); if (!c) return;
+        $('bcInput').value = c.dataset.code; renderBarcode(true);
+      });
+      $('bcRecentClear').addEventListener('click', () => {
+        try { localStorage.removeItem(BC_RECENT_KEY); } catch (e) {}
+        renderRecentBarcodes();
+      });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('bcFull').hidden) closeBarcodeFull(); });
+
+      // Nuove funzioni
+      bindExtraEvents();
+
+      // Modal
+      $('modalOk').addEventListener('click', () => closeModal(true));
+      $('modalCancel').addEventListener('click', () => closeModal(false));
+      $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(false); });
+      document.addEventListener('keydown', e => {
+        if ($('modal').hidden) return;
+        if (e.key === 'Escape') closeModal(false);
+        if (e.key === 'Enter') { e.preventDefault(); closeModal(true); }
+      });
+
+      window.addEventListener('resize', () => document.querySelectorAll('.pfs-mode-selector').forEach(positionSeg));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      renderHeroColors();
+      bindEvents();
+      initPwa();
+      loadScriptVersion();
+      history.replaceState({}, '', location.pathname + location.search);
+    });
+  </script>
+</body>
+</html>

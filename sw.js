@@ -1,6 +1,6 @@
 /* Service worker di Fiber Tools: rende l'app utilizzabile offline.
    Quando modifichi i file dell'app, aumenta VERSION per forzare l'aggiornamento. */
-const VERSION = 'fiber-tools-v1';
+const VERSION = 'fiber-tools-v2';
 const ASSETS = [
   './',
   './index.html',

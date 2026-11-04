@@ -1,7 +1,16 @@
 /**
- * Fiber Tools – Script Google Sheets v3
+ * Fiber Tools – Script Google Sheets v4
  * -------------------------------------
- * Archivio condiviso della squadra: ribattiture ottici, posizioni PFS, foto e storico.
+ * Archivio condiviso della squadra: ribattiture ottici, posizioni PFS, foto, storico e ACCOUNT.
+ *
+ * Lettura libera per tutti. Per salvare serve un account approvato; per eliminare un amministratore.
+ *  POST  { action: "register", email, nome, password }      -> richiesta di accesso (il 1° account è il proprietario)
+ *        { action: "login", email, password }               -> { token, user }
+ *        { action: "me", token }                            -> dati aggiornati dell'account (+ richieste in attesa per gli admin)
+ *        { action: "changePassword", token, old, password }
+ *        { action: "users", token }                         -> elenco utenti (admin)
+ *        { action: "manageUser", token, email, op, ruolo? } -> approva | rifiuta | blocca | riattiva | elimina | ruolo (admin)
+ *  Tutte le azioni di scrittura qui sotto richiedono anche "token".
  *
  *  GET   ?key=CODICE                         -> tutto l'archivio (ribattiture + posizioni)
  *  GET   ?key=CODICE&action=history&pfs=..&splitter=..  -> storico di uno splitter / PFS
@@ -15,6 +24,9 @@
  *   Ribattiture   : PFS | SPLITTER | DATA | TECNICO | O1 PERMUTA | O1 ID | ... | O16 ID | FOTO
  *   PFS_Posizioni : ANELLO | PFS | LAT | LNG | NOTE | TECNICO | DATA | FOTO | MAPPA
  *   Storico       : DATA | AZIONE | PFS | SPLITTER | TECNICO | DETTAGLIO
+ *   Utenti        : EMAIL | NOME | STATO | RUOLO | ... (le password sono salvate solo come impronta con sale)
+ *                   STATO: in attesa | attivo | bloccato | rifiutato — RUOLO: tecnico | admin | proprietario
+ *                   Il proprietario può sempre correggere STATO e RUOLO anche a mano in questo foglio.
  *
  * Protezione (facoltativa ma consigliata), in Impostazioni progetto → Proprietà script:
  *   TEAM_KEY  = codice squadra: senza, nessuno può leggere o scrivere
@@ -22,7 +34,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 3;
+const SCRIPT_VERSION = 4;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -75,9 +87,204 @@ function teamOk_(key) {
   const k = props_().getProperty('TEAM_KEY');
   return !k || String(key || '') === k;
 }
-function adminOk_(key) {
-  const k = props_().getProperty('ADMIN_KEY');
-  return !k || String(key || '') === k;
+
+/* ------------------------------------------------------------------ account */
+const SH_USERS = 'Utenti';
+const U = { EMAIL: 0, NOME: 1, STATO: 2, RUOLO: 3, HASH: 4, SALT: 5, NEW_HASH: 6, NEW_SALT: 7, REG: 8, LAST: 9, BY: 10 };
+const USER_COLS = 11;
+const ROLE_LEVEL = { tecnico: 1, admin: 2, proprietario: 3 };
+const TOKEN_DAYS = 180;
+const usersSheet_ = () => sheet_(SH_USERS, ['EMAIL', 'NOME', 'STATO', 'RUOLO', 'HASH', 'SALT', 'NUOVA_PASSWORD_HASH', 'NUOVA_PASSWORD_SALT', 'REGISTRATO', 'ULTIMO_ACCESSO', 'APPROVATO_DA']);
+const normEmail_ = v => String(v == null ? '' : v).trim().toLowerCase();
+const err_ = (code, message) => ({ status: 'error', code: code, message: message });
+
+function secret_() {
+  const p = props_();
+  let s = p.getProperty('AUTH_SECRET');
+  if (!s) { s = Utilities.getUuid() + Utilities.getUuid(); p.setProperty('AUTH_SECRET', s); }
+  return s;
+}
+const b64_ = bytes => Utilities.base64EncodeWebSafe(bytes).replace(/=+$/, '');
+function unb64_(str) { let s = String(str || ''); while (s.length % 4) s += '='; return Utilities.newBlob(Utilities.base64DecodeWebSafe(s)).getDataAsString(); }
+const newSalt_ = () => Utilities.getUuid().replace(/-/g, '');
+
+/** Impronta della password: HMAC-SHA256 ripetuto, con sale personale. */
+function hashPwd_(pwd, salt) {
+  const key = Utilities.newBlob('fibertools:' + salt).getBytes();
+  let h = Utilities.computeHmacSha256Signature(Utilities.newBlob(String(pwd)).getBytes(), key);
+  for (let i = 0; i < 400; i++) h = Utilities.computeHmacSha256Signature(h, key);
+  return b64_(h);
+}
+
+function readUsers_() {
+  const sh = usersSheet_();
+  const values = sh.getDataRange().getValues();
+  const rows = [];
+  for (let r = 1; r < values.length; r++) {
+    const row = values[r].slice(0, USER_COLS);
+    while (row.length < USER_COLS) row.push('');
+    if (normEmail_(row[U.EMAIL])) rows.push({ rowNum: r + 1, row: row });
+  }
+  return { sh: sh, rows: rows };
+}
+const findUser_ = (users, email) => users.rows.find(u => normEmail_(u.row[U.EMAIL]) === email) || null;
+const writeUser_ = (users, u) => users.sh.getRange(u.rowNum, 1, 1, USER_COLS).setValues([u.row]);
+const stato_ = row => String(row[U.STATO] || '').trim().toLowerCase();
+const ruolo_ = row => { const r = String(row[U.RUOLO] || '').trim().toLowerCase(); return ROLE_LEVEL[r] ? r : 'tecnico'; };
+const publicUser_ = row => ({ email: normEmail_(row[U.EMAIL]), nome: String(row[U.NOME] || ''), stato: stato_(row), ruolo: ruolo_(row) });
+
+function makeToken_(row) {
+  const exp = Date.now() + TOKEN_DAYS * 86400000;
+  const payload = normEmail_(row[U.EMAIL]) + '|' + exp + '|' + String(row[U.SALT]).slice(0, 8);
+  const sig = b64_(Utilities.computeHmacSha256Signature(payload, secret_()));
+  return b64_(Utilities.newBlob(payload).getBytes()) + '.' + sig;
+}
+
+/** Verifica il token e restituisce l'utente, oppure un errore. Lo stato e il ruolo vengono riletti ogni volta dal foglio. */
+function authUser_(token, minLevel) {
+  const parts = String(token || '').split('.');
+  if (parts.length !== 2) return { error: err_('login', 'Accedi con il tuo account per continuare') };
+  let payload;
+  try { payload = unb64_(parts[0]); } catch (e) { return { error: err_('login', 'Sessione non valida: accedi di nuovo') }; }
+  if (b64_(Utilities.computeHmacSha256Signature(payload, secret_())) !== parts[1]) return { error: err_('login', 'Sessione non valida: accedi di nuovo') };
+  const [email, exp, saltPart] = payload.split('|');
+  if (!(Number(exp) > Date.now())) return { error: err_('login', 'Sessione scaduta: accedi di nuovo') };
+  const users = readUsers_();
+  const u = findUser_(users, email);
+  if (!u || String(u.row[U.SALT]).slice(0, 8) !== saltPart) return { error: err_('login', 'Sessione non valida: accedi di nuovo') };
+  const st = stato_(u.row);
+  if (st === 'in attesa') return { error: err_('pending', 'Il tuo account è in attesa di approvazione') };
+  if (st !== 'attivo') return { error: err_('blocked', 'Il tuo account non è attivo: contatta il responsabile') };
+  if (ROLE_LEVEL[ruolo_(u.row)] < (minLevel || 1)) return { error: err_('forbidden', 'Operazione riservata agli amministratori') };
+  return { user: u, users: users };
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function register_(b) {
+  const email = normEmail_(b.email), nome = String(b.nome || '').trim().replace(/\s+/g, ' ').toUpperCase(), pwd = String(b.password || '');
+  if (!EMAIL_RE.test(email)) return err_('input', 'Email non valida');
+  if (nome.length < 2 || nome.length > 60) return err_('input', 'Inserisci nome e cognome');
+  if (pwd.length < 8) return err_('input', 'La password deve avere almeno 8 caratteri');
+  const users = readUsers_();
+  const salt = newSalt_(), hash = hashPwd_(pwd, salt), now = nowIt_();
+  const ex = findUser_(users, email);
+  if (!users.rows.length) {
+    // il primo account registrato è il proprietario dell'app
+    const row = [email, nome, 'attivo', 'proprietario', hash, salt, '', '', now, now, 'PRIMO ACCOUNT'];
+    users.sh.appendRow(row);
+    log_('Account creato', 'ACCOUNT', email, nome, 'Proprietario dell’app');
+    return { status: 'success', stato: 'attivo', token: makeToken_(row), user: publicUser_(row) };
+  }
+  if (ex) {
+    const st = stato_(ex.row);
+    if (st === 'bloccato') return err_('blocked', 'Questo account è bloccato: contatta il responsabile');
+    if (st === 'attivo') {
+      // password dimenticata: la nuova password si attiva dopo l'approvazione, quella vecchia resta valida
+      ex.row[U.NEW_HASH] = hash; ex.row[U.NEW_SALT] = salt; writeUser_(users, ex);
+      log_('Richiesta nuova password', 'ACCOUNT', email, ex.row[U.NOME], '');
+      return { status: 'success', stato: 'password in attesa' };
+    }
+    ex.row[U.NOME] = nome; ex.row[U.STATO] = 'in attesa'; ex.row[U.HASH] = hash; ex.row[U.SALT] = salt; ex.row[U.REG] = now;
+    writeUser_(users, ex);
+    log_('Richiesta di accesso', 'ACCOUNT', email, nome, 'Ripresentata');
+    return { status: 'success', stato: 'in attesa' };
+  }
+  users.sh.appendRow([email, nome, 'in attesa', 'tecnico', hash, salt, '', '', now, '', '']);
+  log_('Richiesta di accesso', 'ACCOUNT', email, nome, '');
+  return { status: 'success', stato: 'in attesa' };
+}
+
+function login_(b) {
+  const email = normEmail_(b.email), pwd = String(b.password || '');
+  const cache = CacheService.getScriptCache(), ck = 'fail_' + email;
+  const fails = Number(cache.get(ck) || 0);
+  if (fails >= 8) return err_('locked', 'Troppi tentativi sbagliati: riprova tra 15 minuti');
+  const users = readUsers_();
+  const u = findUser_(users, email);
+  if (!u || hashPwd_(pwd, u.row[U.SALT]) !== String(u.row[U.HASH])) {
+    cache.put(ck, String(fails + 1), 900);
+    return err_('credentials', 'Email o password errate');
+  }
+  cache.remove(ck);
+  const st = stato_(u.row);
+  if (st === 'in attesa') return err_('pending', 'Il tuo account è in attesa di approvazione da parte di un amministratore');
+  if (st !== 'attivo') return err_('blocked', 'Il tuo account non è attivo: contatta il responsabile');
+  u.row[U.LAST] = nowIt_(); writeUser_(users, u);
+  return { status: 'success', token: makeToken_(u.row), user: publicUser_(u.row) };
+}
+
+const pendingCount_ = users => users.rows.filter(u => stato_(u.row) === 'in attesa' || (stato_(u.row) === 'attivo' && u.row[U.NEW_HASH])).length;
+
+function me_(b) {
+  const a = authUser_(b.token, 1);
+  if (a.error) return a.error;
+  const res = { status: 'success', user: publicUser_(a.user.row) };
+  if (ROLE_LEVEL[res.user.ruolo] >= 2) res.pendingCount = pendingCount_(a.users);
+  return res;
+}
+
+function changePassword_(b) {
+  const a = authUser_(b.token, 1);
+  if (a.error) return a.error;
+  const u = a.user;
+  if (hashPwd_(String(b.old || ''), u.row[U.SALT]) !== String(u.row[U.HASH])) return err_('credentials', 'La password attuale non è corretta');
+  if (String(b.password || '').length < 8) return err_('input', 'La nuova password deve avere almeno 8 caratteri');
+  const salt = newSalt_();
+  u.row[U.SALT] = salt; u.row[U.HASH] = hashPwd_(b.password, salt); u.row[U.NEW_HASH] = ''; u.row[U.NEW_SALT] = '';
+  writeUser_(a.users, u);
+  log_('Password cambiata', 'ACCOUNT', normEmail_(u.row[U.EMAIL]), u.row[U.NOME], '');
+  return { status: 'success', token: makeToken_(u.row), user: publicUser_(u.row) };
+}
+
+function listUsers_(b) {
+  const a = authUser_(b.token, 2);
+  if (a.error) return a.error;
+  return { status: 'success', users: a.users.rows.map(u => Object.assign(publicUser_(u.row), {
+    registrato: String(u.row[U.REG] || ''), ultimoAccesso: String(u.row[U.LAST] || ''), approvatoDa: String(u.row[U.BY] || ''),
+    nuovaPassword: !!u.row[U.NEW_HASH] })) };
+}
+
+function manageUser_(b) {
+  const a = authUser_(b.token, 2);
+  if (a.error) return a.error;
+  const me = a.user, myRole = ruolo_(me.row), myEmail = normEmail_(me.row[U.EMAIL]);
+  const target = findUser_(a.users, normEmail_(b.email));
+  if (!target) return err_('input', 'Utente non trovato');
+  const tEmail = normEmail_(target.row[U.EMAIL]), tRole = ruolo_(target.row);
+  if (tEmail === myEmail) return err_('forbidden', 'Non puoi modificare il tuo stesso account da qui');
+  if (tRole === 'proprietario') return err_('forbidden', 'Il proprietario non può essere modificato');
+  if (myRole !== 'proprietario' && tRole === 'admin') return err_('forbidden', 'Solo il proprietario può gestire gli amministratori');
+  const op = String(b.op || ''), who = String(me.row[U.NOME] || myEmail);
+  let detail = '';
+  if (op === 'approva') {
+    if (stato_(target.row) === 'attivo' && target.row[U.NEW_HASH]) {
+      target.row[U.HASH] = target.row[U.NEW_HASH]; target.row[U.SALT] = target.row[U.NEW_SALT]; detail = 'Nuova password approvata';
+    } else { detail = 'Accesso approvato'; }
+    target.row[U.NEW_HASH] = ''; target.row[U.NEW_SALT] = '';
+    target.row[U.STATO] = 'attivo'; target.row[U.BY] = who;
+  } else if (op === 'rifiuta') {
+    if (stato_(target.row) === 'attivo' && target.row[U.NEW_HASH]) { target.row[U.NEW_HASH] = ''; target.row[U.NEW_SALT] = ''; detail = 'Nuova password rifiutata'; }
+    else { target.row[U.STATO] = 'rifiutato'; detail = 'Richiesta rifiutata'; }
+  } else if (op === 'blocca') {
+    target.row[U.STATO] = 'bloccato'; detail = 'Account bloccato';
+  } else if (op === 'riattiva') {
+    target.row[U.STATO] = 'attivo'; target.row[U.BY] = who; detail = 'Account riattivato';
+  } else if (op === 'ruolo') {
+    const r = String(b.ruolo || '').toLowerCase();
+    if (r !== 'tecnico' && r !== 'admin') return err_('input', 'Ruolo non valido');
+    if (myRole !== 'proprietario') return err_('forbidden', 'Solo il proprietario può nominare gli amministratori');
+    target.row[U.RUOLO] = r; detail = r === 'admin' ? 'Nominato amministratore' : 'Ruolo: tecnico';
+  } else if (op === 'elimina') {
+    a.users.sh.deleteRow(target.rowNum);
+    log_('Account eliminato', 'ACCOUNT', tEmail, who, '');
+    return { status: 'success', deleted: true };
+  } else {
+    return err_('input', 'Operazione sconosciuta');
+  }
+  writeUser_(a.users, target);
+  log_(detail, 'ACCOUNT', tEmail, who, '');
+  return { status: 'success', user: publicUser_(target.row) };
 }
 
 /* ------------------------------------------------------------------ foto */
@@ -190,7 +397,6 @@ function saveRib_(b) {
 }
 
 function deleteRib_(b) {
-  if (!adminOk_(b.adminKey)) return { status: 'error', code: 'admin', message: 'Solo l’amministratore può eliminare' };
   const pfs = norm_(b.pfs), splitter = norm_(b.splitter);
   const sh = ribSheet_();
   const rowNum = findRow_(sh.getDataRange().getValues(), row => norm_(row[0]) === pfs && norm_(row[1]) === splitter);
@@ -262,7 +468,6 @@ function savePosBatch_(b) {
 }
 
 function deletePos_(b) {
-  if (!adminOk_(b.adminKey)) return { status: 'error', code: 'admin', message: 'Solo l’amministratore può eliminare' };
   const pfs = norm_(b.pfs);
   const sh = posSheet_();
   const rowNum = findRow_(sh.getDataRange().getValues(), row => norm_(row[1]) === pfs);
@@ -277,12 +482,21 @@ function doPost(e) {
     const b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (!teamOk_(b.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
     const action = b.action || 'save';
-    if (action === 'save') return json_(saveRib_(b));
-    if (action === 'delete') return json_(deleteRib_(b));
-    if (action === 'savePos') return json_(savePos_(b));
-    if (action === 'deletePos') return json_(deletePos_(b));
-    if (action === 'savePosBatch') return json_(savePosBatch_(b));
-    return json_({ status: 'error', message: 'Azione sconosciuta: ' + action });
+    // account
+    if (action === 'register') return json_(register_(b));
+    if (action === 'login') return json_(login_(b));
+    if (action === 'me') return json_(me_(b));
+    if (action === 'changePassword') return json_(changePassword_(b));
+    if (action === 'users') return json_(listUsers_(b));
+    if (action === 'manageUser') return json_(manageUser_(b));
+    // archivio: salvare richiede un account approvato, eliminare un amministratore
+    const WRITE = { save: [saveRib_, 1], savePos: [savePos_, 1], savePosBatch: [savePosBatch_, 1], delete: [deleteRib_, 2], deletePos: [deletePos_, 2] };
+    const w = WRITE[action];
+    if (!w) return json_({ status: 'error', message: 'Azione sconosciuta: ' + action });
+    const a = authUser_(b.token, w[1]);
+    if (a.error) return json_(a.error);
+    b.tecnico = String(a.user.row[U.NOME] || normEmail_(a.user.row[U.EMAIL]));   // il nome lo decide l'account, non il telefono
+    return json_(w[0](b));
   } catch (err) {
     return json_({ status: 'error', message: String(err) });
   } finally {

@@ -25,7 +25,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Controlli duplicati**: avviso se lo stesso ID compare in due ottici, se una permuta è ripetuta, o se l'ID è già usato in un altro splitter dell'archivio.
 - **Riepilogo cartella**: per ogni PFS quanti ottici hanno l'ID, quanti sono NO IDR e quanti vuoti.
 - **Foto dello splitter**, salvata su Google Drive.
-- **Storico**: chi ha modificato cosa e quando (con lo script v3).
+- **Storico**: chi ha modificato cosa e quando.
 - **Ricerca** per PFS, splitter, ID o permuta; **PDF / Excel** per splitter o cartella intera; **Condividi** su WhatsApp.
 - Dalla cartella PFS: **📍 Naviga** se il PFS ha una posizione salvata, altrimenti **📍 Posizione** per salvarla.
 
@@ -36,7 +36,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Importa posizioni da file**: il collega carica il file ricevuto in *PFS Qui → Importa posizioni → Scegli il file*, **anche offline**. Vince la posizione più recente: le correzioni fatte a mano più nuove sul suo telefono restano. Il file si apre anche in Google Earth / My Maps.
 - **Elenco per anello** con ricerca per PFS, anello o note (`NA_01 16e13` e `NA_01/16E13` sono lo stesso PFS); **Vicino a me** ordina i PFS per distanza.
 - **Mappa** con un colore per ogni anello; **Naviga** apre Google Maps con il percorso fino al PFS.
-- **Elimina** solo per l'amministratore (anche lo script lo verifica, se è impostata `ADMIN_KEY`).
+- **Salvare** richiede un account approvato, **eliminare** un amministratore (verificato dallo script).
 
 ### Sempre attivi
 - **Coda offline**: se manca la rete, salvataggi ed eliminazioni restano in coda (barra arancione in alto) e partono da soli quando torna la connessione.
@@ -48,22 +48,25 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Android (Chrome)**: apri il link e tocca **Installa** nel riquadro della home (oppure menu ⋮ → *Installa app*).
 - **iPhone (Safari)**: apri il link, tocca **Condividi** → **Aggiungi alla schermata Home**.
 
-## Script Google Sheets v3
+## Account e permessi
 
-L'app funziona anche con gli script precedenti, ma **posizioni PFS, foto, storico, protezione con codice squadra ed eliminazioni** si sincronizzano solo con lo script v3.
+- **Senza account** si usa tutto liberamente: strumenti di calcolo, barcode, consultazione di ribattiture e PFS, mappa e navigazione.
+- **Per salvare** ribattiture e PFS nell'archivio condiviso serve un account: *Accedi → Registrati* con nome, email e password. La richiesta resta **in attesa** finché un amministratore non la approva.
+- **Ruoli**: *Proprietario* (il primo account registrato) → gestisce tutto e nomina gli amministratori; *Amministratore* → elimina ribattiture e PFS, approva e blocca i tecnici; *Tecnico* → salva.
+- **Gestione utenti**: pulsante account in alto → *Gestione utenti* (approva, rifiuta, blocca, riattiva, elimina, nomina amministratore).
+- **Password dimenticata**: ci si registra di nuovo con la stessa email; la nuova password si attiva dopo l'approvazione (fino ad allora vale quella vecchia).
+- I controlli li fa lo **script Google**, non il telefono: le password sono salvate solo come impronta con sale (foglio *Utenti*), gli accessi sono firmati e un account bloccato smette di funzionare subito. Il proprietario può correggere stato e ruolo anche a mano nel foglio *Utenti*.
+
+## Script Google Sheets
+
+Lo script ([`apps-script/Code.gs`](apps-script/Code.gs), versione 4) gestisce ribattiture, posizioni PFS, foto, storico e account.
 
 1. Apri il foglio Google collegato all'app → **Estensioni → Apps Script**.
-2. Sostituisci il contenuto di `Code.gs` con quello di [`apps-script/Code.gs`](apps-script/Code.gs) e salva.
-3. **Proteggi il foglio** (consigliato, perché l'indirizzo dello script è pubblico): ⚙️ **Impostazioni progetto → Proprietà script → Aggiungi proprietà**
-   - `TEAM_KEY` = un codice squadra a tua scelta (es. `FTTH-NA-7x92`), da dare ai colleghi
-   - `ADMIN_KEY` = la tua password admin dell'app: solo chi la conosce può eliminare
-4. **Esegui il deployment → Gestisci deployment** → modifica (✏️) il deployment esistente → *Versione*: **Nuova versione** → **Esegui il deployment**.
-   Modificando il deployment esistente l'indirizzo resta lo stesso e l'app non va toccata. Accesso: **Chiunque**.
-   La prima volta Google chiede di **autorizzare** l'accesso a Fogli e Drive (Drive serve per le foto): conferma con il tuo account.
-5. Ogni tecnico, nell'app: ⚙️ **Impostazioni → Codice squadra** → inserisce il `TEAM_KEY`.
-6. Con **Invia tutto l'archivio a Sheets** copi nei nuovi fogli quello che c'è già sul telefono.
+2. Sostituisci il contenuto di `Code.gs` con quello del repository e salva.
+3. **Esegui il deployment → Gestisci deployment** → modifica (✏️) il deployment esistente → *Versione*: **Nuova versione** → **Esegui il deployment** (Esegui come: *Me*, Accesso: *Chiunque*). Così l'indirizzo resta lo stesso.
+4. Per le **foto** lo script deve poter usare Google Drive: la prima volta Google chiede di autorizzarlo.
 
-Fogli creati in automatico: **Ribattiture** (una riga per PFS + splitter), **PFS_Posizioni** (una riga per PFS, con link alla mappa), **Storico** (ogni modifica). Le foto vanno nella cartella Drive **Fiber Tools Foto**.
+Fogli creati in automatico: **Ribattiture**, **PFS_Posizioni**, **Storico**, **Utenti**. Le foto vanno nella cartella Drive **Fiber Tools Foto**.
 
 ## Struttura del progetto
 
@@ -73,14 +76,14 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v3
+apps-script/Code.gs     script Google Sheets v4 (archivio + account)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.
 
 ## Note sulla sicurezza
-- Senza `TEAM_KEY` chiunque trovi l'indirizzo dello script (visibile nel codice) può leggere l'archivio e scriverci. Con `TEAM_KEY` serve il codice squadra.
-- Il login amministratore dell'app è verificato nel browser; le eliminazioni sono però verificate anche dallo script se è impostata `ADMIN_KEY`.
+- L'archivio è **leggibile da chiunque** abbia l'app (è una scelta: ribattiture e PFS consultabili da tutti). Scrivere ed eliminare richiede un account approvato, verificato dallo script.
+- Facoltativo: con la proprietà script `TEAM_KEY` anche la lettura richiede un codice squadra.
 - Le foto su Drive sono visibili a chi ha il link della singola foto.
 
 ## Crediti

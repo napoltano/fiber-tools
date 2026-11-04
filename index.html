@@ -982,6 +982,44 @@
     .imp-section { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--card-2); display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
     .imp-section h4 { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
     .imp-section .btn-secondary { margin: 0; }
+    .icon-btn { position: relative; }
+    .icon-btn .acc-dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+      background: #ef4444; color: #fff; font-size: 0.66rem; font-weight: 900; display: grid; place-items: center; border: 2px solid var(--card); }
+    .icon-btn.acc-pending { border-color: #f59e0b; color: #b45309; background: color-mix(in srgb, #f59e0b 12%, var(--card)); }
+    .tabs2 { display: flex; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 12px; }
+    .tabs2 button { flex: 1; border: none; background: transparent; border-radius: 9px; padding: 9px; font-weight: 800; font-size: 0.84rem; color: var(--muted); }
+    .tabs2 button.on { background: var(--card); color: var(--primary); box-shadow: 0 2px 8px rgba(15,23,42,0.1); }
+    .form-stack { display: flex; flex-direction: column; gap: 10px; }
+    .form-msg { font-size: 0.8rem; font-weight: 700; border-radius: 10px; padding: 9px 11px; line-height: 1.4; }
+    .form-msg.err { background: var(--danger-soft); color: var(--danger); }
+    .form-msg.ok { background: color-mix(in srgb, var(--success) 14%, var(--card)); color: var(--success); }
+    .form-msg.info { background: var(--primary-soft); color: var(--primary-ink); }
+    .acc-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-2); }
+    .acc-avatar { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; color: #fff; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2)); font-size: 1.05rem; }
+    .acc-card b { display: block; font-size: 0.95rem; overflow-wrap: anywhere; }
+    .acc-card small { display: block; color: var(--muted); font-weight: 600; font-size: 0.76rem; overflow-wrap: anywhere; }
+    .role-badge { display: inline-flex; align-items: center; font-size: 0.66rem; font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 999px; margin-top: 4px; background: var(--card); border: 1px solid var(--border); color: var(--muted); }
+    .role-badge.proprietario { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+    .role-badge.admin { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .role-badge.tecnico { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+    .role-badge.attesa { color: #b45309; border-color: color-mix(in srgb, #f59e0b 50%, var(--border)); background: color-mix(in srgb, #f59e0b 12%, var(--card)); }
+    .role-badge.bloccato { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+    .user-group-title { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin: 14px 0 8px; display: flex; gap: 8px; align-items: center; }
+    .user-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.3s var(--ease) both; }
+    .user-item.pending { border-color: color-mix(in srgb, #f59e0b 55%, var(--border)); }
+    .user-top { display: flex; gap: 10px; align-items: flex-start; }
+    .user-top .acc-avatar { width: 38px; height: 38px; font-size: 0.9rem; }
+    .user-top b { display: block; font-size: 0.9rem; overflow-wrap: anywhere; }
+    .user-top small { display: block; color: var(--muted); font-weight: 600; font-size: 0.72rem; overflow-wrap: anywhere; }
+    .user-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .user-actions select { padding: 6px 30px 6px 10px; font-size: 14px; width: auto; }
+    .btn-xs.ok { color: #fff; background: var(--success); border-color: var(--success); }
+    .lock-note { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 700;
+      background: var(--primary-soft); color: var(--primary-ink); border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border)); margin-bottom: 12px; }
+    .lock-note svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .lock-note button { margin-left: auto; flex-shrink: 0; }
     .more-note { font-size: 0.74rem; color: var(--muted); font-weight: 700; text-align: center; padding: 8px; }
 
     /* ---------- TOAST ---------- */
@@ -1109,8 +1147,8 @@
     </div>
     <div class="header-actions">
       <button class="icon-btn" id="settingsBtn" type="button" aria-label="Impostazioni"><svg><use href="#i-gear"/></svg></button>
-      <button class="icon-btn" id="adminLoginBtn" type="button" aria-label="Accesso amministratore">
-        <svg id="adminIcon"><use href="#i-lock"/></svg> <span class="lbl" id="adminText">Admin</span>
+      <button class="icon-btn" id="adminLoginBtn" type="button" aria-label="Account">
+        <svg id="adminIcon"><use href="#i-user"/></svg> <span class="lbl" id="adminText">Accedi</span>
       </button>
       <button class="icon-btn" id="themeToggleBtn" type="button" aria-label="Cambia tema">
         <svg class="theme-icon" id="themeIcon"><use href="#i-moon"/></svg> <span class="lbl" id="themeText">Scuro</span>
@@ -1237,6 +1275,7 @@
     <section id="ribattituraScreen" class="screen">
       <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
 
+      <div class="lock-note" data-lock-note hidden><svg><use href="#i-lock"/></svg><span>Puoi consultare tutto. Per salvare ribattiture serve un account approvato.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
       <div class="controls-card">
         <div class="field-group">
           <label class="field-label" for="ribPfsInput">Nome / Codice PFS (es. NA_05/08w22)</label>
@@ -1656,10 +1695,22 @@
       </details>
     </section>
 
+    <!-- ================= GESTIONE UTENTI ================= -->
+    <section id="usersScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+      <div class="controls-card">
+        <div class="section-title"><span>Account della squadra</span><span class="count-pill" id="usersCount">—</span></div>
+        <p class="small" style="color:var(--muted);font-weight:600" id="usersHint"></p>
+        <button type="button" class="btn-secondary" id="usersReload" style="margin:0"><svg><use href="#i-sync"/></svg> Aggiorna elenco</button>
+      </div>
+      <div id="usersList"></div>
+    </section>
+
     <!-- ================= PFS QUI ================= -->
     <section id="pfsPosScreen" class="screen">
       <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
 
+      <div class="lock-note" data-lock-note hidden><svg><use href="#i-lock"/></svg><span>Puoi cercare e navigare. Per salvare PFS serve un account approvato.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
       <details class="adv-card" id="posForm">
         <summary><svg class="rot"><use href="#i-plus"/></svg> <span id="posFormTitle">Aggiungi PFS</span> <svg class="chev-r"><use href="#i-down"/></svg></summary>
         <div class="adv-body">
@@ -1786,9 +1837,8 @@
 
     // Credenziali Amministratore: nel codice resta solo l'impronta SHA-256 di "UTENTE:PASSWORD",
     // non più la password in chiaro.
-    const ADMIN_HASH = "6a9b8655543befb6d3eaa0b5ee162b4d160d2c83d6f511132ee3f3cc1127b76a";
+    // Il ruolo (tecnico / admin / proprietario) arriva dall'account e viene verificato dallo script Google.
     let isAdminLoggedIn = false;
-    let adminSecret = '';   // password admin in memoria, inviata allo script solo per le eliminazioni
 
     const C = {
       ROSSO: "bg-rosso", VERDE: "bg-verde", GIALLO: "bg-giallo", MARRONE: "bg-marrone",
@@ -1967,47 +2017,6 @@
     }
 
     /* ---------- Admin ---------- */
-    async function handleAdminAuth() {
-      if (isAdminLoggedIn) {
-        const ok = await confirmBox('Esci da Admin', 'Vuoi uscire dalla modalità amministratore?', 'Esci');
-        if (ok) { isAdminLoggedIn = false; adminSecret = ''; updateAdminUI(); toast('Logout effettuato.', 'info'); }
-        return;
-      }
-      const ok = await openModal({
-        title: 'Accesso amministratore',
-        bodyHtml: `
-          <div class="field-group" style="margin-bottom:10px">
-            <label class="field-label" for="admUser">Username</label>
-            <input id="admUser" class="custom-input" autocomplete="username" autocapitalize="characters">
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="admPass">Password</label>
-            <input id="admPass" type="password" class="custom-input" autocomplete="current-password">
-          </div>`,
-        okText: 'Accedi',
-        onOpen: () => setTimeout(() => { if (!$('modal').contains(document.activeElement)) $('admUser').focus(); }, 50)
-      });
-      if (!ok) return;
-      const user = ($('admUser')?.value || '').trim().toUpperCase();
-      const pass = $('admPass')?.value || '';
-      if (sha256(`${user}:${pass}`) === ADMIN_HASH) {
-        isAdminLoggedIn = true;
-        adminSecret = pass;
-        updateAdminUI();
-        toast('Accesso amministratore eseguito!');
-        processQueue();
-      } else {
-        toast('Credenziali errate. Accesso negato.', 'error');
-      }
-    }
-
-    function updateAdminUI() {
-      const btn = $('adminLoginBtn');
-      btn.classList.toggle('admin-active', isAdminLoggedIn);
-      $('adminIcon').innerHTML = `<use href="#${isAdminLoggedIn ? 'i-unlock' : 'i-lock'}"/>`;
-      $('adminText').textContent = isAdminLoggedIn ? 'Admin ✓' : 'Admin';
-    }
-
     /* ---------- Navigazione ---------- */
     function setHeader(title, sub) {
       const t = $('headerTitle'), s = $('headerSubtitle');
@@ -2034,6 +2043,7 @@
       else if (screenId === 'fibercopScreen') { renderFcColors(); updateFiberCop(); }
       else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
       else if (screenId === 'budgetScreen') calcBudget();
+      else if (screenId === 'usersScreen') loadUsers();
       else if (screenId === 'pfsPosScreen') { renderPositions(); syncFromGoogleSheets(true); }
       else if (screenId === 'barcodeScreen') {
         renderBarcode(false); renderRecentBarcodes();
@@ -2418,6 +2428,7 @@
     }
 
     async function saveRibattitura() {
+      if (!requireWriter('Per salvare una ribattitura serve un account approvato.')) return;
       const pfsRaw = $('ribPfsInput').value.trim();
       const splRaw = $('ribSplitterInput').value.trim();
       setInvalid('ribPfsInput', pfsRaw ? '' : 'x');
@@ -2570,7 +2581,7 @@
     }
 
     async function deleteSplitter(pfs, splitter) {
-      if (!isAdminLoggedIn) { toast('Solo l’amministratore può eliminare le ribattiture.', 'error'); return; }
+      if (!isAdminLoggedIn) { toast('Solo gli amministratori possono eliminare le ribattiture.', 'error'); return; }
       const ok = await confirmBox('Elimina ribattitura', `Eliminare definitivamente lo splitter ${splitter} dal PFS ${pfs}?`, 'Elimina', true);
       if (!ok) return;
       const db = getRibattitureData();
@@ -2811,11 +2822,12 @@
     const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 
     /* ---------- Nome tecnico ---------- */
-    function getTecnico() { return (lsGet(TECH_KEY, '') || '').trim(); }
+    function getTecnico() { return account ? String(account.nome || '').toUpperCase() : (lsGet(TECH_KEY, '') || '').trim(); }
     function setTecnico(name) { lsSet(TECH_KEY, String(name || '').trim().toUpperCase()); }
 
     /** Restituisce il nome del tecnico; la prima volta lo chiede (si può saltare). */
     async function ensureTecnico() {
+      if (account) return getTecnico();
       if (lsGet(TECH_KEY) !== null) return getTecnico();
       const ok = await openModal({
         title: 'Chi sta salvando?',
@@ -3251,6 +3263,7 @@
     let queueBusy = false;
     let corsOk = null;            // null = non ancora verificato
     class AuthError extends Error { constructor(msg, code) { super(msg); this.code = code || 'auth'; } }
+    const AUTH_CODES = ['auth', 'admin', 'login', 'pending', 'blocked', 'forbidden'];
     class NetError extends Error {}
 
     const getTeamKey = () => (lsGet(TEAM_KEY_LS, '') || '').trim();
@@ -3279,13 +3292,16 @@
       let json;
       try { json = await res.json(); } catch (e) { throw new Error('Risposta non valida da Google Sheets'); }
       corsOk = true;
-      if (json && json.status === 'error' && (json.code === 'auth' || json.code === 'admin')) throw new AuthError(json.message, json.code);
+      if (json && json.status === 'error' && AUTH_CODES.includes(json.code)) throw new AuthError(json.message, json.code);
       return json;
     }
 
     /** POST allo script. Legge la risposta quando possibile; altrimenti invia "alla cieca" (no-cors). */
     async function sheetsPost(payload) {
-      const body = JSON.stringify(getTeamKey() ? { ...payload, key: getTeamKey() } : payload);
+      const extra = {};
+      if (getTeamKey()) extra.key = getTeamKey();
+      if (account && account.token && !payload.token) extra.token = account.token;
+      const body = JSON.stringify({ ...payload, ...extra });
       const blind = async () => {
         try {
           await fetchWithTimeout(GOOGLE_SHEET_WEB_APP_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body }, 60000);
@@ -3305,7 +3321,7 @@
       let json = null;
       try { json = await res.json(); } catch (e) { /* script vecchio: risposta non JSON */ }
       if (json && json.status === 'error') {
-        if (json.code === 'auth' || json.code === 'admin') throw new AuthError(json.message, json.code);
+        if (AUTH_CODES.includes(json.code)) throw new AuthError(json.message, json.code);
         const err = new Error(json.message || 'Errore dello script'); err.server = true; throw err;
       }
       return { confirmed: !!json, data: json };
@@ -3361,7 +3377,7 @@
     function reportSend(r, what) {
       if (r && r.sent && !hasPending(...what.key)) toast(`${what.label} e inviata a Google Sheets.`);
       else if (r && r.stopped === 'net' || navigator.onLine === false) toast(`${what.label} sul telefono. Senza rete: la invio appena torna la connessione.`, 'info', 4500);
-      else if (r && (r.stopped === 'auth' || r.stopped === 'admin')) { /* avviso già mostrato */ }
+      else if (r && r.stopped) { /* avviso già mostrato */ }
       else toast(`${what.label}.`);
     }
 
@@ -3370,7 +3386,8 @@
       const pill = $('queuePill');
       if (!pill) return;
       pill.hidden = !q.length;
-      $('queueText').textContent = queueBusy ? `Invio in corso… (${q.length})` : `${q.length} ${q.length === 1 ? 'modifica' : 'modifiche'} in attesa di rete`;
+      const what = `${q.length} ${q.length === 1 ? 'modifica' : 'modifiche'}`;
+      $('queueText').textContent = queueBusy ? `Invio in corso… (${q.length})` : !canWrite() ? `${what} da inviare: accedi per condividerle` : `${what} in attesa di rete`;
       $('queueIcon').classList.toggle('spin', queueBusy);
     }
 
@@ -3408,16 +3425,14 @@
       queueBusy = true; updateQueueUI();
       let sent = 0, waitingAdmin = 0, stopped = null;
       const tried = new Set();
+      if (!canWrite()) { queueBusy = false; updateQueueUI(); return { sent: 0, stopped: 'login' }; }
       try {
         // continua finché ci sono voci mai tentate in questo giro (anche quelle aggiunte durante l'invio)
         let item;
         while (!stopped && (item = getQueue().find(x => !tried.has(x.id)))) {
           tried.add(item.id);
           const p = { ...item.payload };
-          if (/^delete/.test(p.action)) {
-            if (!adminSecret) { waitingAdmin++; continue; }
-            p.adminKey = adminSecret;
-          }
+          if (/^delete/.test(p.action) && !isAdminLoggedIn) { waitingAdmin++; continue; }
           try {
             const r = await sheetsPost(p);
             setQueue(getQueue().filter(x => x.id !== item.id));
@@ -3425,7 +3440,14 @@
             sent++;
           } catch (e) {
             if (e instanceof NetError) { stopped = 'net'; break; }
-            if (e instanceof AuthError) { stopped = e.code; break; }
+            if (e instanceof AuthError) {
+              if (e.code === 'forbidden') {   // permesso tolto: l'operazione non si può fare, la scarta
+                setQueue(getQueue().filter(x => x.id !== item.id));
+                toast(`Operazione non consentita (${item.payload.pfs}): ${e.message}`, 'error', 5000);
+                continue;
+              }
+              stopped = e.code; break;
+            }
             // errore dello script: riprova al massimo 3 volte, poi scarta
             const q = getQueue(); const cur = q.find(x => x.id === item.id);
             if (cur) { cur.tries = (cur.tries || 0) + 1; if (cur.tries >= 3) { q.splice(q.indexOf(cur), 1); toast(`Google Sheets ha rifiutato una modifica (${item.payload.pfs}): ${e.message}`, 'error', 5000); } setQueue(q); }
@@ -3435,9 +3457,10 @@
         queueBusy = false; updateQueueUI();
       }
       if (stopped === 'auth') toast('Codice squadra mancante o errato: impostalo in ⚙️ Impostazioni.', 'error', 5000);
-      else if (stopped === 'admin') toast('Lo script ha rifiutato la password admin: controlla ADMIN_KEY nello script.', 'error', 5000);
+      else if (stopped === 'login') { setAccount(null); toast('Sessione scaduta: accedi di nuovo per inviare le modifiche.', 'error', 5000); }
+      else if (stopped === 'pending' || stopped === 'blocked') { refreshAccount(); }
       else if (stopped === 'net' && manual) toast('Ancora senza rete: riproverò in automatico.', 'info');
-      if (waitingAdmin && manual) toast('Accedi come Admin per completare le eliminazioni in attesa.', 'info', 4000);
+      if (waitingAdmin && manual) toast('Le eliminazioni in attesa richiedono un account amministratore.', 'info', 4000);
       if (sent && $('ribattituraScreen').classList.contains('active')) loadRibattitureArchive();
       if (sent && $('pfsPosScreen').classList.contains('active')) renderPositions();
       return { sent, stopped };
@@ -3465,7 +3488,7 @@
         // voci mai inviate (salvate prima dello script v2 o con invio fallito): le mette in coda
         Object.keys(local).forEach(p => Object.keys(local[p]).forEach(s => {
           const it = local[p][s];
-          if (it.synced !== true && !hasPending('rib', p, s)) {
+          if (canWrite() && it.synced !== true && !hasPending('rib', p, s)) {
             enqueue({ action: 'save', pfs: p, splitter: s, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], fotoId: it.fotoId || '' });
           }
         }));
@@ -3490,7 +3513,7 @@
         const it = local[k];
         if (pend.has(k) || remote[k]) return;
         if (it.synced === true) delete local[k];        // eliminato dall'admin sul foglio
-        else toSend.push(it);                           // mai arrivato al foglio: lo reinvia
+        else if (it.synced !== 'local' && canWrite()) toSend.push(it);   // mai arrivato al foglio: lo reinvia
       });
       savePositions(local);
       enqueuePosBatches(toSend);
@@ -3524,6 +3547,7 @@
     }
 
     async function uploadWholeArchive() {
+      if (!requireWriter('Per inviare l’archivio al foglio serve un account approvato.')) return;
       const db = getRibattitureData();
       const list = [];
       Object.keys(db).forEach(p => Object.keys(db[p]).forEach(s => list.push([p, s, db[p][s]])));
@@ -3699,7 +3723,8 @@
     /* ---------- Impostazioni ---------- */
     async function openSettings() {
       const v = scriptVersion;
-      const status = v >= 3 ? ['ok', 'Script v3 attivo: ribattiture, posizioni PFS, foto, storico ed eliminazioni sincronizzati']
+      const status = v >= 4 ? ['ok', 'Archivio condiviso attivo: ribattiture, posizioni PFS, foto, storico e account']
+        : v >= 3 ? ['warn', 'Script v3: manca il supporto agli account']
         : v >= 2 ? ['warn', 'Script v2: manca il supporto a posizioni PFS, foto e storico']
         : ['warn', 'Script originale: eliminazioni, posizioni e foto restano solo sul telefono'];
       const nQ = getQueue().length;
@@ -3707,22 +3732,15 @@
         title: 'Impostazioni',
         bodyHtml: `
           <div class="field-group">
-            <label class="field-label" for="setTech">Nome tecnico</label>
-            <input id="setTech" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI" value="${escapeHtml(getTecnico())}">
-          </div>
-          <div class="field-group" style="margin-top:10px">
-            <label class="field-label" for="setTeam">Codice squadra</label>
-            <div class="stepper">
-              <input id="setTeam" type="password" class="custom-input" style="text-align:left" autocomplete="off" placeholder="Fornito dal responsabile" value="${escapeHtml(getTeamKey())}">
-              <button type="button" class="step-btn" id="setTeamShow" aria-label="Mostra codice"><svg width="18" height="18"><use href="#i-eye"/></svg></button>
-            </div>
-            <span class="small" style="color:var(--muted)">Serve per leggere e scrivere sul foglio Google quando è protetto.</span>
+            <span class="field-label">Account</span>
+            ${account ? accountCardHtml() : '<p class="small">Non hai effettuato l’accesso: puoi consultare tutto, ma per salvare serve un account approvato.</p>'}
+            <button type="button" class="btn-secondary" id="setAccount" style="margin-top:6px"><svg><use href="#i-user"/></svg> ${account ? 'Il mio account' : 'Accedi o registrati'}</button>
           </div>
           <hr>
           <div class="field-group">
             <span class="field-label">Google Sheets</span>
             <div class="status-line ${status[0]}"><span class="dot"></span>${status[1]}</div>
-            ${v < 3 ? `<p class="small">Installa lo script v3: <a href="${REPO_URL}#script-google-sheets-v3" target="_blank" rel="noopener">istruzioni</a>.</p>` : ''}
+            ${v < 4 ? `<p class="small">Installa lo script v4: <a href="${REPO_URL}#script-google-sheets" target="_blank" rel="noopener">istruzioni</a>.</p>` : ''}
             <div class="status-line ${nQ ? 'warn' : 'ok'}"><span class="dot"></span>${nQ ? `${nQ} modifiche in attesa di invio` : 'Nessuna modifica in attesa'}</div>
             <button type="button" class="btn-secondary" id="setUpload" style="margin-top:6px"><svg><use href="#i-cloud"/></svg> Invia tutto l’archivio a Sheets</button>
           </div>
@@ -3738,22 +3756,15 @@
           </div>
           <hr>
           <p class="small">Fiber Tools • <a href="${REPO_URL}" target="_blank" rel="noopener">codice su GitHub</a></p>`,
-        okText: 'Salva', cancelText: 'Chiudi',
+        okText: 'Chiudi', cancelText: 'Indietro',
         onOpen: () => {
           $('setUpload').addEventListener('click', () => { closeModal(false); uploadWholeArchive(); });
           $('setBackup').addEventListener('click', downloadBackup);
           $('setRestore').addEventListener('click', () => $('setRestoreFile').click());
           $('setRestoreFile').addEventListener('change', e => { const f = e.target.files[0]; closeModal(false); restoreBackup(f); });
-          $('setTeamShow').addEventListener('click', () => { const i = $('setTeam'); i.type = i.type === 'password' ? 'text' : 'password'; });
+          $('setAccount').addEventListener('click', () => { closeModal(false); openAccount(); });
         }
       });
-      if (ok) {
-        const oldKey = getTeamKey();
-        setTecnico($('setTech')?.value || '');
-        lsSet(TEAM_KEY_LS, ($('setTeam')?.value || '').trim());
-        toast('Impostazioni salvate.', 'info');
-        if (getTeamKey() !== oldKey) { processQueue(true); if ($('ribattituraScreen').classList.contains('active')) syncFromGoogleSheets(); }
-      }
     }
 
     /* =====================================================================
@@ -4022,6 +4033,7 @@
     }
 
     async function savePosition() {
+      if (!requireWriter('Per salvare un PFS serve un account approvato.')) return;
       const pfs = canonPfs($('posPfs').value);
       const coords = parseCoords($('posCoords').value);
       setInvalid('posPfs', pfs ? '' : 'x');
@@ -4058,14 +4070,14 @@
       } else {
         toast(`Posizione di ${pfs} salvata sul telefono. Con lo script v3 viene condivisa con la squadra.`, 'info', 4500);
       }
-      if (renamedFrom && !isAdminLoggedIn) toast(`Salvato come nuovo PFS: ${renamedFrom} resta in archivio (solo l’admin può eliminarlo).`, 'info', 5000);
+      if (renamedFrom && !isAdminLoggedIn) toast(`Salvato come nuovo PFS: ${renamedFrom} resta in archivio (solo un amministratore può eliminarlo).`, 'info', 5000);
       resetPosForm();
       $('posForm').open = false;
       renderPositions();
     }
 
     async function deletePosition(pfs) {
-      if (!isAdminLoggedIn) { toast('Solo l’amministratore può eliminare i PFS.', 'error'); return; }
+      if (!isAdminLoggedIn) { toast('Solo gli amministratori possono eliminare i PFS.', 'error'); return; }
       const ok = await confirmBox('Elimina PFS', `Eliminare definitivamente la posizione di ${pfs}?`, 'Elimina', true);
       if (!ok) return;
       const all = getPositions(); delete all[pfs]; savePositions(all);
@@ -4160,7 +4172,7 @@
     /* ---------- Eventi V3 ---------- */
     function bindV3Events() {
       // coda
-      $('queuePill').addEventListener('click', () => processQueue(true));
+      $('queuePill').addEventListener('click', () => { if (!canWrite()) openAccount(); else processQueue(true); });
       window.addEventListener('online', () => processQueue());
       document.addEventListener('visibilitychange', () => { if (!document.hidden) processQueue(); });
       setInterval(() => { if (getQueue().length) processQueue(); }, 45000);
@@ -4360,6 +4372,7 @@
         delete next.synced;
         all[pfs] = next; updated++; changed.push(next);
       });
+      if (!canWrite()) changed.forEach(it => { it.synced = 'local'; });   // senza account restano solo su questo telefono
       savePositions(all);
       return { added, updated, same, keptManual, changed, total: seen.size, anelli: new Set(Object.values(all).map(i => i.anello)).size };
     }
@@ -4371,7 +4384,8 @@
       try { pts = parseKml(text); } catch (e) { toast(e.message, 'error', 5000); return; }
       if (!pts.length) { toast('Nel file non ci sono posizioni da importare.', 'error'); return; }
       const r = mergeImported(pts, overwrite);
-      if (scriptVersion >= 3) enqueuePosBatches(r.changed);
+      const share = scriptVersion >= 3 && canWrite();
+      if (share) enqueuePosBatches(r.changed);
       posNearMode = false; $('posSearch').value = '';
       renderPositions();
       await openModal({
@@ -4383,7 +4397,7 @@
             <div><b>${r.anelli}</b><span>Anelli</span></div>
           </div>
           ${r.keptManual ? `<p class="small">${r.keptManual} PFS hanno sul telefono una posizione inserita a mano più recente e sono stati lasciati com’erano.</p>` : ''}
-          <p class="small">${scriptVersion >= 3 ? 'Le posizioni vengono inviate al foglio Google e condivise con la squadra.' : 'Le posizioni sono su questo telefono. Con lo script Google v3 vengono condivise con tutta la squadra.'}</p>`,
+          <p class="small">${share ? 'Le posizioni vengono inviate al foglio Google e condivise con la squadra.' : canWrite() ? 'Le posizioni sono su questo telefono. Con lo script Google v3 vengono condivise con tutta la squadra.' : 'Le posizioni sono su questo telefono. Per condividerle con la squadra accedi con un account approvato.'}</p>`,
         okText: 'Ottimo', cancelText: 'Chiudi'
       });
     }
@@ -4567,7 +4581,301 @@
       else if (choice === 'file') sharePositionsFile([it], it.pfs);
     }
 
+    /* =====================================================================
+       ACCOUNT: registrazione, accesso, approvazione, ruoli
+       ===================================================================== */
+    const ACCOUNT_KEY = 'fiber_tools_account';
+    let account = null, accountPending = 0;
+    const ROLE_LABEL = { tecnico: 'Tecnico', admin: 'Amministratore', proprietario: 'Proprietario' };
+    const canWrite = () => !!(account && account.token && account.stato === 'attivo');
+    const isAdminRole = () => canWrite() && (account.ruolo === 'admin' || account.ruolo === 'proprietario');
+    const initials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
+    function loadAccount() {
+      try { const a = JSON.parse(lsGet(ACCOUNT_KEY, 'null')); account = a && a.token ? a : null; } catch (e) { account = null; }
+      isAdminLoggedIn = isAdminRole();
+    }
+    function setAccount(a) {
+      account = a && a.token ? a : null;
+      if (account) lsSet(ACCOUNT_KEY, JSON.stringify(account)); else { try { localStorage.removeItem(ACCOUNT_KEY); } catch (e) {} accountPending = 0; }
+      isAdminLoggedIn = isAdminRole();
+      updateAccountUI();
+    }
+
+    function updateAccountUI() {
+      const btn = $('adminLoginBtn');
+      btn.classList.toggle('admin-active', canWrite());
+      $('adminIcon').innerHTML = `<use href="#${account ? 'i-user' : 'i-lock'}"/>`;
+      $('adminText').textContent = account ? (String(account.nome || '').split(' ')[0] || 'Account') : 'Accedi';
+      btn.setAttribute('aria-label', account ? `Account di ${account.nome}` : 'Accedi o registrati');
+      let dot = btn.querySelector('.acc-dot');
+      if (isAdminRole() && accountPending > 0) {
+        if (!dot) { dot = document.createElement('span'); dot.className = 'acc-dot'; btn.appendChild(dot); }
+        dot.textContent = accountPending > 9 ? '9+' : String(accountPending);
+      } else if (dot) dot.remove();
+      document.querySelectorAll('[data-lock-note]').forEach(n => { n.hidden = canWrite(); });
+      updateQueueUI();
+    }
+
+    function accountCardHtml() {
+      const r = account.ruolo || 'tecnico';
+      return `<div class="acc-card"><div class="acc-avatar">${escapeHtml(initials(account.nome))}</div>
+        <div style="min-width:0"><b>${escapeHtml(account.nome)}</b><small>${escapeHtml(account.email)}</small>
+        <span class="role-badge ${r}">${ROLE_LABEL[r] || r}</span></div></div>`;
+    }
+
+    /** Se l'utente non può salvare apre l'accesso e restituisce false. */
+    function requireWriter(why) {
+      if (canWrite()) return true;
+      openAccount(why);
+      return false;
+    }
+
+    async function accountCall(payload) {
+      const r = await sheetsPost(payload);
+      if (!r.confirmed || !r.data) throw new Error('Il foglio Google non risponde: riprova tra poco.');
+      return r.data;
+    }
+    function accountError(e) {
+      if (e instanceof NetError) return 'Serve la connessione a internet.';
+      return e && e.message ? e.message : 'Operazione non riuscita.';
+    }
+
+    /** Aggiorna ruolo e stato dal foglio (un admin può averli cambiati). */
+    async function refreshAccount() {
+      if (!account || navigator.onLine === false) return;
+      try {
+        const d = await accountCall({ action: 'me', token: account.token });
+        if (d.status === 'success' && d.user) {
+          accountPending = Number(d.pendingCount || 0);
+          setAccount({ ...account, ...d.user });
+        }
+      } catch (e) {
+        if (e instanceof AuthError) {
+          if (e.code === 'login') { setAccount(null); toast('Sessione scaduta: accedi di nuovo.', 'info', 4000); }
+          else if (e.code === 'pending' || e.code === 'blocked') { setAccount({ ...account, stato: e.code === 'pending' ? 'in attesa' : 'bloccato' }); toast(e.message, 'error', 5000); }
+        }
+      }
+    }
+
+    async function openAccount(why) {
+      if (account) return openAccountMenu();
+      let mode = 'login', done = false;
+      const fieldsHtml = () => mode === 'login' ? `
+          <div class="field-group"><label class="field-label" for="accEmail">Email</label>
+            <input id="accEmail" type="email" class="custom-input" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="nome@email.it"></div>
+          <div class="field-group"><label class="field-label" for="accPass">Password</label>
+            <input id="accPass" type="password" class="custom-input" autocomplete="current-password"></div>
+          <p class="small" style="color:var(--muted)">Password dimenticata? Registrati di nuovo con la stessa email: la nuova password si attiva dopo l’approvazione.</p>` : `
+          <div class="field-group"><label class="field-label" for="accNome">Nome e cognome</label>
+            <input id="accNome" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI"></div>
+          <div class="field-group"><label class="field-label" for="accEmail">Email</label>
+            <input id="accEmail" type="email" class="custom-input" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="nome@email.it"></div>
+          <div class="field-group"><label class="field-label" for="accPass">Password (almeno 8 caratteri)</label>
+            <input id="accPass" type="password" class="custom-input" autocomplete="new-password"></div>
+          <div class="field-group"><label class="field-label" for="accPass2">Ripeti password</label>
+            <input id="accPass2" type="password" class="custom-input" autocomplete="new-password"></div>
+          <p class="small" style="color:var(--muted)">La richiesta deve essere approvata da un amministratore prima di poter salvare.</p>`;
+      const render = (msg, cls) => {
+        $('accTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+        $('accFields').innerHTML = fieldsHtml();
+        $('accMsg').className = 'form-msg ' + (cls || ''); $('accMsg').hidden = !msg; $('accMsg').textContent = msg || '';
+        $('modalOk').textContent = mode === 'login' ? 'Accedi' : 'Invia richiesta';
+      };
+      const showMsg = (msg, cls) => { $('accMsg').className = 'form-msg ' + cls; $('accMsg').hidden = false; $('accMsg').textContent = msg; };
+
+      const submit = async () => {
+        const email = ($('accEmail').value || '').trim(), pass = $('accPass').value || '';
+        if (!email || !pass) { showMsg('Inserisci email e password.', 'err'); return; }
+        const okBtn = $('modalOk'); okBtn.disabled = true;
+        try {
+          if (mode === 'login') {
+            const d = await accountCall({ action: 'login', email, password: pass });
+            if (d.status !== 'success') { showMsg(d.message || 'Accesso non riuscito.', d.code === 'pending' ? 'info' : 'err'); return; }
+            done = true; closeModal(true);
+            setAccount({ token: d.token, ...d.user });
+            toast(`Benvenuto, ${d.user.nome}!`);
+            refreshAccount(); processQueue(true); afterLogin();
+          } else {
+            const nome = ($('accNome').value || '').trim();
+            if (nome.length < 2) { showMsg('Inserisci nome e cognome.', 'err'); return; }
+            if (pass.length < 8) { showMsg('La password deve avere almeno 8 caratteri.', 'err'); return; }
+            if (pass !== $('accPass2').value) { showMsg('Le due password non coincidono.', 'err'); return; }
+            const d = await accountCall({ action: 'register', email, nome, password: pass });
+            if (d.status !== 'success') { showMsg(d.message || 'Registrazione non riuscita.', 'err'); return; }
+            if (d.token) {
+              done = true; closeModal(true);
+              setAccount({ token: d.token, ...d.user });
+              toast('Account creato: sei il proprietario dell’app.', 'success', 5000);
+              afterLogin();
+              return;
+            }
+            mode = 'login'; render(d.stato === 'password in attesa'
+              ? 'Richiesta di nuova password inviata: potrai usarla dopo l’approvazione. Fino ad allora vale quella vecchia.'
+              : 'Richiesta inviata! Potrai accedere appena un amministratore la approva.', 'ok');
+            $('accEmail').value = email;
+          }
+        } catch (e) {
+          showMsg(e instanceof AuthError ? e.message : accountError(e), e instanceof AuthError && e.code === 'pending' ? 'info' : 'err');
+        } finally { okBtn.disabled = false; }
+      };
+
+      const p = openModal({
+        title: 'Account Fiber Tools',
+        bodyHtml: `${why ? `<div class="form-msg info" style="margin-bottom:10px">${escapeHtml(why)}</div>` : ''}
+          <div class="tabs2" id="accTabs"><button type="button" data-mode="login" class="on">Accedi</button><button type="button" data-mode="register">Registrati</button></div>
+          <div class="form-stack"><div id="accFields" class="form-stack"></div><div id="accMsg" class="form-msg" hidden></div></div>`,
+        okText: 'Accedi', cancelText: 'Chiudi',
+        onOpen: () => {
+          render();
+          $('accTabs').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; mode = b.dataset.mode; render(); });
+          setTimeout(() => { if (!$('modal').contains(document.activeElement)) $('accEmail')?.focus(); }, 60);
+        }
+      });
+      // il pulsante principale non chiude la finestra: prima verifica con il foglio
+      const okBtn = $('modalOk');
+      const handler = e => { e.stopImmediatePropagation(); submit(); };
+      okBtn.addEventListener('click', handler, true);
+      const keyHandler = e => { if (e.key === 'Enter' && !$('modal').hidden) { e.preventDefault(); e.stopImmediatePropagation(); submit(); } };
+      document.addEventListener('keydown', keyHandler, true);
+      await p;
+      okBtn.removeEventListener('click', handler, true);
+      document.removeEventListener('keydown', keyHandler, true);
+      okBtn.disabled = false;
+      return done;
+    }
+
+    function afterLogin() {
+      if ($('ribattituraScreen').classList.contains('active')) syncFromGoogleSheets(true);
+      if ($('pfsPosScreen').classList.contains('active')) renderPositions();
+    }
+
+    async function openAccountMenu() {
+      let choice = null;
+      const admin = isAdminRole();
+      $('modalOk').hidden = true;
+      const statusLine = account.stato === 'attivo' ? '' : `<div class="form-msg info" style="margin-top:10px">${account.stato === 'in attesa' ? 'In attesa di approvazione: puoi consultare, ma non ancora salvare.' : 'Account non attivo: contatta il responsabile.'}</div>`;
+      const done = openModal({
+        title: 'Il mio account',
+        bodyHtml: `${accountCardHtml()}${statusLine}
+          <div class="opt-list" style="margin-top:12px">
+            ${admin ? `<button type="button" class="btn-secondary" data-choice="users"><svg><use href="#i-user"/></svg> Gestione utenti${accountPending ? ` <span class="count-pill" style="margin-left:auto">${accountPending} da approvare</span>` : ''}</button>` : ''}
+            <button type="button" class="btn-secondary" data-choice="pwd"><svg><use href="#i-lock"/></svg> Cambia password</button>
+            <button type="button" class="btn-secondary" data-choice="logout"><svg><use href="#i-back"/></svg> Esci</button>
+          </div>`,
+        cancelText: 'Chiudi',
+        onOpen: () => $('modalBody').querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => { choice = b.dataset.choice; closeModal(true); }))
+      });
+      await done;
+      $('modalOk').hidden = false;
+      if (choice === 'users') openScreen('usersScreen', 'Gestione utenti', 'Approvazioni e ruoli');
+      else if (choice === 'pwd') changePassword();
+      else if (choice === 'logout') {
+        const ok = await confirmBox('Esci', 'Vuoi uscire dal tuo account? Le modifiche non ancora inviate restano sul telefono e partiranno al prossimo accesso.', 'Esci');
+        if (ok) { setAccount(null); toast('Sei uscito dal tuo account.', 'info'); }
+      }
+    }
+
+    async function changePassword() {
+      const ok = await openModal({
+        title: 'Cambia password',
+        bodyHtml: `<div class="form-stack">
+          <div class="field-group"><label class="field-label" for="pwOld">Password attuale</label><input id="pwOld" type="password" class="custom-input" autocomplete="current-password"></div>
+          <div class="field-group"><label class="field-label" for="pwNew">Nuova password (almeno 8 caratteri)</label><input id="pwNew" type="password" class="custom-input" autocomplete="new-password"></div>
+          <div class="field-group"><label class="field-label" for="pwNew2">Ripeti la nuova password</label><input id="pwNew2" type="password" class="custom-input" autocomplete="new-password"></div></div>`,
+        okText: 'Cambia', cancelText: 'Annulla'
+      });
+      if (!ok) return;
+      const old = $('pwOld').value, nw = $('pwNew').value;
+      if (nw.length < 8) { toast('La nuova password deve avere almeno 8 caratteri.', 'error'); return; }
+      if (nw !== $('pwNew2').value) { toast('Le due password non coincidono.', 'error'); return; }
+      try {
+        const d = await accountCall({ action: 'changePassword', token: account.token, old, password: nw });
+        if (d.status !== 'success') { toast(d.message || 'Cambio password non riuscito.', 'error'); return; }
+        setAccount({ ...account, token: d.token, ...d.user });
+        toast('Password cambiata.');
+      } catch (e) { toast(accountError(e), 'error'); }
+    }
+
+    /* ---------- Gestione utenti (amministratori) ---------- */
+    let usersCache = [];
+    async function loadUsers() {
+      const list = $('usersList');
+      if (!isAdminRole()) { list.innerHTML = '<div class="empty-state">Questa sezione è riservata agli amministratori.</div>'; return; }
+      $('usersHint').textContent = account.ruolo === 'proprietario'
+        ? 'Sei il proprietario: approvi le richieste, blocchi gli account e decidi chi è amministratore.'
+        : 'Come amministratore approvi e blocchi i tecnici. Gli amministratori li nomina il proprietario.';
+      list.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
+      try {
+        const d = await accountCall({ action: 'users', token: account.token });
+        if (d.status !== 'success') throw new Error(d.message);
+        usersCache = d.users || [];
+        renderUsers();
+      } catch (e) {
+        list.innerHTML = `<div class="empty-state">${escapeHtml(e instanceof AuthError ? e.message : accountError(e))}</div>`;
+      }
+    }
+
+    function renderUsers() {
+      const me = account.email, owner = account.ruolo === 'proprietario';
+      const pending = usersCache.filter(u => u.stato === 'in attesa' || (u.stato === 'attivo' && u.nuovaPassword));
+      const active = usersCache.filter(u => u.stato === 'attivo' && !u.nuovaPassword);
+      const other = usersCache.filter(u => u.stato !== 'attivo' && u.stato !== 'in attesa');
+      accountPending = pending.length; updateAccountUI();
+      $('usersCount').textContent = `${usersCache.length} account${pending.length ? ` • ${pending.length} da approvare` : ''}`;
+      const canManage = u => u.email !== me && u.ruolo !== 'proprietario' && (owner || u.ruolo === 'tecnico');
+      const item = (u, i) => {
+        const badge = u.stato === 'in attesa' ? '<span class="role-badge attesa">In attesa</span>'
+          : u.nuovaPassword ? '<span class="role-badge attesa">Nuova password richiesta</span>'
+          : u.stato === 'attivo' ? `<span class="role-badge ${u.ruolo}">${ROLE_LABEL[u.ruolo] || u.ruolo}</span>`
+          : `<span class="role-badge bloccato">${u.stato === 'rifiutato' ? 'Rifiutato' : 'Bloccato'}</span>`;
+        let actions = '';
+        if (canManage(u)) {
+          if (u.stato === 'in attesa' || u.nuovaPassword) actions = `<button type="button" class="btn-xs ok" data-op="approva">Approva</button><button type="button" class="btn-xs danger" data-op="rifiuta" style="margin-left:0">Rifiuta</button>`;
+          else if (u.stato === 'attivo') actions = `${owner ? `<select class="custom-select" data-op="ruolo" aria-label="Ruolo"><option value="tecnico"${u.ruolo === 'tecnico' ? ' selected' : ''}>Tecnico</option><option value="admin"${u.ruolo === 'admin' ? ' selected' : ''}>Amministratore</option></select>` : ''}<button type="button" class="btn-xs danger" data-op="blocca">Blocca</button>`;
+          else actions = `<button type="button" class="btn-xs ok" data-op="riattiva">Riattiva</button><button type="button" class="btn-xs danger" data-op="elimina">Elimina</button>`;
+        }
+        return `<div class="user-item ${u.stato === 'in attesa' || u.nuovaPassword ? 'pending' : ''}" data-email="${escapeHtml(u.email)}" style="--i:${Math.min(i, 10)}">
+          <div class="user-top"><div class="acc-avatar">${escapeHtml(initials(u.nome))}</div>
+            <div style="min-width:0;flex:1"><b>${escapeHtml(u.nome)}${u.email === me ? ' (tu)' : ''}</b><small>${escapeHtml(u.email)}</small>
+            <small>${u.stato === 'in attesa' ? 'Richiesta del ' + escapeHtml(u.registrato) : u.ultimoAccesso ? 'Ultimo accesso: ' + escapeHtml(u.ultimoAccesso) : 'Registrato: ' + escapeHtml(u.registrato)}${u.approvatoDa && u.stato === 'attivo' && u.ruolo !== 'proprietario' ? ' • approvato da ' + escapeHtml(u.approvatoDa) : ''}</small>
+            ${badge}</div></div>
+          ${actions ? `<div class="user-actions">${actions}</div>` : ''}
+        </div>`;
+      };
+      const group = (title, arr) => arr.length ? `<div class="user-group-title">${title} <span class="count-pill">${arr.length}</span></div>` + arr.map(item).join('') : '';
+      $('usersList').innerHTML = (group('Da approvare', pending) + group('Attivi', active) + group('Bloccati e rifiutati', other)) || '<div class="empty-state">Nessun account.</div>';
+    }
+
+    async function manageUser(email, op, ruolo) {
+      const u = usersCache.find(x => x.email === email); if (!u) return;
+      const confirmText = { blocca: `Bloccare ${u.nome}? Non potrà più salvare finché non lo riattivi.`, elimina: `Eliminare l’account di ${u.nome}? Potrà registrarsi di nuovo.`, rifiuta: u.nuovaPassword ? `Rifiutare la nuova password di ${u.nome}? Resterà valida quella vecchia.` : `Rifiutare la richiesta di ${u.nome}?` }[op];
+      if (op === 'ruolo') {
+        const ok = await confirmBox(ruolo === 'admin' ? 'Nomina amministratore' : 'Togli amministratore', ruolo === 'admin' ? `${u.nome} potrà eliminare ribattiture e PFS e approvare i tecnici.` : `${u.nome} tornerà tecnico: potrà salvare ma non eliminare.`, 'Conferma');
+        if (!ok) { renderUsers(); return; }
+      } else if (confirmText && !(await confirmBox('Conferma', confirmText, 'Conferma', op !== 'rifiuta'))) return;
+      try {
+        const d = await accountCall({ action: 'manageUser', token: account.token, email, op, ruolo });
+        if (d.status !== 'success') throw new Error(d.message);
+        const msg = { approva: u.nuovaPassword ? `Nuova password di ${u.nome} attivata.` : `${u.nome} approvato: ora può salvare.`, rifiuta: 'Richiesta rifiutata.', blocca: `${u.nome} bloccato.`, riattiva: `${u.nome} riattivato.`, elimina: 'Account eliminato.', ruolo: ruolo === 'admin' ? `${u.nome} ora è amministratore.` : `${u.nome} ora è tecnico.` }[op];
+        toast(msg, 'success');
+        await loadUsers();
+      } catch (e) { toast(e instanceof AuthError ? e.message : accountError(e), 'error', 4500); renderUsers(); }
+    }
+
     function initV3() {
+      loadAccount(); updateAccountUI();
+      setTimeout(refreshAccount, 1200);
+      document.addEventListener('click', e => { if (e.target.closest('[data-open-account]')) openAccount(); });
+      $('usersReload').addEventListener('click', loadUsers);
+      $('usersList').addEventListener('click', e => {
+        const b = e.target.closest('button[data-op]'); if (!b) return;
+        manageUser(b.closest('[data-email]').dataset.email, b.dataset.op);
+      });
+      $('usersList').addEventListener('change', e => {
+        const sel = e.target.closest('select[data-op="ruolo"]'); if (!sel) return;
+        manageUser(sel.closest('[data-email]').dataset.email, 'ruolo', sel.value);
+      });
       $('posExportBtn').addEventListener('click', openExport);
       // link di importazione rapida: ...fiber-tools/#importa=<link della mappa>
       const hm = /^#importa=(.+)$/.exec(location.hash || '');
@@ -4625,7 +4933,7 @@
       });
       document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goHome()));
 
-      $('adminLoginBtn').addEventListener('click', handleAdminAuth);
+      $('adminLoginBtn').addEventListener('click', () => openAccount());
       $('themeToggleBtn').addEventListener('click', toggleTheme);
 
       // Stepper +/-

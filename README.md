@@ -36,7 +36,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Importa posizioni da file**: il collega carica il file ricevuto in *PFS Qui → Importa posizioni → Scegli il file*, **anche offline**. Vince la posizione più recente: le correzioni fatte a mano più nuove sul suo telefono restano. Il file si apre anche in Google Earth / My Maps.
 - **Elenco per anello** con ricerca per PFS, anello o note (`NA_01 16e13` e `NA_01/16E13` sono lo stesso PFS); **Vicino a me** ordina i PFS per distanza.
 - **Mappa** con un colore per ogni anello; **Naviga** apre Google Maps con il percorso fino al PFS.
-- **Salvare** richiede un account approvato, **eliminare** un amministratore (verificato dallo script).
+- **Vedere e salvare** richiede un account approvato, **eliminare** un amministratore (verificato dallo script).
 
 ### Sempre attivi
 - **Coda offline**: se manca la rete, salvataggi ed eliminazioni restano in coda (barra arancione in alto) e partono da soli quando torna la connessione.
@@ -50,8 +50,10 @@ Creato e realizzato da **Marigliano Massimiliano**.
 
 ## Account e permessi
 
-- **Senza account** si usa tutto liberamente: strumenti di calcolo, barcode, consultazione di ribattiture e PFS, mappa e navigazione.
-- **Per salvare** ribattiture e PFS nell'archivio condiviso serve un account: *Accedi → Registrati* con nome, email e password. La richiesta resta **in attesa** finché un amministratore non la approva.
+- **Senza account** si usano liberamente gli strumenti: colori, PFS/PTE, Calculator, FiberCop, modulo ribattitura (copia/condividi), barcode, budget ottico.
+- **I dati sono riservati**: archivio ribattiture, storico e posizioni PFS (elenco, mappa, navigazione, importa/condividi) si vedono **solo con un account approvato**. Un avviso in home e nelle schermate lo spiega. Uscendo dall'account i dati vengono tolti dal telefono.
+- **Registrazione**: *Accedi → Registrati* con nome, **società per cui lavori**, email e password. La richiesta resta **in attesa** finché un amministratore non la approva.
+- **Società**: resta salvata nell'account (colonna *SOCIETA* del foglio *Utenti*) e compare in *Gestione utenti*, dove gli amministratori possono correggerla. Agli account creati prima viene chiesta una volta sola.
 - **Ruoli**: *Proprietario* (il primo account registrato) → gestisce tutto e nomina gli amministratori; *Amministratore* → elimina ribattiture e PFS, approva e blocca i tecnici; *Tecnico* → salva.
 - **Gestione utenti**: pulsante account in alto → *Gestione utenti* (approva, rifiuta, blocca, riattiva, elimina, nomina amministratore).
 - **Password dimenticata**: ci si registra di nuovo con la stessa email; la nuova password si attiva dopo l'approvazione (fino ad allora vale quella vecchia).
@@ -59,7 +61,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 
 ## Script Google Sheets
 
-Lo script ([`apps-script/Code.gs`](apps-script/Code.gs), versione 4) gestisce ribattiture, posizioni PFS, foto, storico e account.
+Lo script ([`apps-script/Code.gs`](apps-script/Code.gs), versione 5) gestisce ribattiture, posizioni PFS, foto, storico e account.
 
 1. Apri il foglio Google collegato all'app → **Estensioni → Apps Script**.
 2. Sostituisci il contenuto di `Code.gs` con quello del repository e salva.
@@ -76,13 +78,13 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v4 (archivio + account)
+apps-script/Code.gs     script Google Sheets v5 (archivio riservato + account)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.
 
 ## Note sulla sicurezza
-- L'archivio è **leggibile da chiunque** abbia l'app (è una scelta: ribattiture e PFS consultabili da tutti). Scrivere ed eliminare richiede un account approvato, verificato dallo script.
+- L'archivio (ribattiture, storico, posizioni PFS) è **leggibile solo con un account approvato**: lo script lo restituisce solo a chi invia un accesso valido e attivo. Scrivere richiede un account approvato, eliminare un amministratore.
 - Facoltativo: con la proprietà script `TEAM_KEY` anche la lettura richiede un codice squadra.
 - Le foto su Drive sono visibili a chi ha il link della singola foto.
 

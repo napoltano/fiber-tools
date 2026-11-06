@@ -1,19 +1,22 @@
 /**
- * Fiber Tools – Script Google Sheets v4
+ * Fiber Tools – Script Google Sheets v5
  * -------------------------------------
  * Archivio condiviso della squadra: ribattiture ottici, posizioni PFS, foto, storico e ACCOUNT.
  *
- * Lettura libera per tutti. Per salvare serve un account approvato; per eliminare un amministratore.
- *  POST  { action: "register", email, nome, password }      -> richiesta di accesso (il 1° account è il proprietario)
+ * Vedere i dati (ribattiture, posizioni PFS, storico) richiede un account approvato.
+ * Per salvare serve un account approvato; per eliminare un amministratore.
+ *  POST  { action: "register", email, nome, societa, password } -> richiesta di accesso (il 1° account è il proprietario)
+ *        { action: "data", token }                          -> tutto l'archivio (ribattiture + posizioni)
+ *        { action: "history", token, pfs, splitter }        -> storico di uno splitter / PFS
+ *        { action: "setProfile", token, societa }           -> società per cui lavora l'utente
  *        { action: "login", email, password }               -> { token, user }
  *        { action: "me", token }                            -> dati aggiornati dell'account (+ richieste in attesa per gli admin)
  *        { action: "changePassword", token, old, password }
  *        { action: "users", token }                         -> elenco utenti (admin)
- *        { action: "manageUser", token, email, op, ruolo? } -> approva | rifiuta | blocca | riattiva | elimina | ruolo (admin)
+ *        { action: "manageUser", token, email, op, ruolo?, societa? } -> approva | rifiuta | blocca | riattiva | elimina | ruolo | societa (admin)
  *  Tutte le azioni di scrittura qui sotto richiedono anche "token".
  *
- *  GET   ?key=CODICE                         -> tutto l'archivio (ribattiture + posizioni)
- *  GET   ?key=CODICE&action=history&pfs=..&splitter=..  -> storico di uno splitter / PFS
+ *  GET   -> solo la versione dello script: i dati si leggono con POST "data" (serve il token).
  *  POST  { action: "save",      pfs, splitter, timestamp, tecnico, ottici[], photo?, fotoId? }
  *        { action: "delete",    pfs, splitter, adminKey }
  *        { action: "savePos",   pfs, anello, lat, lng, note, tecnico, timestamp, photo?, fotoId? }
@@ -24,7 +27,7 @@
  *   Ribattiture   : PFS | SPLITTER | DATA | TECNICO | O1 PERMUTA | O1 ID | ... | O16 ID | FOTO
  *   PFS_Posizioni : ANELLO | PFS | LAT | LNG | NOTE | TECNICO | DATA | FOTO | MAPPA
  *   Storico       : DATA | AZIONE | PFS | SPLITTER | TECNICO | DETTAGLIO
- *   Utenti        : EMAIL | NOME | STATO | RUOLO | ... (le password sono salvate solo come impronta con sale)
+ *   Utenti        : EMAIL | NOME | STATO | RUOLO | ... | SOCIETA (le password sono salvate solo come impronta con sale)
  *                   STATO: in attesa | attivo | bloccato | rifiutato — RUOLO: tecnico | admin | proprietario
  *                   Il proprietario può sempre correggere STATO e RUOLO anche a mano in questo foglio.
  *
@@ -34,7 +37,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 4;
+const SCRIPT_VERSION = 5;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -90,11 +93,21 @@ function teamOk_(key) {
 
 /* ------------------------------------------------------------------ account */
 const SH_USERS = 'Utenti';
-const U = { EMAIL: 0, NOME: 1, STATO: 2, RUOLO: 3, HASH: 4, SALT: 5, NEW_HASH: 6, NEW_SALT: 7, REG: 8, LAST: 9, BY: 10 };
-const USER_COLS = 11;
+const U = { EMAIL: 0, NOME: 1, STATO: 2, RUOLO: 3, HASH: 4, SALT: 5, NEW_HASH: 6, NEW_SALT: 7, REG: 8, LAST: 9, BY: 10, SOC: 11 };
+const USER_COLS = 12;
 const ROLE_LEVEL = { tecnico: 1, admin: 2, proprietario: 3 };
 const TOKEN_DAYS = 180;
-const usersSheet_ = () => sheet_(SH_USERS, ['EMAIL', 'NOME', 'STATO', 'RUOLO', 'HASH', 'SALT', 'NUOVA_PASSWORD_HASH', 'NUOVA_PASSWORD_SALT', 'REGISTRATO', 'ULTIMO_ACCESSO', 'APPROVATO_DA']);
+const USER_HEADER = ['EMAIL', 'NOME', 'STATO', 'RUOLO', 'HASH', 'SALT', 'NUOVA_PASSWORD_HASH', 'NUOVA_PASSWORD_SALT', 'REGISTRATO', 'ULTIMO_ACCESSO', 'APPROVATO_DA', 'SOCIETA'];
+function usersSheet_() {
+  const sh = sheet_(SH_USERS, USER_HEADER);
+  // fogli creati con la v4: aggiunge l'intestazione della colonna SOCIETA
+  if (String(sh.getRange(1, U.SOC + 1).getValue()) !== 'SOCIETA') {
+    sh.getRange(1, U.SOC + 1).setValue('SOCIETA').setFontWeight('bold').setBackground('#e0f2fe');
+    sh.getRange(1, U.SOC + 1, sh.getMaxRows(), 1).setNumberFormat('@');
+  }
+  return sh;
+}
+const normSoc_ = v => String(v == null ? '' : v).trim().replace(/\s+/g, ' ').toUpperCase();
 const normEmail_ = v => String(v == null ? '' : v).trim().toLowerCase();
 const err_ = (code, message) => ({ status: 'error', code: code, message: message });
 
@@ -131,7 +144,7 @@ const findUser_ = (users, email) => users.rows.find(u => normEmail_(u.row[U.EMAI
 const writeUser_ = (users, u) => users.sh.getRange(u.rowNum, 1, 1, USER_COLS).setValues([u.row]);
 const stato_ = row => String(row[U.STATO] || '').trim().toLowerCase();
 const ruolo_ = row => { const r = String(row[U.RUOLO] || '').trim().toLowerCase(); return ROLE_LEVEL[r] ? r : 'tecnico'; };
-const publicUser_ = row => ({ email: normEmail_(row[U.EMAIL]), nome: String(row[U.NOME] || ''), stato: stato_(row), ruolo: ruolo_(row) });
+const publicUser_ = row => ({ email: normEmail_(row[U.EMAIL]), nome: String(row[U.NOME] || ''), societa: String(row[U.SOC] || ''), stato: stato_(row), ruolo: ruolo_(row) });
 
 function makeToken_(row) {
   const exp = Date.now() + TOKEN_DAYS * 86400000;
@@ -163,15 +176,17 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function register_(b) {
   const email = normEmail_(b.email), nome = String(b.nome || '').trim().replace(/\s+/g, ' ').toUpperCase(), pwd = String(b.password || '');
+  const societa = normSoc_(b.societa);
   if (!EMAIL_RE.test(email)) return err_('input', 'Email non valida');
   if (nome.length < 2 || nome.length > 60) return err_('input', 'Inserisci nome e cognome');
+  if (societa.length < 2 || societa.length > 60) return err_('input', 'Indica la società per cui lavori');
   if (pwd.length < 8) return err_('input', 'La password deve avere almeno 8 caratteri');
   const users = readUsers_();
   const salt = newSalt_(), hash = hashPwd_(pwd, salt), now = nowIt_();
   const ex = findUser_(users, email);
   if (!users.rows.length) {
     // il primo account registrato è il proprietario dell'app
-    const row = [email, nome, 'attivo', 'proprietario', hash, salt, '', '', now, now, 'PRIMO ACCOUNT'];
+    const row = [email, nome, 'attivo', 'proprietario', hash, salt, '', '', now, now, 'PRIMO ACCOUNT', societa];
     users.sh.appendRow(row);
     log_('Account creato', 'ACCOUNT', email, nome, 'Proprietario dell’app');
     return { status: 'success', stato: 'attivo', token: makeToken_(row), user: publicUser_(row) };
@@ -181,17 +196,19 @@ function register_(b) {
     if (st === 'bloccato') return err_('blocked', 'Questo account è bloccato: contatta il responsabile');
     if (st === 'attivo') {
       // password dimenticata: la nuova password si attiva dopo l'approvazione, quella vecchia resta valida
-      ex.row[U.NEW_HASH] = hash; ex.row[U.NEW_SALT] = salt; writeUser_(users, ex);
+      ex.row[U.NEW_HASH] = hash; ex.row[U.NEW_SALT] = salt;
+      if (!ex.row[U.SOC]) ex.row[U.SOC] = societa;
+      writeUser_(users, ex);
       log_('Richiesta nuova password', 'ACCOUNT', email, ex.row[U.NOME], '');
       return { status: 'success', stato: 'password in attesa' };
     }
-    ex.row[U.NOME] = nome; ex.row[U.STATO] = 'in attesa'; ex.row[U.HASH] = hash; ex.row[U.SALT] = salt; ex.row[U.REG] = now;
+    ex.row[U.NOME] = nome; ex.row[U.SOC] = societa; ex.row[U.STATO] = 'in attesa'; ex.row[U.HASH] = hash; ex.row[U.SALT] = salt; ex.row[U.REG] = now;
     writeUser_(users, ex);
     log_('Richiesta di accesso', 'ACCOUNT', email, nome, 'Ripresentata');
     return { status: 'success', stato: 'in attesa' };
   }
-  users.sh.appendRow([email, nome, 'in attesa', 'tecnico', hash, salt, '', '', now, '', '']);
-  log_('Richiesta di accesso', 'ACCOUNT', email, nome, '');
+  users.sh.appendRow([email, nome, 'in attesa', 'tecnico', hash, salt, '', '', now, '', '', societa]);
+  log_('Richiesta di accesso', 'ACCOUNT', email, nome, societa);
   return { status: 'success', stato: 'in attesa' };
 }
 
@@ -237,6 +254,16 @@ function changePassword_(b) {
   return { status: 'success', token: makeToken_(u.row), user: publicUser_(u.row) };
 }
 
+function setProfile_(b) {
+  const a = authUser_(b.token, 1);
+  if (a.error) return a.error;
+  const societa = normSoc_(b.societa);
+  if (societa.length < 2 || societa.length > 60) return err_('input', 'Indica la società per cui lavori');
+  a.user.row[U.SOC] = societa; writeUser_(a.users, a.user);
+  log_('Società indicata', 'ACCOUNT', normEmail_(a.user.row[U.EMAIL]), a.user.row[U.NOME], societa);
+  return { status: 'success', user: publicUser_(a.user.row) };
+}
+
 function listUsers_(b) {
   const a = authUser_(b.token, 2);
   if (a.error) return a.error;
@@ -275,6 +302,10 @@ function manageUser_(b) {
     if (r !== 'tecnico' && r !== 'admin') return err_('input', 'Ruolo non valido');
     if (myRole !== 'proprietario') return err_('forbidden', 'Solo il proprietario può nominare gli amministratori');
     target.row[U.RUOLO] = r; detail = r === 'admin' ? 'Nominato amministratore' : 'Ruolo: tecnico';
+  } else if (op === 'societa') {
+    const soc = normSoc_(b.societa);
+    if (soc.length < 2 || soc.length > 60) return err_('input', 'Società non valida');
+    target.row[U.SOC] = soc; detail = 'Società: ' + soc;
   } else if (op === 'elimina') {
     a.users.sh.deleteRow(target.rowNum);
     log_('Account eliminato', 'ACCOUNT', tEmail, who, '');
@@ -349,8 +380,8 @@ function history_(pfs, splitter) {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (!teamOk_(p.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
-  if (p.action === 'history') return json_({ status: 'success', version: SCRIPT_VERSION, history: history_(norm_(p.pfs), norm_(p.splitter)) });
-  return json_({ status: 'success', version: SCRIPT_VERSION, data: readRib_(), positions: readPos_() });
+  // i dati non sono più leggibili senza account: si chiedono con POST { action: "data", token }
+  return json_({ status: 'error', code: 'login', version: SCRIPT_VERSION, message: 'Accedi con un account approvato per vedere PFS, posizioni e ribattiture' });
 }
 
 /* ------------------------------------------------------------------ scrittura */
@@ -475,18 +506,32 @@ function deletePos_(b) {
   return { status: 'success', deleted: rowNum > 0 };
 }
 
+/** Letture: servono un account approvato (qualsiasi ruolo). Non bloccano gli altri utenti. */
+function readAction_(b) {
+  const a = authUser_(b.token, 1);
+  if (a.error) return a.error;
+  if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
+  return { status: 'success', version: SCRIPT_VERSION, data: readRib_(), positions: readPos_() };
+}
+
 function doPost(e) {
+  let b;
+  try { b = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
+  catch (err) { return json_({ status: 'error', message: 'Richiesta non valida' }); }
+  if (!teamOk_(b.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
+  if (b.action === 'data' || b.action === 'history') {
+    try { return json_(readAction_(b)); } catch (err) { return json_({ status: 'error', message: String(err) }); }
+  }
   const lock = LockService.getScriptLock();
   lock.waitLock(25000);
   try {
-    const b = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (!teamOk_(b.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
     const action = b.action || 'save';
     // account
     if (action === 'register') return json_(register_(b));
     if (action === 'login') return json_(login_(b));
     if (action === 'me') return json_(me_(b));
     if (action === 'changePassword') return json_(changePassword_(b));
+    if (action === 'setProfile') return json_(setProfile_(b));
     if (action === 'users') return json_(listUsers_(b));
     if (action === 'manageUser') return json_(manageUser_(b));
     // archivio: salvare richiede un account approvato, eliminare un amministratore

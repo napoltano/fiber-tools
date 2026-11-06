@@ -1020,6 +1020,23 @@
       background: var(--primary-soft); color: var(--primary-ink); border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border)); margin-bottom: 12px; }
     .lock-note svg { width: 18px; height: 18px; flex-shrink: 0; }
     .lock-note button { margin-left: auto; flex-shrink: 0; }
+    body.data-locked [data-need-login] { display: none !important; }
+    body:not(.data-locked) [data-locked-only] { display: none !important; }
+    .data-lock { text-align: center; padding: 26px 20px 22px; border-radius: 20px; margin-bottom: 16px;
+      background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 16%, var(--card)), var(--card));
+      border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); animation: fadeUp .45s ease both; }
+    .data-lock .lock-ico { width: 58px; height: 58px; margin: 0 auto 12px; border-radius: 18px; display: grid; place-items: center;
+      background: color-mix(in srgb, var(--primary) 22%, transparent); color: var(--primary); }
+    .data-lock .lock-ico svg { width: 28px; height: 28px; }
+    .data-lock h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .data-lock p { font-size: 0.84rem; color: var(--muted); font-weight: 600; line-height: 1.45; margin-bottom: 14px; }
+    .data-lock .btn-action { margin: 0 auto; max-width: 320px; }
+    .home-lock { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; margin: 0 0 14px;
+      background: color-mix(in srgb, var(--warning, #f59e0b) 14%, var(--card)); border: 1px solid color-mix(in srgb, var(--warning, #f59e0b) 45%, var(--border));
+      font-size: 0.8rem; font-weight: 700; animation: fadeUp .45s ease both; }
+    .home-lock svg { width: 22px; height: 22px; flex-shrink: 0; color: var(--warning, #f59e0b); }
+    .home-lock button { margin-left: auto; flex-shrink: 0; }
+    .acc-soc { display: inline-flex; gap: 4px; align-items: center; font-size: 0.72rem; font-weight: 800; color: var(--primary); margin-top: 2px; }
     .more-note { font-size: 0.74rem; color: var(--muted); font-weight: 700; text-align: center; padding: 8px; }
 
     /* ---------- TOAST ---------- */
@@ -1179,6 +1196,7 @@
           <div class="hero-colors" id="heroColors" aria-hidden="true"></div>
         </div>
       </div>
+      <div class="home-lock" data-locked-only role="note"><svg><use href="#i-lock"/></svg><span>I dati di <b>PFS, posizioni e ribattiture</b> sono riservati: per vederli accedi con un account approvato. Gli altri strumenti sono liberi.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
 
       <div class="install-card" id="installCard" hidden>
         <img src="icons/icon-192.png" alt="">
@@ -1275,7 +1293,12 @@
     <section id="ribattituraScreen" class="screen">
       <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
 
-      <div class="lock-note" data-lock-note hidden><svg><use href="#i-lock"/></svg><span>Puoi consultare tutto. Per salvare ribattiture serve un account approvato.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
+      <div class="data-lock" data-locked-only>
+        <div class="lock-ico"><svg><use href="#i-lock"/></svg></div>
+        <h3>Dati riservati</h3>
+        <p>L’archivio delle ribattiture e lo storico sono visibili solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
+        <button type="button" class="btn-action" data-open-account><svg><use href="#i-user"/></svg> Accedi o registrati</button>
+      </div>
       <div class="controls-card">
         <div class="field-group">
           <label class="field-label" for="ribPfsInput">Nome / Codice PFS (es. NA_05/08w22)</label>
@@ -1313,7 +1336,7 @@
       </div>
 
       <button class="btn-action" type="button" id="ribSaveBtn"><svg><use href="#i-save"/></svg> Salva in Cartella PFS &amp; Google Sheets</button>
-      <button class="btn-action green" type="button" id="ribSyncBtn"><svg id="ribSyncIcon"><use href="#i-sync"/></svg> Aggiorna da Google Sheets</button>
+      <button class="btn-action green" type="button" id="ribSyncBtn" data-need-login><svg id="ribSyncIcon"><use href="#i-sync"/></svg> Aggiorna da Google Sheets</button>
       <div class="grid-2">
         <button class="btn-secondary" type="button" id="ribCopyBtn"><svg><use href="#i-copy"/></svg> Copia testo</button>
         <button class="btn-secondary" type="button" id="ribShareBtn"><svg><use href="#i-share"/></svg> Condividi</button>
@@ -1321,7 +1344,7 @@
         <button class="btn-secondary" type="button" id="ribClearBtn"><svg><use href="#i-eraser"/></svg> Svuota modulo</button>
       </div>
 
-      <div class="archive-card">
+      <div class="archive-card" data-need-login>
         <div class="section-title">
           <span>Archivio cartelle PFS</span>
           <span class="count-pill" id="archiveCountBadge">0 Cartelle</span>
@@ -1710,8 +1733,13 @@
     <section id="pfsPosScreen" class="screen">
       <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
 
-      <div class="lock-note" data-lock-note hidden><svg><use href="#i-lock"/></svg><span>Puoi cercare e navigare. Per salvare PFS serve un account approvato.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
-      <details class="adv-card" id="posForm">
+      <div class="data-lock" data-locked-only>
+        <div class="lock-ico"><svg><use href="#i-lock"/></svg></div>
+        <h3>Dati riservati</h3>
+        <p>Le posizioni dei PFS (elenco, mappa e navigazione) sono visibili solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
+        <button type="button" class="btn-action" data-open-account><svg><use href="#i-user"/></svg> Accedi o registrati</button>
+      </div>
+      <details class="adv-card" id="posForm" data-need-login>
         <summary><svg class="rot"><use href="#i-plus"/></svg> <span id="posFormTitle">Aggiungi PFS</span> <svg class="chev-r"><use href="#i-down"/></svg></summary>
         <div class="adv-body">
           <div class="row-fields">
@@ -1750,7 +1778,7 @@
         </div>
       </details>
 
-      <div class="controls-card">
+      <div class="controls-card" data-need-login>
         <div class="section-title"><span>Archivio PFS</span><span class="count-pill" id="posCount">0 PFS</span></div>
         <div class="pos-tools">
           <input type="search" id="posSearch" class="custom-input" data-upper autocapitalize="characters" placeholder="Cerca PFS, anello o note..." autocomplete="off">
@@ -1768,12 +1796,12 @@
         </div>
       </div>
 
-      <div class="map-wrap" id="posMapWrap" hidden>
+      <div class="map-wrap" id="posMapWrap" data-need-login hidden>
         <div id="posMap"></div>
         <div class="map-msg" id="posMapMsg"></div>
         <button type="button" class="map-locate" id="posLocateMap" aria-label="La mia posizione"><svg><use href="#i-target"/></svg></button>
       </div>
-      <div id="posList"></div>
+      <div id="posList" data-need-login></div>
     </section>
 
   </main>
@@ -3521,12 +3549,15 @@
 
     async function syncFromGoogleSheets(silent = false) {
       if (syncing) return;
+      if (!canRead()) { purgeData(); return; }
       setSyncing(true);
       $('archiveCountBadge').innerHTML = `<svg class="spin"><use href="#i-sync"/></svg> Sincronizzazione…`;
       if (!Object.keys(getRibattitureData()).length) $('pfsArchiveContainer').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
       try {
         await processQueue();
-        const json = await sheetsGet();
+        const r = await sheetsPost({ action: 'data' });
+        if (!r.confirmed) throw new NetError('Risposta non leggibile');
+        const json = r.data;
         if (json && json.status === 'success' && json.data && typeof json.data === 'object') {
           setScriptVersion(Number(json.version) || 1);
           mergeRemoteRib(json.data);
@@ -3537,7 +3568,7 @@
         }
       } catch (err) {
         console.error('Errore sincronizzazione:', err);
-        if (err instanceof AuthError) toast('Codice squadra mancante o errato: impostalo in ⚙️ Impostazioni.', 'error', 5000);
+        if (err instanceof AuthError) handleReadAuthError(err);
         else toast(silent ? 'Offline: mostro l’archivio locale.' : 'Sincronizzazione fallita. Archivio locale mostrato.', silent ? 'info' : 'error');
       } finally {
         setSyncing(false);
@@ -3665,8 +3696,9 @@
     async function showHistory(pfs, splitter, kindLabel) {
       if (scriptVersion < 3) { toast('Lo storico è disponibile con lo script Google v3 (vedi README).', 'info', 4000); return; }
       let json;
-      try { json = await sheetsGet({ action: 'history', pfs, splitter: splitter || '' }); }
-      catch (e) { toast(e instanceof AuthError ? 'Codice squadra errato.' : 'Storico non disponibile senza rete.', 'error'); return; }
+      if (!requireReader('Lo storico è visibile solo agli account approvati.')) return;
+      try { const r = await sheetsPost({ action: 'history', pfs, splitter: splitter || '' }); json = r.data; }
+      catch (e) { if (e instanceof AuthError) handleReadAuthError(e); else toast('Storico non disponibile senza rete.', 'error'); return; }
       const rows = Array.isArray(json?.history) ? json.history : [];
       openModal({
         title: `Storico ${kindLabel || ''}`.trim(),
@@ -3697,6 +3729,7 @@
     }
 
     async function restoreBackup(file) {
+      if (!requireReader('Per ripristinare un backup con PFS e ribattiture serve un account approvato.')) return;
       if (!file) return;
       let b;
       try { b = JSON.parse(await file.text()); } catch (e) { toast('File non valido.', 'error'); return; }
@@ -4421,6 +4454,7 @@
 
     let importOverwrite = false;
     async function openImport(prefill) {
+      if (!requireReader('Per importare le posizioni dei PFS serve un account approvato.')) return;
       const saved = prefill || lsGet(MYMAPS_KEY, '');
       let wantsFile = false;
       const ok = await openModal({
@@ -4447,6 +4481,7 @@
     }
 
     async function importFromFile(file) {
+      if (!requireReader('Per importare le posizioni dei PFS serve un account approvato.')) return;
       if (!file) return;
       try {
         const buf = await file.arrayBuffer();
@@ -4524,6 +4559,7 @@
     }
 
     async function openExport() {
+      if (!requireReader('Le posizioni dei PFS sono visibili solo agli account approvati.')) return;
       const all = Object.values(getPositions());
       if (!all.length) { toast('Non ci sono ancora PFS da condividere.', 'info'); return; }
       const anelli = [...new Set(all.map(i => i.anello))].sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
@@ -4589,6 +4625,30 @@
     const ROLE_LABEL = { tecnico: 'Tecnico', admin: 'Amministratore', proprietario: 'Proprietario' };
     const canWrite = () => !!(account && account.token && account.stato === 'attivo');
     const isAdminRole = () => canWrite() && (account.ruolo === 'admin' || account.ruolo === 'proprietario');
+    // vedere PFS, posizioni e ribattiture richiede un account approvato (stessa regola dello script)
+    const canRead = canWrite;
+    const SOC_KEY = 'fiber_tools_societa';
+    const SOC_SUGGEST = ['DO.CO.TEL', 'DELTA IMPIANTI', 'SIRTI', 'OPEN FIBER', 'FIBERCOP', 'TIM', 'INFRATEL ITALIA', 'CIET', 'SITE', 'VALTELLINA', 'ICT', 'TELEBIT', 'SIELTE', 'ALTRO / LIBERO PROFESSIONISTA'];
+
+    /** Toglie dal telefono i dati riservati (chi non ha un account attivo non deve vederli). La coda di invio resta. */
+    function purgeData() {
+      let had = false;
+      [STORAGE_KEY, POS_KEY].forEach(k => { try { if (localStorage.getItem(k)) had = true; localStorage.removeItem(k); } catch (e) {} });
+      if (had) {
+        try { loadRibattitureArchive(); } catch (e) {}
+        try { if ($('pfsPosScreen').classList.contains('active')) renderPositions(); } catch (e) {}
+      }
+    }
+    function requireReader(why) {
+      if (canRead()) return true;
+      openAccount(why);
+      return false;
+    }
+    function handleReadAuthError(e) {
+      if (e.code === 'login') { setAccount(null); toast('Sessione scaduta: accedi di nuovo per vedere i dati.', 'info', 4500); }
+      else if (e.code === 'pending' || e.code === 'blocked') { setAccount({ ...account, stato: e.code === 'pending' ? 'in attesa' : 'bloccato' }); toast(e.message, 'error', 5000); }
+      else toast(e.code === 'auth' ? 'Codice squadra mancante o errato: impostalo in ⚙️ Impostazioni.' : e.message, 'error', 5000);
+    }
     const initials = n => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
 
     function loadAccount() {
@@ -4599,6 +4659,7 @@
       account = a && a.token ? a : null;
       if (account) lsSet(ACCOUNT_KEY, JSON.stringify(account)); else { try { localStorage.removeItem(ACCOUNT_KEY); } catch (e) {} accountPending = 0; }
       isAdminLoggedIn = isAdminRole();
+      if (!canRead()) purgeData();
       updateAccountUI();
     }
 
@@ -4613,7 +4674,7 @@
         if (!dot) { dot = document.createElement('span'); dot.className = 'acc-dot'; btn.appendChild(dot); }
         dot.textContent = accountPending > 9 ? '9+' : String(accountPending);
       } else if (dot) dot.remove();
-      document.querySelectorAll('[data-lock-note]').forEach(n => { n.hidden = canWrite(); });
+      document.body.classList.toggle('data-locked', !canRead());
       updateQueueUI();
     }
 
@@ -4621,6 +4682,7 @@
       const r = account.ruolo || 'tecnico';
       return `<div class="acc-card"><div class="acc-avatar">${escapeHtml(initials(account.nome))}</div>
         <div style="min-width:0"><b>${escapeHtml(account.nome)}</b><small>${escapeHtml(account.email)}</small>
+        ${account.societa ? `<span class="acc-soc">🏢 ${escapeHtml(account.societa)}</span><br>` : ''}
         <span class="role-badge ${r}">${ROLE_LABEL[r] || r}</span></div></div>`;
     }
 
@@ -4649,6 +4711,7 @@
         if (d.status === 'success' && d.user) {
           accountPending = Number(d.pendingCount || 0);
           setAccount({ ...account, ...d.user });
+          if (canWrite() && !account.societa) askSocieta();
         }
       } catch (e) {
         if (e instanceof AuthError) {
@@ -4669,13 +4732,15 @@
           <p class="small" style="color:var(--muted)">Password dimenticata? Registrati di nuovo con la stessa email: la nuova password si attiva dopo l’approvazione.</p>` : `
           <div class="field-group"><label class="field-label" for="accNome">Nome e cognome</label>
             <input id="accNome" class="custom-input" data-upper autocapitalize="characters" autocomplete="name" placeholder="es. MARIO ROSSI"></div>
+          <div class="field-group"><label class="field-label" for="accSoc">Società per cui lavori</label>
+            ${socInputHtml('accSoc')}</div>
           <div class="field-group"><label class="field-label" for="accEmail">Email</label>
             <input id="accEmail" type="email" class="custom-input" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="nome@email.it"></div>
           <div class="field-group"><label class="field-label" for="accPass">Password (almeno 8 caratteri)</label>
             <input id="accPass" type="password" class="custom-input" autocomplete="new-password"></div>
           <div class="field-group"><label class="field-label" for="accPass2">Ripeti password</label>
             <input id="accPass2" type="password" class="custom-input" autocomplete="new-password"></div>
-          <p class="small" style="color:var(--muted)">La richiesta deve essere approvata da un amministratore prima di poter salvare.</p>`;
+          <p class="small" style="color:var(--muted)">La richiesta deve essere approvata da un amministratore: solo dopo potrai vedere e salvare PFS, posizioni e ribattiture.</p>`;
       const render = (msg, cls) => {
         $('accTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
         $('accFields').innerHTML = fieldsHtml();
@@ -4695,13 +4760,17 @@
             done = true; closeModal(true);
             setAccount({ token: d.token, ...d.user });
             toast(`Benvenuto, ${d.user.nome}!`);
-            refreshAccount(); processQueue(true); afterLogin();
+            processQueue(true); afterLogin();
+            if (!d.user.societa) setTimeout(askSocieta, 400); else refreshAccount();
           } else {
             const nome = ($('accNome').value || '').trim();
             if (nome.length < 2) { showMsg('Inserisci nome e cognome.', 'err'); return; }
+            const societa = ($('accSoc').value || '').trim().toUpperCase();
+            if (societa.length < 2) { showMsg('Indica la società per cui lavori.', 'err'); return; }
+            lsSet(SOC_KEY, societa);
             if (pass.length < 8) { showMsg('La password deve avere almeno 8 caratteri.', 'err'); return; }
             if (pass !== $('accPass2').value) { showMsg('Le due password non coincidono.', 'err'); return; }
-            const d = await accountCall({ action: 'register', email, nome, password: pass });
+            const d = await accountCall({ action: 'register', email, nome, societa, password: pass });
             if (d.status !== 'success') { showMsg(d.message || 'Registrazione non riuscita.', 'err'); return; }
             if (d.token) {
               done = true; closeModal(true);
@@ -4745,21 +4814,54 @@
       return done;
     }
 
+    function socInputHtml(id, value) {
+      const v = value != null ? value : lsGet(SOC_KEY, '');
+      return `<input id="${id}" class="custom-input" data-upper autocapitalize="characters" autocomplete="organization" list="${id}List" placeholder="es. DO.CO.TEL" value="${escapeHtml(v || '')}">
+        <datalist id="${id}List">${SOC_SUGGEST.map(x => `<option value="${escapeHtml(x)}">`).join('')}</datalist>`;
+    }
+
+    /** Chiede la società agli account che non l'hanno ancora indicata (creati prima di questa versione). */
+    let askingSoc = false;
+    async function askSocieta(force) {
+      if (askingSoc || !canWrite() || (account.societa && !force)) return;
+      if (!$('modal').hidden) { setTimeout(() => askSocieta(force), 1500); return; }
+      askingSoc = true;
+      try {
+        const ok = await openModal({
+          title: force ? 'La tua società' : 'Per quale società lavori?',
+          bodyHtml: `<p class="small" style="margin-bottom:10px">${force ? 'Aggiorna la società per cui lavori.' : 'Da questa versione ogni account indica la società per cui lavora. Lo chiediamo una volta sola: resta salvato nel tuo account.'}</p>
+            <div class="field-group"><label class="field-label" for="socAsk">Società</label>${socInputHtml('socAsk', account.societa || lsGet(SOC_KEY, ''))}</div>`,
+          okText: 'Salva', cancelText: force ? 'Annulla' : 'Più tardi',
+          onOpen: () => setTimeout(() => $('socAsk')?.focus(), 80)
+        });
+        if (!ok) return;
+        const societa = ($('socAsk').value || '').trim().toUpperCase();
+        if (societa.length < 2) { toast('Indica la società per cui lavori.', 'error'); return; }
+        const d = await accountCall({ action: 'setProfile', token: account.token, societa });
+        if (d.status !== 'success') throw new Error(d.message);
+        lsSet(SOC_KEY, societa);
+        setAccount({ ...account, ...d.user });
+        toast('Società salvata nel tuo account.');
+      } catch (e) { toast(e instanceof AuthError ? e.message : accountError(e), 'error'); }
+      finally { askingSoc = false; }
+    }
+
     function afterLogin() {
       if ($('ribattituraScreen').classList.contains('active')) syncFromGoogleSheets(true);
-      if ($('pfsPosScreen').classList.contains('active')) renderPositions();
+      if ($('pfsPosScreen').classList.contains('active')) { renderPositions(); syncFromGoogleSheets(true); }
     }
 
     async function openAccountMenu() {
       let choice = null;
       const admin = isAdminRole();
       $('modalOk').hidden = true;
-      const statusLine = account.stato === 'attivo' ? '' : `<div class="form-msg info" style="margin-top:10px">${account.stato === 'in attesa' ? 'In attesa di approvazione: puoi consultare, ma non ancora salvare.' : 'Account non attivo: contatta il responsabile.'}</div>`;
+      const statusLine = account.stato === 'attivo' ? '' : `<div class="form-msg info" style="margin-top:10px">${account.stato === 'in attesa' ? 'In attesa di approvazione: dopo potrai vedere e salvare PFS, posizioni e ribattiture.' : 'Account non attivo: contatta il responsabile.'}</div>`;
       const done = openModal({
         title: 'Il mio account',
         bodyHtml: `${accountCardHtml()}${statusLine}
           <div class="opt-list" style="margin-top:12px">
             ${admin ? `<button type="button" class="btn-secondary" data-choice="users"><svg><use href="#i-user"/></svg> Gestione utenti${accountPending ? ` <span class="count-pill" style="margin-left:auto">${accountPending} da approvare</span>` : ''}</button>` : ''}
+            ${account.stato === 'attivo' ? `<button type="button" class="btn-secondary" data-choice="soc"><svg><use href="#i-user"/></svg> ${account.societa ? 'Cambia società' : 'Indica la tua società'}</button>` : ''}
             <button type="button" class="btn-secondary" data-choice="pwd"><svg><use href="#i-lock"/></svg> Cambia password</button>
             <button type="button" class="btn-secondary" data-choice="logout"><svg><use href="#i-back"/></svg> Esci</button>
           </div>`,
@@ -4770,8 +4872,9 @@
       $('modalOk').hidden = false;
       if (choice === 'users') openScreen('usersScreen', 'Gestione utenti', 'Approvazioni e ruoli');
       else if (choice === 'pwd') changePassword();
+      else if (choice === 'soc') askSocieta(true);
       else if (choice === 'logout') {
-        const ok = await confirmBox('Esci', 'Vuoi uscire dal tuo account? Le modifiche non ancora inviate restano sul telefono e partiranno al prossimo accesso.', 'Esci');
+        const ok = await confirmBox('Esci', 'Vuoi uscire dal tuo account? PFS, posizioni e ribattiture spariranno da questo telefono finché non accedi di nuovo. Le modifiche non ancora inviate restano e partiranno al prossimo accesso.', 'Esci');
         if (ok) { setAccount(null); toast('Sei uscito dal tuo account.', 'info'); }
       }
     }
@@ -4832,12 +4935,13 @@
         let actions = '';
         if (canManage(u)) {
           if (u.stato === 'in attesa' || u.nuovaPassword) actions = `<button type="button" class="btn-xs ok" data-op="approva">Approva</button><button type="button" class="btn-xs danger" data-op="rifiuta" style="margin-left:0">Rifiuta</button>`;
-          else if (u.stato === 'attivo') actions = `${owner ? `<select class="custom-select" data-op="ruolo" aria-label="Ruolo"><option value="tecnico"${u.ruolo === 'tecnico' ? ' selected' : ''}>Tecnico</option><option value="admin"${u.ruolo === 'admin' ? ' selected' : ''}>Amministratore</option></select>` : ''}<button type="button" class="btn-xs danger" data-op="blocca">Blocca</button>`;
+          else if (u.stato === 'attivo') actions = `${owner ? `<select class="custom-select" data-op="ruolo" aria-label="Ruolo"><option value="tecnico"${u.ruolo === 'tecnico' ? ' selected' : ''}>Tecnico</option><option value="admin"${u.ruolo === 'admin' ? ' selected' : ''}>Amministratore</option></select>` : ''}<button type="button" class="btn-xs" data-op="societa">Società</button><button type="button" class="btn-xs danger" data-op="blocca">Blocca</button>`;
           else actions = `<button type="button" class="btn-xs ok" data-op="riattiva">Riattiva</button><button type="button" class="btn-xs danger" data-op="elimina">Elimina</button>`;
         }
         return `<div class="user-item ${u.stato === 'in attesa' || u.nuovaPassword ? 'pending' : ''}" data-email="${escapeHtml(u.email)}" style="--i:${Math.min(i, 10)}">
           <div class="user-top"><div class="acc-avatar">${escapeHtml(initials(u.nome))}</div>
             <div style="min-width:0;flex:1"><b>${escapeHtml(u.nome)}${u.email === me ? ' (tu)' : ''}</b><small>${escapeHtml(u.email)}</small>
+            <span class="acc-soc">🏢 ${u.societa ? escapeHtml(u.societa) : 'Società non indicata'}</span>
             <small>${u.stato === 'in attesa' ? 'Richiesta del ' + escapeHtml(u.registrato) : u.ultimoAccesso ? 'Ultimo accesso: ' + escapeHtml(u.ultimoAccesso) : 'Registrato: ' + escapeHtml(u.registrato)}${u.approvatoDa && u.stato === 'attivo' && u.ruolo !== 'proprietario' ? ' • approvato da ' + escapeHtml(u.approvatoDa) : ''}</small>
             ${badge}</div></div>
           ${actions ? `<div class="user-actions">${actions}</div>` : ''}
@@ -4850,21 +4954,28 @@
     async function manageUser(email, op, ruolo) {
       const u = usersCache.find(x => x.email === email); if (!u) return;
       const confirmText = { blocca: `Bloccare ${u.nome}? Non potrà più salvare finché non lo riattivi.`, elimina: `Eliminare l’account di ${u.nome}? Potrà registrarsi di nuovo.`, rifiuta: u.nuovaPassword ? `Rifiutare la nuova password di ${u.nome}? Resterà valida quella vecchia.` : `Rifiutare la richiesta di ${u.nome}?` }[op];
+      let societa;
+      if (op === 'societa') {
+        const ok = await openModal({ title: `Società di ${u.nome}`, bodyHtml: `<div class="field-group"><label class="field-label" for="socEdit">Società</label>${socInputHtml('socEdit', u.societa || '')}</div>`, okText: 'Salva', cancelText: 'Annulla' });
+        if (!ok) return;
+        societa = ($('socEdit').value || '').trim().toUpperCase();
+        if (societa.length < 2) { toast('Società non valida.', 'error'); return; }
+      }
       if (op === 'ruolo') {
         const ok = await confirmBox(ruolo === 'admin' ? 'Nomina amministratore' : 'Togli amministratore', ruolo === 'admin' ? `${u.nome} potrà eliminare ribattiture e PFS e approvare i tecnici.` : `${u.nome} tornerà tecnico: potrà salvare ma non eliminare.`, 'Conferma');
         if (!ok) { renderUsers(); return; }
       } else if (confirmText && !(await confirmBox('Conferma', confirmText, 'Conferma', op !== 'rifiuta'))) return;
       try {
-        const d = await accountCall({ action: 'manageUser', token: account.token, email, op, ruolo });
+        const d = await accountCall({ action: 'manageUser', token: account.token, email, op, ruolo, societa });
         if (d.status !== 'success') throw new Error(d.message);
-        const msg = { approva: u.nuovaPassword ? `Nuova password di ${u.nome} attivata.` : `${u.nome} approvato: ora può salvare.`, rifiuta: 'Richiesta rifiutata.', blocca: `${u.nome} bloccato.`, riattiva: `${u.nome} riattivato.`, elimina: 'Account eliminato.', ruolo: ruolo === 'admin' ? `${u.nome} ora è amministratore.` : `${u.nome} ora è tecnico.` }[op];
+        const msg = { approva: u.nuovaPassword ? `Nuova password di ${u.nome} attivata.` : `${u.nome} approvato: ora può vedere e salvare i dati.`, rifiuta: 'Richiesta rifiutata.', blocca: `${u.nome} bloccato.`, riattiva: `${u.nome} riattivato.`, elimina: 'Account eliminato.', ruolo: ruolo === 'admin' ? `${u.nome} ora è amministratore.` : `${u.nome} ora è tecnico.`, societa: `Società di ${u.nome} aggiornata.` }[op];
         toast(msg, 'success');
         await loadUsers();
       } catch (e) { toast(e instanceof AuthError ? e.message : accountError(e), 'error', 4500); renderUsers(); }
     }
 
     function initV3() {
-      loadAccount(); updateAccountUI();
+      loadAccount(); if (!canRead()) purgeData(); updateAccountUI();
       setTimeout(refreshAccount, 1200);
       document.addEventListener('click', e => { if (e.target.closest('[data-open-account]')) openAccount(); });
       $('usersReload').addEventListener('click', loadUsers);

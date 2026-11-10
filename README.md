@@ -19,6 +19,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 | 06 | **Generatore barcode** | Code 128 leggibile da scanner, schermo intero, PNG, scansione di codici esistenti |
 | 07 | **PFS Qui** | Coordinate dei PFS divise per anello (NA_01, NA_02…), ricerca, "vicino a me", mappa e navigazione con Google Maps |
 | 08 | **Budget ottico** | Attenuazione prevista della tratta e verifica della potenza letta col power meter |
+| 09 | **Foto GPS** | Foto e video con timbro: via e civico, CAP e città, regione, coordinate GPS, data e ora; salvati nella galleria del telefono |
 
 ### Ribattitura
 - **Scanner con fotocamera**: il pulsante accanto a ogni ID legge l'etichetta. Con *Passa all'ottico successivo* scansioni gli ottici uno dopo l'altro. Senza fotocamera si può usare *Da foto*.
@@ -37,6 +38,13 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Elenco per anello** con ricerca per PFS, anello o note (`NA_01 16e13` e `NA_01/16E13` sono lo stesso PFS); **Vicino a me** ordina i PFS per distanza.
 - **Mappa** con un colore per ogni anello; **Naviga** apre Google Maps con il percorso fino al PFS.
 - **Vedere e salvare** richiede un account approvato, **eliminare** un amministratore (verificato dallo script).
+
+### Foto GPS
+- **Foto e video** dalla fotocamera con un timbro in basso: via e numero civico, CAP, città e provincia, regione, coordinate GPS con precisione, data e ora. Facoltativi: il **PFS più vicino** (entro 150 m, con l'accesso) e una **nota** (es. numero pratica).
+- L'indirizzo viene ricavato dalle coordinate con **OpenStreetMap**. Senza rete il timbro mostra comunque coordinate, data e ora.
+- Le **foto** contengono anche la posizione GPS nei dati EXIF, quindi la galleria le mostra sulla mappa.
+- **Salvataggio**: su Android vanno subito nella galleria (album *Download*). Su iPhone si tocca *Salva in Foto* → *Salva immagine / Salva video*. C'è anche *Condividi* (WhatsApp, email…).
+- I **video** (fino a 10 minuti, con audio) sono in MP4 dove il telefono lo permette, altrimenti WebM.
 
 ### Sempre attivi
 - **Coda offline**: se manca la rete, salvataggi ed eliminazioni restano in coda (barra arancione in alto) e partono da soli quando torna la connessione.

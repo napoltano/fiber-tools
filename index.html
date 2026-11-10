@@ -824,6 +824,58 @@
     .scan-last { text-align: center; font-family: ui-monospace, Menlo, monospace; font-weight: 700; font-size: 1.05rem; min-height: 1.4em; margin-bottom: 10px; }
     .scan-msg { position: absolute; left: 16px; right: 16px; top: 42%; transform: translateY(-50%); text-align: center; z-index: 3; font-weight: 700; padding: 0 10px; }
 
+    /* ---------- Foto GPS ---------- */
+    .geocam { position: fixed; inset: 0; z-index: 97; background: #000; color: #fff; display: flex; flex-direction: column; animation: fadeIn 0.2s var(--ease); overflow: hidden; }
+    .geocam video#gcVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .geocam video.mirror { transform: scaleX(-1); }
+    .geocam.flash::after { content: ''; position: absolute; inset: 0; background: #fff; opacity: .85; z-index: 9; pointer-events: none; }
+    .gc-top { position: relative; z-index: 2; display: flex; align-items: center; gap: 8px; padding: max(14px, env(safe-area-inset-top)) 14px 14px; background: linear-gradient(rgba(0,0,0,.65), transparent); }
+    .gc-top .gc-ttl { font-weight: 800; font-size: 1rem; margin-right: auto; }
+    .gc-chip { font-size: .74rem; font-weight: 800; padding: 6px 10px; border-radius: 999px; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.25); white-space: nowrap; }
+    .gc-chip.ok { color: #4ade80; } .gc-chip.mid { color: #fbbf24; } .gc-chip.bad { color: #f87171; }
+    .gc-msg { position: absolute; left: 16px; right: 16px; top: 40%; text-align: center; z-index: 3; font-weight: 700; }
+    .gc-rec { position: absolute; top: calc(max(14px, env(safe-area-inset-top)) + 60px); left: 50%; transform: translateX(-50%); z-index: 3; display: none;
+      background: #dc2626; color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; padding: 6px 12px; border-radius: 999px; font-size: .85rem; }
+    .gc-rec::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #fff; margin-right: 7px; animation: gcPulse 1s infinite; vertical-align: 1px; }
+    .geocam.recording .gc-rec { display: block; }
+    .gc-bottom { margin-top: auto; position: relative; z-index: 2; padding: 0 12px max(16px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(0,0,0,.7) 45%); }
+    .gc-stamp { display: flex; gap: 10px; align-items: flex-start; background: rgba(8,12,24,.62); border-radius: 14px; padding: 10px 12px; margin-bottom: 12px; cursor: pointer; text-align: left; width: 100%; color: #fff; border: 0; font: inherit; }
+    .gc-pin { width: 26px; flex-shrink: 0; color: #ef4444; }
+    .gc-pin svg { width: 26px; height: 26px; }
+    .gc-st-title { font-weight: 800; font-size: .92rem; line-height: 1.25; }
+    .gc-st-lines { font-size: .72rem; font-weight: 600; opacity: .92; line-height: 1.4; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .gc-st-extra { color: #fde047; font-weight: 800; }
+    .gc-modes { display: flex; justify-content: center; gap: 6px; margin-bottom: 12px; }
+    .gc-modes button { font: inherit; font-size: .78rem; font-weight: 800; letter-spacing: .06em; padding: 7px 16px; border-radius: 999px; border: 0; background: rgba(255,255,255,.12); color: #fff; }
+    .gc-modes button.active { background: #facc15; color: #111; }
+    .gc-ctrl { display: flex; align-items: center; justify-content: space-between; padding: 0 18px; }
+    .gc-thumb { width: 54px; height: 54px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(255,255,255,.8); background: rgba(255,255,255,.08); position: relative; padding: 0; }
+    .gc-thumb.empty { border-style: dashed; opacity: .5; }
+    .gc-thumb img, .gc-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gc-tv { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1rem; text-shadow: 0 1px 4px #000; }
+    .gc-shutter { width: 78px; height: 78px; border-radius: 50%; border: 5px solid #fff; background: rgba(255,255,255,.2); padding: 0; position: relative; transition: transform .15s; }
+    .gc-shutter::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #fff; transition: all .2s var(--ease); }
+    .gc-shutter:active { transform: scale(.93); }
+    .gc-shutter.video::after { background: #ef4444; }
+    .geocam.recording .gc-shutter::after { inset: 20px; border-radius: 8px; }
+    .gc-review, .gc-sheet { position: absolute; inset: 0; z-index: 5; background: #000; display: flex; flex-direction: column; padding: max(14px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom)); }
+    .gc-review[hidden], .gc-sheet[hidden] { display: none; }
+    .gc-rv-media { flex: 1; min-height: 0; display: grid; place-items: center; margin: 8px 0; }
+    .gc-rv-media img, .gc-rv-media video { max-width: 100%; max-height: 100%; border-radius: 12px; }
+    .gc-rv-name { font-size: .72rem; opacity: .7; text-align: center; margin-bottom: 10px; word-break: break-all; }
+    .gc-rv-strip { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; }
+    .gc-rv-strip button { flex: 0 0 52px; height: 52px; border-radius: 10px; overflow: hidden; border: 2px solid transparent; padding: 0; background: #222; color: #fff; }
+    .gc-rv-strip button.on { border-color: #facc15; }
+    .gc-rv-strip img { width: 100%; height: 100%; object-fit: cover; }
+    .gc-rv-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .gc-sheet { justify-content: flex-end; background: rgba(0,0,0,.55); padding: 0; }
+    .gc-sheet-box { background: var(--card); color: var(--text); border-radius: 22px 22px 0 0; padding: 18px 16px max(18px, env(safe-area-inset-bottom)); display: grid; gap: 12px; }
+    .gc-sheet-box h3 { font-size: 1rem; }
+    .gc-opt { display: flex; gap: 10px; align-items: flex-start; font-size: .85rem; font-weight: 700; }
+    .gc-opt input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--primary); flex-shrink: 0; margin-top: 1px; }
+    .gc-opt small { display: block; color: var(--muted); font-weight: 600; font-size: .74rem; margin-top: 2px; }
+    .geocam:not([hidden]) ~ .toast-wrap { bottom: auto; top: calc(max(16px, env(safe-area-inset-top)) + 64px); }
+
     /* Con una finestra aperta le notifiche vanno in alto, per non coprirne il contenuto */
     body:has(#modal:not([hidden])) .toast-wrap { bottom: auto; top: max(16px, env(safe-area-inset-top)); }
     /* Con lo scanner aperto le notifiche vanno in alto, per non coprire i comandi */
@@ -850,6 +902,8 @@
 
     /* ---------- V3 ---------- */
     .t-teal   { --tile-bg: color-mix(in srgb, #14b8a6 15%, transparent); --tile-fg: #0d9488; }
+    .t-pink   { --tile-bg: color-mix(in srgb, #ec4899 15%, transparent); --tile-fg: #db2777; }
+    @keyframes gcPulse { 50% { opacity: .25; } }
     .t-orange { --tile-bg: color-mix(in srgb, #f97316 15%, transparent); --tile-fg: #ea580c; }
 
     .queue-pill {
@@ -1281,6 +1335,15 @@
             <span class="btn-desc">Attenuazione e dBm</span>
           </div>
           <span class="badge-num">08</span>
+        </button>
+
+        <button class="btn-main" type="button" style="--i:8" id="geoCamBtn">
+          <div class="tile-icon t-pink"><svg><use href="#i-camera"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">Foto GPS</span>
+            <span class="btn-desc">Foto e video con indirizzo</span>
+          </div>
+          <span class="badge-num">09</span>
         </button>
       </div>
 
@@ -1839,6 +1902,53 @@
     </div>
   </div>
 
+  <!-- Foto GPS -->
+  <div class="geocam" id="geocam" hidden>
+    <video id="gcVideo" playsinline muted autoplay></video>
+    <div class="gc-msg" id="gcMsg"></div>
+    <div class="gc-top">
+      <button type="button" class="scan-round" id="gcClose" aria-label="Chiudi"><svg><use href="#i-x"/></svg></button>
+      <span class="gc-ttl">Foto GPS</span>
+      <span class="gc-chip" id="gcGps">Cerco il GPS…</span>
+      <button type="button" class="scan-round" id="gcTorch" aria-label="Torcia" hidden><svg><use href="#i-torch"/></svg></button>
+      <button type="button" class="scan-round" id="gcFlip" aria-label="Cambia fotocamera"><svg><use href="#i-sync"/></svg></button>
+      <button type="button" class="scan-round" id="gcSettings" aria-label="Opzioni"><svg><use href="#i-gear"/></svg></button>
+    </div>
+    <div class="gc-rec" id="gcRecTime">00:00</div>
+    <div class="gc-bottom">
+      <button type="button" class="gc-stamp" id="gcStamp" aria-label="Timbro con indirizzo: tocca per aggiornare">
+        <span class="gc-pin"><svg><use href="#i-pin"/></svg></span>
+        <span style="min-width:0"><div class="gc-st-title" id="gcStTitle">Posizione in attesa del GPS</div><div class="gc-st-lines" id="gcStLines"></div></span>
+      </button>
+      <div class="gc-modes" id="gcModes"><button type="button" data-gcmode="photo" class="active">FOTO</button><button type="button" data-gcmode="video">VIDEO</button></div>
+      <div class="gc-ctrl">
+        <button type="button" class="gc-thumb empty" id="gcThumb" aria-label="Nessuno scatto"></button>
+        <button type="button" class="gc-shutter" id="gcShutter" aria-label="Scatta foto"></button>
+        <span style="width:54px"></span>
+      </div>
+    </div>
+    <div class="gc-review" id="gcReview" hidden>
+      <div style="display:flex;align-items:center;gap:10px"><button type="button" class="scan-round" id="gcRvClose" aria-label="Torna alla fotocamera"><svg><use href="#i-back"/></svg></button><b>Scatti</b></div>
+      <div class="gc-rv-media" id="gcRvMedia"></div>
+      <div class="gc-rv-name" id="gcRvName"></div>
+      <div class="gc-rv-strip" id="gcRvStrip"></div>
+      <div class="gc-rv-btns">
+        <button type="button" class="btn-action green" id="gcRvSave"><svg><use href="#i-download"/></svg> Salva in galleria</button>
+        <button type="button" class="btn-action" id="gcRvShare"><svg><use href="#i-share"/></svg> Condividi</button>
+      </div>
+    </div>
+    <div class="gc-sheet" id="gcSheet" hidden>
+      <div class="gc-sheet-box">
+        <h3>Opzioni Foto GPS</h3>
+        <label class="gc-opt" id="gcAutoWrap"><input type="checkbox" id="gcSetAuto"><span>Salva subito nel telefono<small>Ogni foto o video va direttamente in galleria (album Download).</small></span></label>
+        <label class="gc-opt"><input type="checkbox" id="gcSetPfs"><span>Mostra il PFS più vicino<small>Se sei entro 150 m da un PFS salvato (serve l’accesso).</small></span></label>
+        <div class="field-group"><label class="field-label" for="gcSetNote">Nota sul timbro (facoltativa)</label><input id="gcSetNote" class="custom-input" data-upper maxlength="80" placeholder="es. GUASTO FIBRA – PRATICA 1234"></div>
+        <p class="small" style="color:var(--muted)">L’indirizzo viene trovato con OpenStreetMap a partire dalle coordinate GPS. Senza rete il timbro mostra comunque coordinate, data e ora.</p>
+        <button type="button" class="btn-action" id="gcSheetClose"><svg><use href="#i-check"/></svg> Fatto</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Contenuto per stampa / PDF -->
   <div id="printArea" aria-hidden="true"></div>
 
@@ -2093,6 +2203,7 @@
       const st = e.state;
       if (suppressPop) { suppressPop = false; return; }
       if (!$('scanner').hidden) { closeScanner(true); return; }
+      if (!$('geocam').hidden) { if (!$('gcReview').hidden || !$('gcSheet').hidden) { $('gcReview').hidden = true; gcCloseSheet(); history.pushState({ ...(history.state || {}), geocam: true }, '', location.hash); return; } closeGeoCam(true); return; }
       if (!$('bcFull').hidden) { closeBarcodeFull(true); return; }
       if (st && st.screen) openScreen(st.screen, st.title, st.subtitle, true);
       else goHome(true);
@@ -5177,6 +5288,447 @@
       window.addEventListener('resize', () => document.querySelectorAll('.pfs-mode-selector').forEach(positionSeg));
     }
 
+    /* ================= Foto GPS: foto e video con indirizzo e coordinate ================= */
+    const GC_SET_KEY = 'fiber_tools_geocam';
+    const GC_GEO_KEY = 'fiber_tools_geocode_cache';
+    const gc = {
+      stream: null, audio: null, facing: 'environment', mode: 'photo', torch: false,
+      pos: null, watchId: null, addr: null, addrFor: null, addrBusy: false, lastGeoAt: 0,
+      recorder: null, chunks: [], recStart: 0, recTimer: null, rafId: 0, recCanvas: null,
+      stampCanvas: null, stampKey: '', items: [], armedNoGps: false,
+      set: { autosave: true, pfs: true, note: '' }
+    };
+    try { Object.assign(gc.set, JSON.parse(lsGet(GC_SET_KEY, '{}')) || {}); } catch (e) {}
+    const gcSaveSet = () => lsSet(GC_SET_KEY, JSON.stringify(gc.set));
+
+    /* ---- posizione e indirizzo ---- */
+    function gcStartGps() {
+      if (!navigator.geolocation) { gcGpsChip(); return; }
+      gc.watchId = navigator.geolocation.watchPosition(p => {
+        gc.pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy, alt: p.coords.altitude, at: Date.now() };
+        gcGpsChip(); gcMaybeGeocode(); gcUpdateStamp();
+      }, err => { gc.gpsErr = err && err.code; gcGpsChip(); }, { enableHighAccuracy: true, maximumAge: 4000, timeout: 30000 });
+    }
+    function gcStopGps() { if (gc.watchId != null) navigator.geolocation.clearWatch(gc.watchId); gc.watchId = null; }
+    function gcGpsChip() {
+      const el = $('gcGps'); if (!el) return;
+      el.classList.remove('ok', 'mid', 'bad');
+      if (!gc.pos) {
+        el.textContent = gc.gpsErr === 1 ? 'GPS negato' : 'Cerco il GPS…';
+        el.classList.add('bad'); return;
+      }
+      const a = Math.round(gc.pos.acc);
+      el.textContent = `GPS ±${a} m`;
+      el.classList.add(a <= 20 ? 'ok' : a <= 60 ? 'mid' : 'bad');
+    }
+
+    const gcCacheKey = (lat, lng) => `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    function gcCacheGet(k) { try { return (JSON.parse(lsGet(GC_GEO_KEY, '{}')) || {})[k] || null; } catch (e) { return null; } }
+    function gcCachePut(k, v) {
+      try {
+        const c = JSON.parse(lsGet(GC_GEO_KEY, '{}')) || {}; c[k] = v;
+        const keys = Object.keys(c); if (keys.length > 300) keys.slice(0, keys.length - 300).forEach(x => delete c[x]);
+        lsSet(GC_GEO_KEY, JSON.stringify(c));
+      } catch (e) {}
+    }
+    /** Trasforma la risposta di OpenStreetMap in righe leggibili all'italiana. */
+    function gcParseAddress(a) {
+      a = a || {};
+      const via = a.road || a.pedestrian || a.footway || a.path || a.cycleway || a.square || a.residential || a.neighbourhood || a.hamlet || '';
+      const street = via ? (via + (a.house_number ? ', ' + a.house_number : '')) : (a.suburb || a.quarter || '');
+      const city = a.city || a.town || a.village || a.municipality || a.hamlet || a.suburb || '';
+      const iso = a['ISO3166-2-lvl6'] || '';
+      const prov = /^IT-/.test(iso) ? iso.slice(3) : (a.county || '');
+      const cityLine = [a.postcode, city].filter(Boolean).join(' ') + (prov && prov !== city ? ` (${prov})` : '');
+      const region = [a.state || a.region, a.country].filter(Boolean).join(', ');
+      return { street, cityLine: cityLine.trim(), region, city, ok: !!(street || city) };
+    }
+    async function gcGeocode(lat, lng) {
+      const key = gcCacheKey(lat, lng);
+      const hit = gcCacheGet(key); if (hit) return hit;
+      if (!navigator.onLine) throw new Error('offline');
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 9000);
+      try {
+        let addr = null;
+        try {
+          const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=it&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}`, { signal: ctl.signal });
+          if (r.ok) { const j = await r.json(); if (j && j.address) addr = gcParseAddress(j.address); }
+        } catch (e) { if (e.name === 'AbortError') throw e; }
+        if (!addr || !addr.ok) {   // riserva: Photon (sempre dati OpenStreetMap)
+          const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}&lang=it&limit=1`, { signal: ctl.signal });
+          const p = r.ok ? ((await r.json()).features || [])[0]?.properties : null;
+          if (p) addr = gcParseAddress({ road: p.street || (p.type === 'street' ? p.name : ''), house_number: p.housenumber, postcode: p.postcode, city: p.city || p.town || p.village, county: p.county, state: p.state, country: p.country, suburb: p.district || p.locality });
+        }
+        if (!addr || !addr.ok) throw new Error('none');
+        gcCachePut(key, addr);
+        return addr;
+      } finally { clearTimeout(t); }
+    }
+    async function gcMaybeGeocode(force) {
+      const p = gc.pos; if (!p || gc.addrBusy) return;
+      const moved = !gc.addrFor || distanceM(gc.addrFor, p) > 18;
+      if (!force && !moved) return;
+      if (Date.now() - gc.lastGeoAt < 1200) { setTimeout(() => gcMaybeGeocode(force), 1300); return; }   // max 1 richiesta al secondo
+      gc.addrBusy = true; gc.lastGeoAt = Date.now();
+      try { gc.addr = await gcGeocode(p.lat, p.lng); gc.addrFor = { lat: p.lat, lng: p.lng }; gc.addrErr = null; }
+      catch (e) {
+        gc.addrErr = navigator.onLine ? 'none' : 'offline';
+        // indirizzo vecchio lontano dalla posizione attuale: meglio nessun indirizzo che uno sbagliato
+        if (!gc.addrFor || distanceM(gc.addrFor, p) > 60) { gc.addr = null; gc.addrFor = null; }
+      }
+      finally { gc.addrBusy = false; gcUpdateStamp(); }
+    }
+
+    /* ---- contenuto del timbro ---- */
+    function gcNearestPfs() {
+      if (!gc.set.pfs || !gc.pos || typeof canRead !== 'function' || !canRead()) return null;
+      let best = null;
+      for (const it of Object.values(getPositions())) {
+        const d = distanceM(gc.pos, it);
+        if (d <= 150 && (!best || d < best.d)) best = { pfs: it.pfs, d };
+      }
+      return best;
+    }
+    const gcDms = (v, pos, neg) => `${Math.abs(v).toFixed(6)}° ${v >= 0 ? pos : neg}`;
+    function gcStampInfo(now = new Date()) {
+      const p = gc.pos, a = gc.addr;
+      const lines = [];
+      const title = a && a.street ? a.street : a && a.city ? a.city : p ? (gc.addrErr === 'offline' ? 'Indirizzo non disponibile (offline)' : gc.addrErr ? 'Indirizzo non trovato' : 'Ricerca indirizzo…') : 'Posizione in attesa del GPS';
+      if (a) { if (a.cityLine) lines.push(a.cityLine); if (a.region) lines.push(a.region); }
+      if (p) lines.push(`Lat ${gcDms(p.lat, 'N', 'S')}   Long ${gcDms(p.lng, 'E', 'O')}   ±${Math.round(p.acc)} m`);
+      const tz = -now.getTimezoneOffset() / 60;
+      lines.push(now.toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }) + '  ' +
+        now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + `  GMT${tz >= 0 ? '+' : ''}${tz}`);
+      const near = gcNearestPfs();
+      const extra = [near ? `PFS ${near.pfs} a ${Math.round(near.d)} m` : '', (gc.set.note || '').trim()].filter(Boolean).join('  ·  ');
+      return { title, lines, extra, near };
+    }
+    function gcUpdateStamp() {
+      if ($('geocam').hidden) return;
+      const s = gcStampInfo();
+      $('gcStTitle').textContent = s.title;
+      $('gcStLines').innerHTML = s.lines.map(l => `<div>${escapeHtml(l)}</div>`).join('') + (s.extra ? `<div class="gc-st-extra">${escapeHtml(s.extra)}</div>` : '');
+    }
+
+    /** Disegna il timbro in basso sull'immagine (stessa grafica per foto e video). */
+    function gcDrawStamp(ctx, W, H, s) {
+      const u = Math.min(W, H) / 1080;                // unità: 1 px su un'immagine larga 1080
+      const pad = 26 * u, m = 22 * u, r = 22 * u;
+      const fT = 44 * u, fL = 30 * u, fE = 29 * u, gap = 10 * u;
+      const font = (w, px) => `${w} ${px}px "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+      const maxW = W - 2 * m - 2 * pad - 92 * u;
+      const fit = (txt, w, px) => { let f = px; ctx.font = font(w, f); while (f > px * 0.6 && ctx.measureText(txt).width > maxW) { f -= 1; ctx.font = font(w, f); } return f; };
+      const rows = [{ t: s.title, w: 800, px: fit(s.title, 800, fT), c: '#fff' }];
+      s.lines.forEach(l => rows.push({ t: l, w: 600, px: fit(l, 600, fL), c: 'rgba(255,255,255,0.92)' }));
+      if (s.extra) rows.push({ t: s.extra, w: 800, px: fit(s.extra, 800, fE), c: '#fde047' });
+      const boxH = pad * 2 + rows.reduce((h, x) => h + x.px * 1.22, 0) + gap * (rows.length - 1) + 30 * u;
+      const x0 = m, y0 = H - m - boxH, bw = W - 2 * m;
+      ctx.save();
+      ctx.fillStyle = 'rgba(8,12,24,0.62)';
+      ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x0, y0, bw, boxH, r); else ctx.rect(x0, y0, bw, boxH); ctx.fill();
+      // segnaposto
+      const px = x0 + pad + 30 * u, py = y0 + pad + 34 * u;
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(px, py, 26 * u, Math.PI, 0); ctx.lineTo(px, py + 46 * u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(px, py, 10 * u, 0, Math.PI * 2); ctx.fill();
+      ctx.font = font(800, 18 * u); ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.textAlign = 'center';
+      ctx.fillText('FIBER', px, y0 + boxH - pad - 22 * u); ctx.fillText('TOOLS', px, y0 + boxH - pad);
+      // testo
+      ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 6 * u; ctx.shadowOffsetY = 2 * u;
+      let y = y0 + pad; const tx = x0 + pad + 92 * u;
+      rows.forEach(row => { ctx.font = font(row.w, row.px); ctx.fillStyle = row.c; ctx.fillText(row.t, tx, y); y += row.px * 1.22 + gap; });
+      ctx.restore();
+    }
+
+    /* ---- EXIF con posizione GPS nella foto (la galleria la mostra sulla mappa) ---- */
+    function gcExif(info) {
+      const ascii = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\x20-\x7e]/g, '') + '\0';
+      const rat = v => { const d = Math.floor(v), mf = (v - d) * 60, mi = Math.floor(mf), se = Math.round((mf - mi) * 60 * 10000); return [[d, 1], [mi, 1], [se, 10000]]; };
+      const now = info.date, p2 = n => String(n).padStart(2, '0');
+      const dt = `${now.getFullYear()}:${p2(now.getMonth() + 1)}:${p2(now.getDate())} ${p2(now.getHours())}:${p2(now.getMinutes())}:${p2(now.getSeconds())}`;
+      const ifd0 = [[0x010e, 2, ascii(info.desc)], [0x0131, 2, ascii('Fiber Tools')], [0x0132, 2, ascii(dt)], [0x8769, 4, 0], [0x8825, 4, 0]];
+      const exif = [[0x9003, 2, ascii(dt)], [0x9004, 2, ascii(dt)]];
+      const gps = [];
+      if (info.lat != null) {
+        gps.push([0x0000, 1, [2, 3, 0, 0]], [0x0001, 2, ascii(info.lat >= 0 ? 'N' : 'S')], [0x0002, 5, rat(Math.abs(info.lat))],
+          [0x0003, 2, ascii(info.lng >= 0 ? 'E' : 'W')], [0x0004, 5, rat(Math.abs(info.lng))]);
+        if (info.alt != null && isFinite(info.alt)) gps.push([0x0005, 1, [info.alt < 0 ? 1 : 0]], [0x0006, 5, [[Math.round(Math.abs(info.alt) * 100), 100]]]);
+      }
+      // scrittura TIFF little-endian
+      const ifds = [ifd0, exif, gps];
+      const size = list => 2 + list.length * 12 + 4;
+      const dataSize = v => typeof v === 'string' ? v.length : Array.isArray(v) && Array.isArray(v[0]) ? v.length * 8 : Array.isArray(v) ? v.length : 4;
+      let off = 8; const pos = [];
+      ifds.forEach(l => { pos.push(off); off += size(l); });
+      let extra = off; const buf = new DataView(new ArrayBuffer(off + ifds.flat().reduce((s, e) => s + (dataSize(e[2]) > 4 ? dataSize(e[2]) + 1 : 0), 0) + 16));
+      ifd0[3][2] = pos[1]; ifd0[4][2] = pos[2];
+      buf.setUint16(0, 0x4949); buf.setUint16(2, 42, true); buf.setUint32(4, 8, true);
+      ifds.forEach((list, i) => {
+        let o = pos[i]; buf.setUint16(o, list.length, true); o += 2;
+        list.forEach(([tag, type, v]) => {
+          const isRat = type === 5, isStr = type === 2, cnt = isStr ? v.length : isRat ? v.length : Array.isArray(v) ? v.length : 1;
+          buf.setUint16(o, tag, true); buf.setUint16(o + 2, type, true); buf.setUint32(o + 4, cnt, true);
+          const write = (at) => {
+            if (isStr) for (let k = 0; k < v.length; k++) buf.setUint8(at + k, v.charCodeAt(k));
+            else if (isRat) v.forEach((q, k) => { buf.setUint32(at + k * 8, q[0], true); buf.setUint32(at + k * 8 + 4, q[1], true); });
+            else if (type === 1) v.forEach((b, k) => buf.setUint8(at + k, b));
+            else buf.setUint32(at, v, true);
+          };
+          const ds = dataSize(v);
+          if (ds > 4) { if (extra % 2) extra++; buf.setUint32(o + 8, extra, true); write(extra); extra += ds; } else write(o + 8);
+          o += 12;
+        });
+        buf.setUint32(o, 0, true);
+      });
+      const tiff = new Uint8Array(buf.buffer, 0, extra);
+      const head = [0xff, 0xe1, ((tiff.length + 8) >> 8) & 255, (tiff.length + 8) & 255, 0x45, 0x78, 0x69, 0x66, 0, 0];
+      return new Uint8Array([...head, ...tiff]);
+    }
+    async function gcJpegWithExif(blob, info) {
+      try {
+        const b = new Uint8Array(await blob.arrayBuffer());
+        if (b[0] !== 0xff || b[1] !== 0xd8) return blob;
+        let i = 2;
+        if (b[2] === 0xff && b[3] === 0xe0) i = 4 + ((b[4] << 8) | b[5]);   // toglie l'intestazione JFIF
+        const app1 = gcExif(info);
+        return new Blob([b.slice(0, 2), app1, b.slice(i)], { type: 'image/jpeg' });
+      } catch (e) { return blob; }
+    }
+
+    /* ---- fotocamera ---- */
+    async function gcStartCamera() {
+      gcStopCamera();
+      $('gcMsg').textContent = 'Avvio fotocamera…';
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { $('gcMsg').textContent = 'La fotocamera funziona solo aprendo l’app dal sito (https).'; return; }
+      try {
+        gc.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: gc.facing }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }, audio: false });
+        if ($('geocam').hidden) { gcStopCamera(); return; }
+        const v = $('gcVideo'); v.srcObject = gc.stream; await v.play();
+        v.classList.toggle('mirror', gc.facing === 'user');
+        $('gcMsg').textContent = '';
+        const track = gc.stream.getVideoTracks()[0];
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        $('gcTorch').hidden = !caps.torch; gc.torch = false; $('gcTorch').classList.remove('on');
+        if (caps.focusMode && caps.focusMode.includes('continuous')) track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {});
+      } catch (err) {
+        const n = err && err.name;
+        $('gcMsg').textContent = n === 'NotAllowedError' ? 'Permesso fotocamera negato: abilitalo nelle impostazioni del browser.' : n === 'NotFoundError' ? 'Nessuna fotocamera trovata.' : 'Impossibile avviare la fotocamera.';
+      }
+    }
+    function gcStopCamera() {
+      if (gc.stream) gc.stream.getTracks().forEach(t => t.stop());
+      gc.stream = null; const v = $('gcVideo'); if (v) { v.pause?.(); v.srcObject = null; }
+    }
+
+    function openGeoCam() {
+      $('geocam').hidden = false; $('geocam').classList.remove('recording');
+      history.pushState({ ...(history.state || {}), geocam: true }, '', location.hash || '#fotogps');
+      gc.armedNoGps = false;
+      gcSetMode(gc.mode); gcGpsChip(); gcUpdateStamp(); gcRenderThumbs();
+      gcStartCamera(); gcStartGps();
+      clearInterval(gc.clock); gc.clock = setInterval(gcUpdateStamp, 1000);
+    }
+    function closeGeoCam(fromHistory = false) {
+      if ($('geocam').hidden) return;
+      if (gc.recorder && gc.recorder.state === 'recording') gcStopRecording();
+      clearInterval(gc.clock); gcStopCamera(); gcStopGps(); gcCloseSheet();
+      $('geocam').hidden = true;
+      if (!fromHistory && history.state && history.state.geocam) { suppressPop = true; history.back(); }
+    }
+    function gcSetMode(m) {
+      gc.mode = m;
+      document.querySelectorAll('#gcModes [data-gcmode]').forEach(b => b.classList.toggle('active', b.dataset.gcmode === m));
+      $('gcShutter').classList.toggle('video', m === 'video');
+      $('gcShutter').setAttribute('aria-label', m === 'video' ? 'Avvia registrazione' : 'Scatta foto');
+    }
+    function gcFileName(ext, d = new Date()) {
+      const p2 = n => String(n).padStart(2, '0');
+      const place = gc.addr && gc.addr.city ? '_' + gc.addr.city.normalize('NFD').replace(/[^\w]+/g, '') : '';
+      return `FiberTools_${d.getFullYear()}${p2(d.getMonth() + 1)}${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}${p2(d.getSeconds())}${place}.${ext}`;
+    }
+    function gcFrameSize() {
+      const v = $('gcVideo');
+      return { w: v.videoWidth || 1920, h: v.videoHeight || 1080 };
+    }
+    function gcDrawFrame(ctx, W, H, mirror) {
+      const v = $('gcVideo');
+      if (mirror) { ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(v, 0, 0, W, H); ctx.restore(); }
+      else ctx.drawImage(v, 0, 0, W, H);
+    }
+
+    async function gcShutter() {
+      if (!gc.stream || $('gcVideo').readyState < 2) { toast('Fotocamera non pronta.', 'error'); return; }
+      if (gc.mode === 'video') { if (gc.recorder && gc.recorder.state === 'recording') gcStopRecording(); else gcStartRecording(); return; }
+      if (!gc.pos && !gc.armedNoGps) {
+        gc.armedNoGps = true; toast('GPS non ancora pronto: aspetta qualche secondo, o tocca di nuovo per scattare senza coordinate.', 'info', 4500); return;
+      }
+      gc.armedNoGps = false;
+      const date = new Date();
+      const { w, h } = gcFrameSize();
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      gcDrawFrame(ctx, w, h, false);
+      const s = gcStampInfo(date);
+      gcDrawStamp(ctx, w, h, s);
+      $('geocam').classList.add('flash'); setTimeout(() => $('geocam').classList.remove('flash'), 180);
+      if (navigator.vibrate) navigator.vibrate(30);
+      let blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.92));
+      if (!blob) { toast('Foto non riuscita.', 'error'); return; }
+      blob = await gcJpegWithExif(blob, { date, lat: gc.pos?.lat, lng: gc.pos?.lng, alt: gc.pos?.alt, desc: [s.title, ...s.lines].join(' - ') });
+      gcAddItem({ blob, type: 'photo', name: gcFileName('jpg', date), date, title: s.title });
+    }
+
+    function gcPickMime() {
+      const list = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+      return list.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+    }
+    async function gcStartRecording() {
+      if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) { toast('Questo browser non registra video con il timbro: aggiorna Chrome o Safari.', 'error', 5000); return; }
+      const { w, h } = gcFrameSize();
+      const c = gc.recCanvas = document.createElement('canvas'); c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      const stampC = document.createElement('canvas'); stampC.width = w; stampC.height = h;
+      const sctx = stampC.getContext('2d'); let key = '';
+      const draw = () => {
+        if (!gc.recorder) return;
+        const s = gcStampInfo(); const k = s.title + s.lines.join('|') + s.extra;
+        if (k !== key) { key = k; sctx.clearRect(0, 0, w, h); gcDrawStamp(sctx, w, h, s); }
+        gcDrawFrame(ctx, w, h, false); ctx.drawImage(stampC, 0, 0);
+        gc.rafId = requestAnimationFrame(draw);
+      };
+      const vStream = c.captureStream(30);
+      try {   // microfono: se negato si registra senza audio
+        if (!gc.audio) gc.audio = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+        gc.audio.getAudioTracks().forEach(t => vStream.addTrack(t));
+      } catch (e) { toast('Microfono non disponibile: il video sarà senza audio.', 'info', 3500); }
+      const mime = gcPickMime();
+      let rec;
+      try { rec = new MediaRecorder(vStream, { ...(mime ? { mimeType: mime } : {}), videoBitsPerSecond: Math.min(6e6, Math.round(w * h * 30 * 0.09)) }); }
+      catch (e) { rec = new MediaRecorder(vStream); }
+      gc.recorder = rec; gc.chunks = [];
+      const date = new Date(); const title = gcStampInfo(date).title;
+      rec.ondataavailable = e => { if (e.data && e.data.size) gc.chunks.push(e.data); };
+      rec.onstop = () => {
+        cancelAnimationFrame(gc.rafId);
+        const type = (rec.mimeType || mime || 'video/webm').split(';')[0];
+        const blob = new Blob(gc.chunks, { type }); gc.chunks = [];
+        vStream.getVideoTracks().forEach(t => t.stop());
+        gc.recorder = null; gc.recCanvas = null;
+        if (gc.audio) { gc.audio.getTracks().forEach(t => t.stop()); gc.audio = null; }
+        if (blob.size) gcAddItem({ blob, type: 'video', name: gcFileName(type.includes('mp4') ? 'mp4' : 'webm', date), date, title });
+        else toast('Video vuoto: riprova.', 'error');
+      };
+      draw();
+      rec.start(1000);
+      gc.recStart = Date.now();
+      $('geocam').classList.add('recording'); $('gcShutter').setAttribute('aria-label', 'Ferma registrazione');
+      clearInterval(gc.recTimer);
+      const tick = () => {
+        const s = Math.floor((Date.now() - gc.recStart) / 1000);
+        $('gcRecTime').textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+        if (s >= 600) { toast('Registrazione fermata a 10 minuti.', 'info'); gcStopRecording(); }
+      };
+      tick(); gc.recTimer = setInterval(tick, 500);
+    }
+    function gcStopRecording() {
+      clearInterval(gc.recTimer);
+      $('geocam').classList.remove('recording'); $('gcShutter').setAttribute('aria-label', 'Avvia registrazione');
+      if (gc.recorder && gc.recorder.state !== 'inactive') gc.recorder.stop();
+    }
+
+    /* ---- salvataggio nel telefono ---- */
+    function gcAddItem(it) {
+      it.url = URL.createObjectURL(it.blob);
+      gc.items.unshift(it);
+      gc.items.slice(12).forEach(x => URL.revokeObjectURL(x.url)); gc.items = gc.items.slice(0, 12);
+      gcRenderThumbs();
+      if (gc.set.autosave && !isIOS()) { gcSaveItem(it, true); }
+      else gcOpenReview(it);
+    }
+    function gcRenderThumbs() {
+      const it = gc.items[0], el = $('gcThumb');
+      el.innerHTML = it ? (it.type === 'video' ? `<video src="${it.url}" muted playsinline></video><span class="gc-tv">▶</span>` : `<img src="${it.url}" alt="">`) : '';
+      el.classList.toggle('empty', !it);
+      el.setAttribute('aria-label', it ? 'Ultimi scatti' : 'Nessuno scatto');
+    }
+    async function gcSaveItem(it, auto) {
+      const file = new File([it.blob], it.name, { type: it.blob.type });
+      // iPhone: "Salva immagine / Salva video" dal menu Condividi mette il file nell'app Foto
+      if (isIOS() && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file] }); it.saved = true; gcRefreshReview(); return; }
+        catch (e) { if (e.name === 'AbortError') return; }
+      }
+      const a = document.createElement('a'); a.href = it.url; a.download = it.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      it.saved = true; gcRefreshReview();
+      toast(`${it.type === 'video' ? 'Video salvato' : 'Foto salvata'} nel telefono: la trovi in galleria, album Download.`, 'success', 3200);
+    }
+    async function gcShareItem(it) {
+      const file = new File([it.blob], it.name, { type: it.blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: it.title, text: it.title }); } catch (e) {}
+      } else toast('Condivisione non supportata: usa Salva.', 'error');
+    }
+    let gcReviewIdx = 0;
+    function gcOpenReview(it) {
+      gcReviewIdx = Math.max(0, gc.items.indexOf(it || gc.items[0]));
+      if (!gc.items.length) return;
+      $('gcReview').hidden = false; gcRefreshReview();
+    }
+    function gcRefreshReview() {
+      if ($('gcReview').hidden) return;
+      const it = gc.items[gcReviewIdx]; if (!it) { $('gcReview').hidden = true; return; }
+      $('gcRvMedia').innerHTML = it.type === 'video' ? `<video src="${it.url}" controls playsinline></video>` : `<img src="${it.url}" alt="Anteprima">`;
+      $('gcRvName').textContent = it.name + ' · ' + (it.blob.size / 1048576).toFixed(1).replace('.', ',') + ' MB';
+      $('gcRvSave').innerHTML = `<svg><use href="#i-download"/></svg> ${it.saved ? 'Salvato ✓ · Salva ancora' : (isIOS() ? 'Salva in Foto' : 'Salva in galleria')}`;
+      $('gcRvStrip').innerHTML = gc.items.map((x, i) => `<button type="button" class="${i === gcReviewIdx ? 'on' : ''}" data-gcidx="${i}">${x.type === 'video' ? '<span>▶</span>' : `<img src="${x.url}" alt="">`}</button>`).join('');
+    }
+    function gcOpenSheet() {
+      $('gcSetAuto').checked = !!gc.set.autosave; $('gcSetPfs').checked = !!gc.set.pfs; $('gcSetNote').value = gc.set.note || '';
+      $('gcAutoWrap').hidden = isIOS();
+      $('gcSheet').hidden = false;
+    }
+    function gcCloseSheet() { const s = $('gcSheet'); if (s) s.hidden = true; }
+
+    function initGeoCam() {
+      $('geoCamBtn').addEventListener('click', openGeoCam);
+      $('gcClose').addEventListener('click', () => closeGeoCam());
+      $('gcShutter').addEventListener('click', gcShutter);
+      $('gcModes').addEventListener('click', e => {
+        const b = e.target.closest('[data-gcmode]'); if (!b) return;
+        if (gc.recorder) { toast('Ferma prima la registrazione.', 'info'); return; }
+        gcSetMode(b.dataset.gcmode);
+      });
+      $('gcFlip').addEventListener('click', () => {
+        if (gc.recorder) { toast('Ferma prima la registrazione.', 'info'); return; }
+        gc.facing = gc.facing === 'environment' ? 'user' : 'environment'; gcStartCamera();
+      });
+      $('gcTorch').addEventListener('click', async () => {
+        const t = gc.stream && gc.stream.getVideoTracks()[0]; if (!t) return;
+        try { gc.torch = !gc.torch; await t.applyConstraints({ advanced: [{ torch: gc.torch }] }); $('gcTorch').classList.toggle('on', gc.torch); }
+        catch (e) { gc.torch = false; toast('Torcia non disponibile.', 'error'); }
+      });
+      $('gcThumb').addEventListener('click', () => gc.items.length && gcOpenReview(gc.items[0]));
+      $('gcSettings').addEventListener('click', gcOpenSheet);
+      $('gcSheetClose').addEventListener('click', () => {
+        gc.set.autosave = $('gcSetAuto').checked; gc.set.pfs = $('gcSetPfs').checked;
+        gc.set.note = $('gcSetNote').value.trim().toUpperCase().slice(0, 80);
+        gcSaveSet(); gcCloseSheet(); gcUpdateStamp();
+      });
+      $('gcStamp').addEventListener('click', () => { if (gc.pos) { gc.addrFor = null; gcMaybeGeocode(true); toast('Aggiorno l’indirizzo…', 'info', 1500); } });
+      $('gcRvClose').addEventListener('click', () => { $('gcReview').hidden = true; });
+      $('gcRvSave').addEventListener('click', () => gcSaveItem(gc.items[gcReviewIdx]));
+      $('gcRvShare').addEventListener('click', () => gcShareItem(gc.items[gcReviewIdx]));
+      $('gcRvStrip').addEventListener('click', e => { const b = e.target.closest('[data-gcidx]'); if (b) { gcReviewIdx = +b.dataset.gcidx; gcRefreshReview(); } });
+      document.addEventListener('visibilitychange', () => {
+        if ($('geocam').hidden) return;
+        if (document.hidden) { if (!gc.recorder) gcStopCamera(); }
+        else if (!gc.stream) gcStartCamera();
+      });
+      window.addEventListener('online', () => { if (!$('geocam').hidden) gcMaybeGeocode(true); });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
       renderHeroColors();
@@ -5184,6 +5736,7 @@
       initPwa();
       loadScriptVersion();
       initV3();
+      initGeoCam();
       history.replaceState({}, '', location.pathname + location.search);
     });
   </script>

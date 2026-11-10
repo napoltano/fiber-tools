@@ -1,5 +1,5 @@
 /**
- * Fiber Tools – Script Google Sheets v5
+ * Fiber Tools – Script Google Sheets v6
  * -------------------------------------
  * Archivio condiviso della squadra: ribattiture ottici, posizioni PFS, foto, storico e ACCOUNT.
  *
@@ -9,6 +9,10 @@
  *        { action: "data", token }                          -> tutto l'archivio (ribattiture + posizioni)
  *        { action: "history", token, pfs, splitter }        -> storico di uno splitter / PFS
  *        { action: "setProfile", token, societa }           -> società per cui lavora l'utente
+ *        { action: "stats", token }                         -> statistiche per tecnico / società / giorno (admin)
+ *        { action: "backupInfo", token }                    -> stato del backup automatico (admin)
+ *        { action: "backupNow", token }                     -> copia del foglio in Drive adesso (admin)
+ * Backup settimanale: eseguire una volta "attivaBackupSettimanale" dall'editor (chiede l'autorizzazione).
  *        { action: "login", email, password }               -> { token, user }
  *        { action: "me", token }                            -> dati aggiornati dell'account (+ richieste in attesa per gli admin)
  *        { action: "changePassword", token, old, password }
@@ -37,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 5;
+const SCRIPT_VERSION = 6;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -506,8 +510,87 @@ function deletePos_(b) {
   return { status: 'success', deleted: rowNum > 0 };
 }
 
+/* ------------------------------------------------------------------ statistiche */
+const STAT_CAT = { 'Creata': 'ribNew', 'Modificata': 'ribMod', 'Eliminata': 'ribDel', 'Posizione salvata': 'posNew', 'Posizione modificata': 'posMod', 'Posizione eliminata': 'posDel', 'Importazione posizioni': 'imp' };
+function dayOf_(v) {
+  if (Object.prototype.toString.call(v) === '[object Date]') return Utilities.formatDate(v, 'Europe/Rome', 'yyyy-MM-dd');
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(v || ''));
+  return m ? `${m[3]}-${('0' + m[2]).slice(-2)}-${('0' + m[1]).slice(-2)}` : '';
+}
+function stats_(users) {
+  const agg = {};
+  const log = logSheet_().getDataRange().getValues();
+  for (let r = 1; r < log.length; r++) {
+    const cat = STAT_CAT[String(log[r][1] || '')];
+    if (!cat) continue;
+    const day = dayOf_(log[r][0]); if (!day) continue;
+    const k = day + '|' + norm_(log[r][4]) + '|' + cat;
+    agg[k] = (agg[k] || 0) + 1;
+  }
+  const rows = Object.keys(agg).map(k => { const p = k.split('|'); return [p[0], p[1], p[2], agg[k]]; });
+  const soc = {};
+  users.rows.forEach(u => { const n = norm_(u.row[U.NOME]); if (n) soc[n] = String(u.row[U.SOC] || ''); });
+  const ribBy = {}, posBy = {};
+  const rib = ribSheet_().getDataRange().getValues();
+  for (let r = 1; r < rib.length; r++) if (rib[r][0]) { const t = norm_(rib[r][3]) || '—'; ribBy[t] = (ribBy[t] || 0) + 1; }
+  const pos = posSheet_().getDataRange().getValues();
+  for (let r = 1; r < pos.length; r++) if (pos[r][1]) { const t = norm_(pos[r][5]) || '—'; posBy[t] = (posBy[t] || 0) + 1; }
+  return { status: 'success', rows: rows, societa: soc, archivio: { ribattiture: ribBy, posizioni: posBy } };
+}
+
+/* ------------------------------------------------------------------ backup in Drive */
+const BACKUP_FOLDER = 'Fiber Tools Backup', BACKUP_KEEP = 8;
+function backupFolder_() {
+  const id = props_().getProperty('BACKUP_FOLDER_ID');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) { /* cartella eliminata: la ricrea */ } }
+  const f = DriveApp.createFolder(BACKUP_FOLDER);
+  props_().setProperty('BACKUP_FOLDER_ID', f.getId());
+  return f;
+}
+function backupNow_(who) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const folder = backupFolder_();
+  const name = 'Backup Fiber Tools ' + Utilities.formatDate(new Date(), 'Europe/Rome', 'yyyy-MM-dd HH.mm');
+  const copy = DriveApp.getFileById(ss.getId()).makeCopy(name, folder);
+  // tiene solo le ultime copie
+  const files = [], it = folder.getFiles();
+  while (it.hasNext()) { const f = it.next(); if (/^Backup Fiber Tools /.test(f.getName())) files.push(f); }
+  files.sort((a, b) => b.getDateCreated() - a.getDateCreated());
+  files.slice(BACKUP_KEEP).forEach(f => { try { f.setTrashed(true); } catch (e) {} });
+  const info = { at: nowIt_(), name: name, url: copy.getUrl(), folderUrl: folder.getUrl(), who: String(who || ''), kept: Math.min(files.length, BACKUP_KEEP) };
+  props_().setProperty('LAST_BACKUP', JSON.stringify(info));
+  props_().deleteProperty('LAST_BACKUP_ERROR');
+  log_('Backup', 'BACKUP', '', who, name);
+  return info;
+}
+/** Eseguito ogni settimana dal trigger. */
+function backupSettimanale() {
+  try { backupNow_('AUTOMATICO'); }
+  catch (e) { props_().setProperty('LAST_BACKUP_ERROR', nowIt_() + ' – ' + String(e)); throw e; }
+}
+/** Da eseguire UNA volta dall'editor: chiede l'autorizzazione e attiva il backup ogni domenica alle 3. */
+function attivaBackupSettimanale() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'backupSettimanale').forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('backupSettimanale').timeBased().onWeekDay(ScriptApp.WeekDay.SUNDAY).atHour(3).inTimezone('Europe/Rome').create();
+  props_().setProperty('BACKUP_WEEKLY', 'domenica alle 3:00');
+  const info = backupNow_('PRIMO BACKUP');
+  Logger.log('Backup settimanale attivo. Primo backup: ' + info.name + ' – ' + info.folderUrl);
+}
+function backupInfo_() {
+  let last = null; try { last = JSON.parse(props_().getProperty('LAST_BACKUP') || 'null'); } catch (e) {}
+  return { status: 'success', weekly: props_().getProperty('BACKUP_WEEKLY') || '', last: last, error: props_().getProperty('LAST_BACKUP_ERROR') || '' };
+}
+
 /** Letture: servono un account approvato (qualsiasi ruolo). Non bloccano gli altri utenti. */
 function readAction_(b) {
+  if (b.action === 'stats' || b.action === 'backupInfo' || b.action === 'backupNow') {
+    const ad = authUser_(b.token, 2);
+    if (ad.error) return ad.error;
+    if (b.action === 'stats') return stats_(ad.users);
+    if (b.action === 'backupInfo') return backupInfo_();
+    try { return { status: 'success', info: backupNow_(String(ad.user.row[U.NOME] || '')) }; }
+    catch (e) { return { status: 'error', code: 'drive', message: /permission|autorizz|authoriz/i.test(String(e)) ? 'Lo script non è ancora autorizzato a usare Google Drive: il proprietario deve eseguire "attivaBackupSettimanale" una volta.' : String(e) }; }
+  }
   const a = authUser_(b.token, 1);
   if (a.error) return a.error;
   if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
@@ -519,7 +602,7 @@ function doPost(e) {
   try { b = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
   catch (err) { return json_({ status: 'error', message: 'Richiesta non valida' }); }
   if (!teamOk_(b.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
-  if (b.action === 'data' || b.action === 'history') {
+  if (['data', 'history', 'stats', 'backupInfo', 'backupNow'].includes(b.action)) {
     try { return json_(readAction_(b)); } catch (err) { return json_({ status: 'error', message: String(err) }); }
   }
   const lock = LockService.getScriptLock();

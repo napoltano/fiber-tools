@@ -36,6 +36,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Importa posizioni da file**: il collega carica il file ricevuto in *PFS Qui → Importa posizioni → Scegli il file*, **anche offline**. Vince la posizione più recente: le correzioni fatte a mano più nuove sul suo telefono restano. Il file si apre anche in Google Earth / My Maps.
 - **Elenco per anello** con ricerca per PFS, anello o note (`NA_01 16e13` e `NA_01/16E13` sono lo stesso PFS); **Vicino a me** ordina i PFS per distanza.
 - **Mappa** con un colore per ogni anello; **Naviga** apre Google Maps con il percorso fino al PFS.
+- **Mappa offline**: *Mappa offline → Salva questa zona* salva sul telefono la zona inquadrata (fino a zoom 16, max 2.500 tasselli a zona, 8.000 in tutto). Anche le zone guardate con la rete restano salvate. Senza campo la mappa mostra le zone salvate. Si può svuotare dallo stesso pulsante.
 - **Vedere e salvare** richiede un account approvato, **eliminare** un amministratore (verificato dallo script).
 
 ### Foto GPS
@@ -63,17 +64,18 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Società**: resta salvata nell'account (colonna *SOCIETA* del foglio *Utenti*) e compare in *Gestione utenti*, dove gli amministratori possono correggerla. Agli account creati prima viene chiesta una volta sola.
 - **Ruoli**: *Proprietario* (il primo account registrato) → gestisce tutto e nomina gli amministratori; *Amministratore* → elimina ribattiture e PFS, approva e blocca i tecnici; *Tecnico* → salva.
 - **Gestione utenti**: pulsante account in alto → *Gestione utenti* (approva, rifiuta, blocca, riattiva, elimina, nomina amministratore).
+- **Statistiche e backup** (amministratori): pulsante account → *Statistiche e backup*. Ribattiture e posizioni PFS per tecnico o per società, nel periodo scelto (7 giorni, 30 giorni, mese, anno, tutto), attività giorno per giorno ed esportazione in Excel. Sotto c'è lo stato del backup e *Backup adesso*.
 - **Password dimenticata**: ci si registra di nuovo con la stessa email; la nuova password si attiva dopo l'approvazione (fino ad allora vale quella vecchia).
 - I controlli li fa lo **script Google**, non il telefono: le password sono salvate solo come impronta con sale (foglio *Utenti*), gli accessi sono firmati e un account bloccato smette di funzionare subito. Il proprietario può correggere stato e ruolo anche a mano nel foglio *Utenti*.
 
 ## Script Google Sheets
 
-Lo script ([`apps-script/Code.gs`](apps-script/Code.gs), versione 5) gestisce ribattiture, posizioni PFS, foto, storico e account.
+Lo script ([`apps-script/Code.gs`](apps-script/Code.gs), versione 6) gestisce ribattiture, posizioni PFS, foto, storico, account, statistiche e backup.
 
 1. Apri il foglio Google collegato all'app → **Estensioni → Apps Script**.
 2. Sostituisci il contenuto di `Code.gs` con quello del repository e salva.
 3. **Esegui il deployment → Gestisci deployment** → modifica (✏️) il deployment esistente → *Versione*: **Nuova versione** → **Esegui il deployment** (Esegui come: *Me*, Accesso: *Chiunque*). Così l'indirizzo resta lo stesso.
-4. Per le **foto** lo script deve poter usare Google Drive: la prima volta Google chiede di autorizzarlo.
+4. Per le **foto** e il **backup** lo script deve poter usare Google Drive: nell'editor scegli la funzione `attivaBackupSettimanale` → **Esegui** e autorizza. Così parte il primo backup e da lì una copia del foglio ogni domenica alle 3, nella cartella Drive **Fiber Tools Backup** (restano le ultime 8).
 
 Fogli creati in automatico: **Ribattiture**, **PFS_Posizioni**, **Storico**, **Utenti**. Le foto vanno nella cartella Drive **Fiber Tools Foto**.
 
@@ -85,7 +87,7 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v5 (archivio riservato + account)
+apps-script/Code.gs     script Google Sheets v6 (archivio riservato, account, statistiche, backup)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.

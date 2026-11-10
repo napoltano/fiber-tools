@@ -824,6 +824,34 @@
     .scan-last { text-align: center; font-family: ui-monospace, Menlo, monospace; font-weight: 700; font-size: 1.05rem; min-height: 1.4em; margin-bottom: 10px; }
     .scan-msg { position: absolute; left: 16px; right: 16px; top: 42%; transform: translateY(-50%); text-align: center; z-index: 3; font-weight: 700; padding: 0 10px; }
 
+    /* ---------- Statistiche ---------- */
+    .st-periods { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .st-periods button { font: inherit; font-size: .78rem; font-weight: 800; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+    .st-periods button.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .st-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .st-kpi { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; }
+    .st-kpi b { display: block; font-size: 1.6rem; font-weight: 900; letter-spacing: -.5px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .st-kpi span { font-size: .74rem; font-weight: 700; color: var(--muted); }
+    .st-days { display: flex; align-items: flex-end; gap: 3px; height: 90px; padding: 6px 0 0; }
+    .st-days i { flex: 1; background: color-mix(in srgb, var(--primary) 75%, transparent); border-radius: 4px 4px 0 0; min-height: 2px; transition: height .4s var(--ease); }
+    .st-days i.zero { background: var(--border); }
+    .st-axis { display: flex; justify-content: space-between; font-size: .66rem; color: var(--muted); font-weight: 700; margin-top: 4px; }
+    .st-row { padding: 10px 0; border-top: 1px solid var(--border); }
+    .st-row:first-child { border-top: 0; }
+    .st-row-head { display: flex; gap: 8px; align-items: baseline; }
+    .st-row-head b { font-size: .88rem; }
+    .st-row-head small { color: var(--muted); font-weight: 700; font-size: .72rem; }
+    .st-row-head .st-tot { margin-left: auto; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .st-bar { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; display: flex; margin: 6px 0 4px; }
+    .st-bar span { display: block; height: 100%; }
+    .st-detail { font-size: .72rem; color: var(--muted); font-weight: 700; display: flex; gap: 10px; flex-wrap: wrap; }
+    .st-detail i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+    .st-empty { text-align: center; color: var(--muted); font-weight: 700; font-size: .85rem; padding: 18px 0; }
+    .bk-line { font-size: .84rem; font-weight: 700; line-height: 1.5; }
+    .bk-line small { color: var(--muted); font-weight: 600; display: block; }
+    .bk-warn { color: #b45309; }
+    [data-theme="dark"] .bk-warn { color: #fcd34d; }
+
     /* ---------- Foto GPS ---------- */
     .geocam { position: fixed; inset: 0; z-index: 97; background: #000; color: #fff; display: flex; flex-direction: column; animation: fadeIn 0.2s var(--ease); overflow: hidden; }
     .geocam video#gcVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -996,6 +1024,12 @@
     .map-msg:not(:empty) { position: absolute; left: 10px; right: 10px; top: 10px; z-index: 500; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 0.78rem; font-weight: 700; }
     .map-locate { position: absolute; right: 10px; bottom: 24px; z-index: 500; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--primary); display: grid; place-items: center; box-shadow: var(--shadow); }
     .map-locate svg { width: 22px; height: 22px; }
+    .map-offline { position: absolute; left: 10px; bottom: 24px; z-index: 500; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: .78rem; font-weight: 800; box-shadow: var(--shadow); }
+    .map-offline svg { width: 17px; height: 17px; color: var(--primary); }
+    .map-offline .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+    .tile-prog { height: 10px; border-radius: 999px; background: var(--border); overflow: hidden; margin: 10px 0 6px; }
+    .tile-prog span { display: block; height: 100%; width: 0; background: var(--primary); transition: width .2s; }
     .map-pop { font-family: inherit; min-width: 150px; }
     .map-pop .btn-nav { margin-top: 8px; }
     .leaflet-container { font: inherit; }
@@ -1679,6 +1713,34 @@
       <div id="usersList"></div>
     </section>
 
+    <!-- ================= STATISTICHE (admin) ================= -->
+    <section id="statsScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+      <div class="controls-card">
+        <div class="section-title"><span>Periodo</span><span class="count-pill" id="stRange">—</span></div>
+        <div class="st-periods" id="stPeriods">
+          <button type="button" data-p="7">7 giorni</button><button type="button" data-p="30" class="on">30 giorni</button><button type="button" data-p="month">Questo mese</button><button type="button" data-p="year">Quest’anno</button><button type="button" data-p="all">Tutto</button>
+        </div>
+        <div class="row-3">
+          <div class="field-group"><label class="field-label" for="stSoc">Società</label><select id="stSoc" class="custom-select"><option value="">Tutte</option></select></div>
+          <div class="field-group"><label class="field-label" for="stGroup">Raggruppa per</label><select id="stGroup" class="custom-select"><option value="tec">Tecnico</option><option value="soc">Società</option></select></div>
+        </div>
+        <div class="row-3" style="margin-top:4px">
+          <button type="button" class="btn-secondary" id="stReload" style="margin:0"><svg><use href="#i-sync"/></svg> Aggiorna</button>
+          <button type="button" class="btn-secondary" id="stExport" style="margin:0"><svg><use href="#i-table"/></svg> Excel</button>
+        </div>
+      </div>
+      <div id="stBody"><div class="st-empty">Caricamento…</div></div>
+      <div class="controls-card" id="bkCard">
+        <div class="section-title"><span>Backup del foglio Google</span><svg width="18" height="18" style="color:var(--primary)"><use href="#i-cloud"/></svg></div>
+        <div id="bkInfo" class="bk-line">—</div>
+        <div class="row-3" style="margin-top:10px">
+          <button type="button" class="btn-secondary" id="bkNow" style="margin:0"><svg><use href="#i-save"/></svg> Backup adesso</button>
+          <button type="button" class="btn-secondary" id="bkOpen" style="margin:0" disabled><svg><use href="#i-folder"/></svg> Apri cartella</button>
+        </div>
+      </div>
+    </section>
+
     <!-- ================= PFS QUI ================= -->
     <section id="pfsPosScreen" class="screen">
       <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
@@ -1750,6 +1812,7 @@
         <div id="posMap"></div>
         <div class="map-msg" id="posMapMsg"></div>
         <button type="button" class="map-locate" id="posLocateMap" aria-label="La mia posizione"><svg><use href="#i-target"/></svg></button>
+        <button type="button" class="map-offline" id="posOfflineBtn"><svg><use href="#i-download"/></svg> Mappa offline</button>
       </div>
       <div id="posList" data-need-login></div>
     </section>
@@ -2068,6 +2131,7 @@
       else if (screenId === 'fibercopScreen') { renderFcColors(); updateFiberCop(); }
       else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
       else if (screenId === 'usersScreen') loadUsers();
+      else if (screenId === 'statsScreen') { loadStats(); loadBackupInfo(); }
       else if (screenId === 'pfsPosScreen') { renderPositions(); syncFromGoogleSheets(true); }
       else if (screenId === 'barcodeScreen') {
         renderBarcode(false); renderRecentBarcodes();
@@ -4054,6 +4118,94 @@
       shareText(text, `Posizione PFS ${it.pfs}`);
     }
 
+
+    /* ---------- Mappa offline: zone salvate sul telefono ---------- */
+    const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const TILE_CACHE = 'fiber-tiles-v1', TILE_LIMIT = 8000, ZONE_LIMIT = 2500, ZONE_MAXZ = 16;
+    const ZONES_KEY = 'fiber_tools_offline_zones';
+    const lon2x = (lon, z) => Math.floor((lon + 180) / 360 * 2 ** z);
+    const lat2y = (lat, z) => { const r = lat * Math.PI / 180; return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * 2 ** z); };
+    function tilesForBounds(b, zFrom, zTo) {
+      const out = [];
+      for (let z = zFrom; z <= zTo; z++) {
+        const x0 = lon2x(b.getWest(), z), x1 = lon2x(b.getEast(), z), y0 = lat2y(b.getNorth(), z), y1 = lat2y(b.getSouth(), z);
+        for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) out.push(`https://tile.openstreetmap.org/${z}/${x}/${y}.png`);
+      }
+      return out;
+    }
+    function zonePlan() {
+      const b = map.getBounds().pad(0.35), z = Math.round(map.getZoom());   // un po' di margine: la mappa carica anche i bordi
+      const zFrom = Math.max(8, Math.min(z, ZONE_MAXZ) - 3);
+      let zTo = ZONE_MAXZ, list = tilesForBounds(b, zFrom, zTo);
+      while (list.length > ZONE_LIMIT && zTo > zFrom) { zTo--; list = tilesForBounds(b, zFrom, zTo); }
+      return { list, zFrom, zTo, tooBig: list.length > ZONE_LIMIT, bounds: b };
+    }
+    const getZones = () => { try { return JSON.parse(lsGet(ZONES_KEY, '[]')) || []; } catch (e) { return []; } };
+    async function tileCount() { try { return (await (await caches.open(TILE_CACHE)).keys()).length; } catch (e) { return 0; } }
+    let tileDl = null;
+    async function openOfflineMap() {
+      if (!map) return;
+      if (!('caches' in window)) { toast('Questo browser non può salvare la mappa offline.', 'error'); return; }
+      const plan = zonePlan(), saved = await tileCount(), zones = getZones();
+      const est = (plan.list.length * 0.018).toFixed(0);   // ~18 KB a tassello
+      let choice = null;
+      const ok = await openModal({
+        title: 'Mappa offline',
+        bodyHtml: `<p class="small" style="margin-bottom:10px">Salva sul telefono la zona che vedi ora, così la mappa funziona anche senza campo. Inquadra solo l’area in cui lavori (un comune o qualche quartiere).</p>
+          ${plan.tooBig ? `<div class="form-msg err">La zona inquadrata è troppo grande: avvicinati con lo zoom e riprova.</div>`
+            : `<div class="form-msg info">Zona attuale: <b>${plan.list.length.toLocaleString('it-IT')}</b> tasselli, circa <b>${est} MB</b> (zoom ${plan.zFrom}–${plan.zTo}).${plan.zTo < ZONE_MAXZ ? ' Per il dettaglio delle strade avvicinati un po’.' : ''}</div>`}
+          <div class="tile-prog" id="tileProg" hidden><span></span></div><div class="small" id="tileProgTxt"></div>
+          <p class="small" style="color:var(--muted);margin-top:10px">Già salvati: ${saved.toLocaleString('it-IT')} tasselli su ${TILE_LIMIT.toLocaleString('it-IT')}${zones.length ? ` · zone: ${zones.map(z => escapeHtml(z.name)).join(', ')}` : ''}. Le zone che guardi con la rete restano salvate da sole.</p>
+          ${saved ? '<button type="button" class="btn-secondary" data-choice="clear" style="margin-top:6px"><svg><use href="#i-eraser"/></svg> Svuota la mappa offline</button>' : ''}`,
+        okText: plan.tooBig ? 'Chiudi' : 'Salva questa zona', cancelText: 'Annulla',
+        onOpen: () => $('modalBody').querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => { choice = b.dataset.choice; closeModal(false); }))
+      });
+      if (choice === 'clear') {
+        if (await confirmBox('Svuota mappa offline', 'Tolgo dal telefono tutte le zone di mappa salvate? Con la rete si ricaricano quando servono.', 'Svuota')) {
+          await caches.delete(TILE_CACHE); lsSet(ZONES_KEY, '[]'); toast('Mappa offline svuotata.');
+        }
+        return;
+      }
+      if (!ok || plan.tooBig) return;
+      if (navigator.onLine === false) { toast('Serve la connessione per scaricare la zona.', 'error'); return; }
+      if (saved + plan.list.length > TILE_LIMIT) { toast('Spazio mappa pieno: svuota la mappa offline e salva solo le zone che ti servono.', 'error', 5000); return; }
+      downloadZone(plan);
+    }
+    async function downloadZone(plan) {
+      if (tileDl) { toast('Sto già salvando una zona.', 'info'); return; }
+      const cache = await caches.open(TILE_CACHE);
+      const btn = $('posOfflineBtn'); tileDl = { stop: false };
+      let done = 0, fail = 0; const list = plan.list.slice();
+      const upd = () => { btn.innerHTML = `<svg><use href="#i-download"/></svg> ${Math.round(done / list.length * 100)}% · tocca per fermare`; };
+      upd();
+      let next = 0;
+      const worker = async () => {
+        while (!tileDl.stop) {
+          const i = next++; if (i >= list.length) return;
+          const u = list[i];
+          try {
+            if (!(await cache.match(u))) {
+              const r = await fetch(u, { mode: 'cors', credentials: 'omit' });
+              if (!r.ok) throw new Error(r.status);
+              await cache.put(u, r);
+            }
+            done++;
+          } catch (e) { fail++; }
+          if ((done + fail) % 10 === 0) upd();
+        }
+      };
+      await Promise.all([worker(), worker()]);   // due download alla volta, per rispetto del server OpenStreetMap
+      const stopped = tileDl.stop; tileDl = null;
+      btn.innerHTML = '<svg><use href="#i-download"/></svg> Mappa offline';
+      if (done) {
+        const c = map.getCenter(); let name = `${c.lat.toFixed(3)}, ${c.lng.toFixed(3)}`;
+        try { const a = await gcGeocode(c.lat, c.lng); name = a.city || name; } catch (e) {}
+        const zones = getZones().filter(z => z.name !== name); zones.push({ name, at: new Date().toLocaleDateString('it-IT'), n: done });
+        lsSet(ZONES_KEY, JSON.stringify(zones.slice(-20)));
+      }
+      toast(stopped ? `Salvataggio fermato: ${done} tasselli salvati.` : fail ? `Zona salvata: ${done} tasselli (${fail} non scaricati, riprova con più campo).` : `Zona salvata per l’uso offline (${done} tasselli).`, fail && !done ? 'error' : 'success', 4500);
+    }
+
     /* ---------- Mappa (Leaflet + OpenStreetMap) ---------- */
     function loadLeaflet() {
       if (window.L) return Promise.resolve(window.L);
@@ -4073,8 +4225,8 @@
       try { L = await loadLeaflet(); } catch (e) { $('posMapMsg').textContent = 'Impossibile caricare la mappa.'; return; }
       if (!map) {
         map = L.map('posMap', { zoomControl: true, attributionControl: true, preferCanvas: true }).setView([40.85, 14.27], 11);
-        const tiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
-        tiles.on('tileerror', () => { $('posMapMsg').textContent = navigator.onLine === false ? 'Senza rete la mappa non si carica: usa l’elenco e "Naviga".' : ''; });
+        const tiles = L.tileLayer(TILE_URL, { maxZoom: 19, crossOrigin: true, attribution: '© OpenStreetMap' }).addTo(map);
+        tiles.on('tileerror', () => { $('posMapMsg').textContent = navigator.onLine === false ? 'Senza rete vedi solo le zone della mappa già salvate: usa "Mappa offline" quando hai campo.' : ''; });
         tiles.on('load', () => { $('posMapMsg').textContent = ''; });
         mapLayer = L.layerGroup().addTo(map);
       }
@@ -4157,6 +4309,7 @@
 
       // PFS Qui
       $('posSearch').addEventListener('input', renderPositions);
+      $('posOfflineBtn').addEventListener('click', () => { if (tileDl) { tileDl.stop = true; return; } openOfflineMap(); });
       $('posPfs').addEventListener('input', () => {
         setInvalid('posPfs', '');
         if (!$('posAnello').dataset.touched) $('posAnello').value = anelloFrom($('posPfs').value);
@@ -4783,6 +4936,7 @@
         bodyHtml: `${accountCardHtml()}${statusLine}
           <div class="opt-list" style="margin-top:12px">
             ${admin ? `<button type="button" class="btn-secondary" data-choice="users"><svg><use href="#i-user"/></svg> Gestione utenti${accountPending ? ` <span class="count-pill" style="margin-left:auto">${accountPending} da approvare</span>` : ''}</button>` : ''}
+            ${admin ? `<button type="button" class="btn-secondary" data-choice="stats"><svg><use href="#i-table"/></svg> Statistiche e backup</button>` : ''}
             ${account.stato === 'attivo' ? `<button type="button" class="btn-secondary" data-choice="soc"><svg><use href="#i-user"/></svg> ${account.societa ? 'Cambia società' : 'Indica la tua società'}</button>` : ''}
             <button type="button" class="btn-secondary" data-choice="pwd"><svg><use href="#i-lock"/></svg> Cambia password</button>
             <button type="button" class="btn-secondary" data-choice="logout"><svg><use href="#i-back"/></svg> Esci</button>
@@ -4793,6 +4947,7 @@
       await done;
       $('modalOk').hidden = false;
       if (choice === 'users') openScreen('usersScreen', 'Gestione utenti', 'Approvazioni e ruoli');
+      else if (choice === 'stats') openScreen('statsScreen', 'Statistiche', 'Attività per tecnico e società');
       else if (choice === 'pwd') changePassword();
       else if (choice === 'soc') askSocieta(true);
       else if (choice === 'logout') {
@@ -5096,6 +5251,149 @@
       });
 
       window.addEventListener('resize', () => document.querySelectorAll('.pfs-mode-selector').forEach(positionSeg));
+    }
+
+
+    /* ================= Statistiche e backup (amministratori) ================= */
+    const ST_CATS = [
+      ['ribNew', 'Ribattiture nuove', '#3b82f6'], ['ribMod', 'Ribattiture modificate', '#8b5cf6'],
+      ['posNew', 'Posizioni PFS nuove', '#10b981'], ['posMod', 'Posizioni modificate', '#14b8a6'],
+      ['imp', 'Importazioni', '#f59e0b'], ['ribDel', 'Ribattiture eliminate', '#ef4444'], ['posDel', 'Posizioni eliminate', '#f97316']
+    ];
+    let stData = null, stPeriod = '30';
+    const isoDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const itDay = iso => iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : '';
+    function stRangeOf(p) {
+      const now = new Date(), to = isoDay(now);
+      if (p === 'all') return { from: '', to };
+      if (p === 'month') return { from: isoDay(new Date(now.getFullYear(), now.getMonth(), 1)), to };
+      if (p === 'year') return { from: `${now.getFullYear()}-01-01`, to };
+      const d = new Date(now); d.setDate(d.getDate() - (Number(p) - 1)); return { from: isoDay(d), to };
+    }
+    async function loadStats() {
+      if (!isAdminRole()) { $('stBody').innerHTML = '<div class="st-empty">Le statistiche sono riservate agli amministratori.</div>'; return; }
+      $('stBody').innerHTML = '<div class="st-empty">Caricamento…</div>';
+      try {
+        const d = await accountCall({ action: 'stats', token: account.token });
+        if (d.status !== 'success') throw new Error(d.message);
+        stData = d;
+        const socs = [...new Set(Object.values(d.societa || {}).filter(Boolean))].sort();
+        const cur = $('stSoc').value;
+        $('stSoc').innerHTML = '<option value="">Tutte</option>' + socs.map(x => `<option${x === cur ? ' selected' : ''}>${escapeHtml(x)}</option>`).join('') + '<option value="__none">Senza società</option>';
+        renderStats();
+      } catch (e) { $('stBody').innerHTML = `<div class="st-empty">${escapeHtml(e instanceof AuthError ? e.message : accountError(e))}</div>`; }
+    }
+    function stFiltered() {
+      if (!stData) return [];
+      const { from, to } = stRangeOf(stPeriod), soc = $('stSoc').value, so = stData.societa || {};
+      return stData.rows.filter(r => (!from || r[0] >= from) && r[0] <= to)
+        .filter(r => !soc || (soc === '__none' ? !so[r[1]] : so[r[1]] === soc))
+        .map(r => ({ day: r[0], tec: r[1] || '—', soc: so[r[1]] || '', cat: r[2], n: r[3] }));
+    }
+    function renderStats() {
+      if (!stData) return;
+      const rows = stFiltered(), { from, to } = stRangeOf(stPeriod);
+      $('stRange').textContent = from ? `${itDay(from)} – ${itDay(to)}` : 'Tutto';
+      const tot = c => rows.filter(r => r.cat === c).reduce((s, r) => s + r.n, 0);
+      const tecs = new Set(rows.map(r => r.tec));
+      let html = `<div class="st-kpis">
+        <div class="st-kpi"><b>${tot('ribNew')}</b><span>Ribattiture nuove</span></div>
+        <div class="st-kpi"><b>${tot('ribMod')}</b><span>Ribattiture modificate</span></div>
+        <div class="st-kpi"><b>${tot('posNew') + tot('posMod')}</b><span>Posizioni PFS salvate</span></div>
+        <div class="st-kpi"><b>${tecs.size}</b><span>Tecnici attivi</span></div></div>`;
+      // attività giorno per giorno (al massimo gli ultimi 60 giorni del periodo)
+      const days = [];
+      const end = new Date(); let start = from ? new Date(from + 'T00:00:00') : new Date(Math.min(...rows.map(r => +new Date(r.day + 'T00:00:00')), +end));
+      if ((end - start) / 864e5 > 59) { start = new Date(end); start.setDate(end.getDate() - 59); }
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) days.push(isoDay(d));
+      const perDay = {}; rows.forEach(r => { perDay[r.day] = (perDay[r.day] || 0) + r.n; });
+      const maxD = Math.max(1, ...days.map(d => perDay[d] || 0));
+      html += `<div class="controls-card"><div class="section-title"><span>Attività per giorno</span><span class="count-pill">max ${maxD}</span></div>
+        <div class="st-days">${days.map(d => `<i class="${perDay[d] ? '' : 'zero'}" style="height:${Math.round((perDay[d] || 0) / maxD * 100)}%" title="${itDay(d)}: ${perDay[d] || 0}"></i>`).join('')}</div>
+        <div class="st-axis"><span>${itDay(days[0])}</span><span>${itDay(days[days.length - 1])}</span></div></div>`;
+      // classifica
+      const by = $('stGroup').value, groups = {};
+      rows.forEach(r => {
+        const k = by === 'soc' ? (r.soc || 'Senza società') : r.tec;
+        const g = groups[k] = groups[k] || { k, soc: r.soc, tot: 0, c: {} };
+        g.c[r.cat] = (g.c[r.cat] || 0) + r.n; g.tot += r.n;
+      });
+      const list = Object.values(groups).sort((a, b) => b.tot - a.tot);
+      const maxT = Math.max(1, ...list.map(g => g.tot));
+      html += `<div class="controls-card"><div class="section-title"><span>${by === 'soc' ? 'Per società' : 'Per tecnico'}</span><span class="count-pill">${list.length}</span></div>`;
+      html += list.length ? list.map(g => `<div class="st-row">
+          <div class="st-row-head"><b>${escapeHtml(g.k)}</b>${by === 'tec' && g.soc ? `<small>${escapeHtml(g.soc)}</small>` : ''}<span class="st-tot">${g.tot}</span></div>
+          <div class="st-bar" style="width:${Math.max(6, g.tot / maxT * 100)}%">${ST_CATS.filter(c => g.c[c[0]]).map(c => `<span style="flex:${g.c[c[0]]};background:${c[2]}"></span>`).join('')}</div>
+          <div class="st-detail">${ST_CATS.filter(c => g.c[c[0]]).map(c => `<span><i style="background:${c[2]}"></i>${c[1]} ${g.c[c[0]]}</span>`).join('')}</div>
+        </div>`).join('') : '<div class="st-empty">Nessuna attività in questo periodo.</div>';
+      html += '</div>';
+      // archivio attuale
+      const ar = stData.archivio || {}, so = stData.societa || {};
+      const names = [...new Set([...Object.keys(ar.ribattiture || {}), ...Object.keys(ar.posizioni || {})])]
+        .filter(n => n !== 'GOOGLE MY MAPS' && (!$('stSoc').value || ($('stSoc').value === '__none' ? !so[n] : so[n] === $('stSoc').value)))
+        .sort((a, b) => ((ar.ribattiture[b] || 0) + (ar.posizioni[b] || 0)) - ((ar.ribattiture[a] || 0) + (ar.posizioni[a] || 0)));
+      html += `<div class="controls-card"><div class="section-title"><span>Archivio attuale (ultimo che ha salvato)</span></div>
+        ${names.length ? names.slice(0, 30).map(n => `<div class="st-row"><div class="st-row-head"><b>${escapeHtml(n)}</b>${so[n] ? `<small>${escapeHtml(so[n])}</small>` : ''}</div>
+          <div class="st-detail"><span>Splitter ribattuti ${ar.ribattiture[n] || 0}</span><span>Posizioni PFS ${ar.posizioni[n] || 0}</span></div></div>`).join('') : '<div class="st-empty">Nessun dato.</div>'}
+        ${ar.posizioni && ar.posizioni['GOOGLE MY MAPS'] ? `<p class="small" style="color:var(--muted);margin-top:8px">${ar.posizioni['GOOGLE MY MAPS']} posizioni importate da Google My Maps.</p>` : ''}</div>`;
+      $('stBody').innerHTML = html;
+    }
+    function exportStats() {
+      const rows = stFiltered();
+      if (!rows.length) { toast('Niente da esportare in questo periodo.', 'error'); return; }
+      const cell = v => { let x = String(v ?? ''); if (/^[=+@-]/.test(x)) x = "'" + x; return /[";\n\r]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
+      const key = {}; rows.forEach(r => { const k = r.day + '|' + r.tec; (key[k] = key[k] || { day: r.day, tec: r.tec, soc: r.soc, c: {} }).c[r.cat] = (key[k].c[r.cat] || 0) + r.n; });
+      const out = [['DATA', 'TECNICO', 'SOCIETÀ', ...ST_CATS.map(c => c[1].toUpperCase()), 'TOTALE']];
+      Object.values(key).sort((a, b) => a.day < b.day ? -1 : a.day > b.day ? 1 : a.tec.localeCompare(b.tec)).forEach(g => {
+        const v = ST_CATS.map(c => g.c[c[0]] || 0); out.push([itDay(g.day), g.tec, g.soc, ...v, v.reduce((s, x) => s + x, 0)]);
+      });
+      const { from, to } = stRangeOf(stPeriod);
+      downloadBlob(new Blob(['﻿' + out.map(r => r.map(cell).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), `Statistiche_FiberTools_${from || 'inizio'}_${to}.csv`);
+      toast('File Excel scaricato.');
+    }
+
+    let bkFolderUrl = '';
+    async function loadBackupInfo() {
+      if (!isAdminRole()) { $('bkCard').hidden = true; return; }
+      $('bkCard').hidden = false;
+      $('bkInfo').innerHTML = 'Controllo…';
+      try {
+        const d = await accountCall({ action: 'backupInfo', token: account.token });
+        if (d.status !== 'success') throw new Error(d.message);
+        renderBackupInfo(d);
+      } catch (e) { $('bkInfo').textContent = e instanceof AuthError ? e.message : accountError(e); }
+    }
+    function renderBackupInfo(d) {
+      const last = d.last;
+      bkFolderUrl = last && last.folderUrl || '';
+      $('bkOpen').disabled = !bkFolderUrl;
+      const weekly = d.weekly ? `✅ Automatico ogni settimana (${escapeHtml(d.weekly)}), restano le ultime 8 copie in Google Drive` : `<span class="bk-warn">⚠️ Backup automatico non ancora attivo: il proprietario deve attivarlo una volta dallo script.</span>`;
+      $('bkInfo').innerHTML = `${weekly}
+        <small>${last ? `Ultimo backup: ${escapeHtml(last.at)} · ${escapeHtml(last.who || '')}` : 'Nessun backup fatto finora.'}</small>
+        ${d.error ? `<small class="bk-warn">Ultimo errore: ${escapeHtml(d.error)}</small>` : ''}`;
+    }
+    async function backupNow() {
+      const btn = $('bkNow'); btn.disabled = true;
+      toast('Backup in corso…', 'info', 2000);
+      try {
+        const d = await accountCall({ action: 'backupNow', token: account.token });
+        if (d.status !== 'success') throw new Error(d.message);
+        toast('Backup fatto: copia del foglio salvata in Google Drive.');
+        loadBackupInfo();
+      } catch (e) { toast(e instanceof AuthError ? e.message : accountError(e), 'error', 6000); }
+      finally { btn.disabled = false; }
+    }
+    function initStats() {
+      $('stPeriods').addEventListener('click', e => {
+        const b = e.target.closest('[data-p]'); if (!b) return;
+        stPeriod = b.dataset.p; $('stPeriods').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); renderStats();
+      });
+      $('stSoc').addEventListener('change', renderStats);
+      $('stGroup').addEventListener('change', renderStats);
+      $('stReload').addEventListener('click', () => { loadStats(); loadBackupInfo(); });
+      $('stExport').addEventListener('click', exportStats);
+      $('bkNow').addEventListener('click', backupNow);
+      $('bkOpen').addEventListener('click', () => { if (bkFolderUrl) window.open(bkFolderUrl, '_blank', 'noopener'); });
     }
 
     /* ================= Foto GPS: foto e video con indirizzo e coordinate ================= */
@@ -5547,6 +5845,7 @@
       loadScriptVersion();
       initV3();
       initGeoCam();
+      initStats();
       history.replaceState({}, '', location.pathname + location.search);
     });
   </script>

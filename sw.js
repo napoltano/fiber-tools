@@ -1,6 +1,9 @@
 /* Service worker di Fiber Tools: rende l'app utilizzabile offline.
    Quando modifichi i file dell'app, aumenta VERSION per forzare l'aggiornamento. */
-const VERSION = 'fiber-tools-v9';
+const VERSION = 'fiber-tools-v10';
+// mappa offline: i tasselli OpenStreetMap restano tra un aggiornamento e l'altro
+const TILE_CACHE = 'fiber-tiles-v1';
+const TILE_MAX = 8000;
 const ASSETS = [
   './',
   './index.html',
@@ -23,7 +26,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== TILE_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -31,6 +34,12 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
+
+  // Mappa: prima i tasselli salvati (funziona offline), poi la rete.
+  if (req.method === 'GET' && url.hostname === 'tile.openstreetmap.org') {
+    event.respondWith(tileFromCache(req, url));
+    return;
+  }
 
   // Google Sheets e qualsiasi altro sito esterno: sempre in rete, mai dalla cache.
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
@@ -57,3 +66,25 @@ self.addEventListener('fetch', event => {
     }))
   );
 });
+
+let tilePuts = 0;
+async function tileFromCache(req, url) {
+  const cache = await caches.open(TILE_CACHE);
+  const key = url.origin + url.pathname;            // stessa chiave anche per richieste diverse dello stesso tassello
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  try {
+    const res = await fetch(req);
+    if (res.ok && res.type !== 'opaque') {
+      await cache.put(key, res.clone());
+      if (++tilePuts % 200 === 0) trimTiles(cache);
+    }
+    return res;
+  } catch (e) {
+    return new Response('', { status: 504, statusText: 'offline' });
+  }
+}
+async function trimTiles(cache) {
+  const keys = await cache.keys();
+  if (keys.length > TILE_MAX) await Promise.all(keys.slice(0, keys.length - TILE_MAX).map(k => cache.delete(k)));
+}

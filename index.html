@@ -951,19 +951,6 @@
     .folder-stats .warn { color: #b45309; border-color: color-mix(in srgb, #f59e0b 45%, var(--border)); }
     .btn-xs.pos-chip { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
 
-    /* Budget ottico */
-    .bg-total { font-size: 2.3rem; font-weight: 900; letter-spacing: -1px; line-height: 1.05; font-variant-numeric: tabular-nums; }
-    .bg-total small { font-size: 1rem; color: var(--muted); font-weight: 800; }
-    .bg-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; margin: 10px 0 6px; background: var(--border); gap: 2px; }
-    .bg-bar span { transition: flex 0.45s var(--ease); min-width: 3px; }
-    .bg-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.7rem; color: var(--muted); font-weight: 700; }
-    .bg-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
-    .bg-legend b { color: var(--text); }
-    .bg-verdict { margin-top: 10px; font-size: 0.82rem; font-weight: 800; padding: 9px 12px; border-radius: 10px; line-height: 1.35; animation: fadeUp 0.3s var(--ease); }
-    .bg-verdict.ok { background: color-mix(in srgb, #10b981 14%, var(--card)); color: color-mix(in srgb, #047857 80%, var(--text)); }
-    .bg-verdict.warn { background: color-mix(in srgb, #f59e0b 16%, var(--card)); color: color-mix(in srgb, #92400e 80%, var(--text)); }
-    .bg-verdict.bad { background: color-mix(in srgb, #ef4444 14%, var(--card)); color: color-mix(in srgb, #b91c1c 85%, var(--text)); }
-    [data-theme="dark"] .bg-verdict.ok { color: #6ee7b7; } [data-theme="dark"] .bg-verdict.warn { color: #fcd34d; } [data-theme="dark"] .bg-verdict.bad { color: #fca5a5; }
     .row-3 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 
     .adv-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; animation: riseIn 0.5s var(--ease) both 0.05s; }
@@ -1328,22 +1315,13 @@
           <span class="badge-num">07</span>
         </button>
 
-        <button class="btn-main" type="button" style="--i:7" data-open="budgetScreen" data-title="Budget Ottico" data-sub="Attenuazione e verifica potenza">
-          <div class="tile-icon t-orange"><svg><use href="#i-gauge"/></svg></div>
-          <div class="btn-main-content">
-            <span class="btn-title">Budget</span>
-            <span class="btn-desc">Attenuazione e dBm</span>
-          </div>
-          <span class="badge-num">08</span>
-        </button>
-
-        <button class="btn-main" type="button" style="--i:8" id="geoCamBtn">
+        <button class="btn-main" type="button" style="--i:7" id="geoCamBtn">
           <div class="tile-icon t-pink"><svg><use href="#i-camera"/></svg></div>
           <div class="btn-main-content">
             <span class="btn-title">Foto GPS</span>
             <span class="btn-desc">Foto e video con indirizzo</span>
           </div>
-          <span class="badge-num">09</span>
+          <span class="badge-num">08</span>
         </button>
       </div>
 
@@ -1688,97 +1666,6 @@
         </div>
         <div class="chip-row" id="bcRecent"></div>
       </div>
-    </section>
-
-    <!-- ================= BUDGET OTTICO ================= -->
-    <section id="budgetScreen" class="screen">
-      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
-
-      <div class="search-result-card" id="bgCard">
-        <div class="result-info" style="flex:1">
-          <div class="result-title">Attenuazione totale prevista</div>
-          <div class="bg-total"><span id="bgTotal">0,00</span> <small>dB</small></div>
-          <div class="result-subtext">Potenza attesa all’ONT: <b id="bgRx">—</b></div>
-          <div class="bg-bar" id="bgBar"></div>
-          <div class="bg-legend" id="bgLegend"></div>
-          <div class="bg-verdict" id="bgVerdict"></div>
-        </div>
-      </div>
-
-      <div class="controls-card">
-        <div class="section-title"><span>Tratta</span></div>
-        <div class="row-fields">
-          <div class="field-group">
-            <label class="field-label" for="bgKm">Lunghezza (km)</label>
-            <input type="text" inputmode="decimal" id="bgKm" class="custom-input" placeholder="es. 2,5">
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="bgWave">Lunghezza d’onda</label>
-            <select id="bgWave" class="custom-select">
-              <option value="1310">1310 nm</option>
-              <option value="1490" selected>1490 nm (GPON down)</option>
-              <option value="1550">1550 nm</option>
-              <option value="custom">Personalizzata</option>
-            </select>
-          </div>
-        </div>
-        <div class="row-fields">
-          <div class="field-group">
-            <label class="field-label" for="bgSplices">N° giunti</label>
-            <input type="text" inputmode="numeric" id="bgSplices" class="custom-input" value="2">
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="bgConn">N° connettori</label>
-            <input type="text" inputmode="numeric" id="bgConn" class="custom-input" value="2">
-          </div>
-        </div>
-        <div class="row-fields">
-          <div class="field-group">
-            <label class="field-label" for="bgSpl1">Splitter 1° livello</label>
-            <select id="bgSpl1" class="custom-select"><option value="0">Nessuno</option><option value="2">1:2</option><option value="4">1:4</option><option value="8">1:8</option><option value="16">1:16</option><option value="32">1:32</option><option value="64">1:64</option></select>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="bgSpl2">Splitter 2° livello</label>
-            <select id="bgSpl2" class="custom-select"><option value="0">Nessuno</option><option value="2">1:2</option><option value="4">1:4</option><option value="8">1:8</option><option value="16">1:16</option><option value="32">1:32</option><option value="64">1:64</option></select>
-          </div>
-        </div>
-      </div>
-
-      <div class="controls-card">
-        <div class="section-title"><span>Verifica misura power meter</span></div>
-        <div class="field-group">
-          <label class="field-label" for="bgMeasured">Potenza misurata (dBm) – il segno meno è automatico</label>
-          <input type="text" inputmode="decimal" id="bgMeasured" class="custom-input" placeholder="es. 21,5">
-        </div>
-        <div class="bg-verdict" id="bgMeasureResult" hidden></div>
-      </div>
-
-      <details class="adv-card">
-        <summary><svg><use href="#i-gear"/></svg> Valori tecnici (modificabili) <svg class="chev-r"><use href="#i-down"/></svg></summary>
-        <div class="adv-body">
-          <div class="row-3">
-            <div class="field-group"><label class="field-label" for="bgCoef">Fibra dB/km</label><input type="text" inputmode="decimal" id="bgCoef" class="custom-input" value="0,25"></div>
-            <div class="field-group"><label class="field-label" for="bgMargin">Margine dB</label><input type="text" inputmode="decimal" id="bgMargin" class="custom-input" value="0"></div>
-            <div class="field-group"><label class="field-label" for="bgSpliceLoss">dB per giunto</label><input type="text" inputmode="decimal" id="bgSpliceLoss" class="custom-input" value="0,1"></div>
-            <div class="field-group"><label class="field-label" for="bgConnLoss">dB per connettore</label><input type="text" inputmode="decimal" id="bgConnLoss" class="custom-input" value="0,5"></div>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="bgClass">Classe ottica OLT/ONT</label>
-            <select id="bgClass" class="custom-select">
-              <option value="B+" selected>GPON classe B+</option>
-              <option value="C+">GPON classe C+</option>
-              <option value="custom">Personalizzata</option>
-            </select>
-          </div>
-          <div class="row-3">
-            <div class="field-group"><label class="field-label" for="bgTxMin">TX min dBm</label><input type="text" inputmode="decimal" id="bgTxMin" class="custom-input"></div>
-            <div class="field-group"><label class="field-label" for="bgTxMax">TX max dBm</label><input type="text" inputmode="decimal" id="bgTxMax" class="custom-input"></div>
-            <div class="field-group"><label class="field-label" for="bgSens">Sensibilità dBm</label><input type="text" inputmode="decimal" id="bgSens" class="custom-input"></div>
-            <div class="field-group"><label class="field-label" for="bgOver">Saturazione dBm</label><input type="text" inputmode="decimal" id="bgOver" class="custom-input"></div>
-          </div>
-          <div class="note">Valori tipici (perdite splitter massime ITU-T, GPON B+/C+). Verifica sempre con le specifiche del tuo operatore.</div>
-        </div>
-      </details>
     </section>
 
     <!-- ================= GESTIONE UTENTI ================= -->
@@ -2180,7 +2067,6 @@
       else if (screenId === 'pteScreen') { renderPteColors(); calculatePTE(); }
       else if (screenId === 'fibercopScreen') { renderFcColors(); updateFiberCop(); }
       else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
-      else if (screenId === 'budgetScreen') calcBudget();
       else if (screenId === 'usersScreen') loadUsers();
       else if (screenId === 'pfsPosScreen') { renderPositions(); syncFromGoogleSheets(true); }
       else if (screenId === 'barcodeScreen') {
@@ -3393,7 +3279,7 @@
 
     /* =====================================================================
        V3: comunicazione con Google Sheets, coda offline, codice squadra,
-       PFS Qui (posizioni per anello), budget ottico, foto, storico,
+       PFS Qui (posizioni per anello), foto, storico,
        backup, controlli duplicati
        ===================================================================== */
     const QUEUE_KEY = 'fiber_tools_queue';
@@ -3912,73 +3798,6 @@
     }
 
     /* =====================================================================
-       BUDGET OTTICO
-       ===================================================================== */
-    const SPLIT_LOSS = { '0': 0, '2': 3.7, '4': 7.3, '8': 10.5, '16': 13.7, '32': 17.1, '64': 20.5 };
-    const WAVE_COEF = { '1310': 0.35, '1490': 0.25, '1550': 0.22 };
-    const GPON_CLASS = { 'B+': { txMin: 1.5, txMax: 5, sens: -28, over: -8 }, 'C+': { txMin: 3, txMax: 7, sens: -32, over: -12 } };
-    const num = (id, d = 0) => { const v = parseFloat(String($(id).value).replace(',', '.')); return isFinite(v) ? v : d; };
-    const fmtDb = v => (Math.sign(v) * Math.round(Math.abs(v) * 100 + 1e-9) / 100).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    function applyWave() { const w = $('bgWave').value; if (WAVE_COEF[w] !== undefined) $('bgCoef').value = String(WAVE_COEF[w]).replace('.', ','); }
-    function applyClass() {
-      const c = GPON_CLASS[$('bgClass').value];
-      if (!c) return;
-      $('bgTxMin').value = String(c.txMin).replace('.', ','); $('bgTxMax').value = String(c.txMax).replace('.', ',');
-      $('bgSens').value = String(c.sens); $('bgOver').value = String(c.over);
-    }
-
-    function calcBudget() {
-      const km = Math.max(0, num('bgKm')), coef = num('bgCoef', 0.35);
-      const nSp = Math.max(0, Math.round(num('bgSplices'))), spLoss = num('bgSpliceLoss', 0.1);
-      const nCo = Math.max(0, Math.round(num('bgConn'))), coLoss = num('bgConnLoss', 0.5);
-      const s1 = SPLIT_LOSS[$('bgSpl1').value] || 0, s2 = SPLIT_LOSS[$('bgSpl2').value] || 0;
-      const margin = Math.max(0, num('bgMargin'));
-      const parts = [
-        { k: 'Fibra', v: km * coef, c: '#0ea5e9' },
-        { k: 'Giunti', v: nSp * spLoss, c: '#8b5cf6' },
-        { k: 'Connettori', v: nCo * coLoss, c: '#f59e0b' },
-        { k: 'Splitter', v: s1 + s2, c: '#ef4444' },
-        { k: 'Margine', v: margin, c: '#64748b' }
-      ];
-      const total = parts.reduce((a, p) => a + p.v, 0);
-      // sensibilità e saturazione sono sempre negative: il segno meno è automatico
-      const txMin = num('bgTxMin', 1.5), txMax = num('bgTxMax', 5), sens = -Math.abs(num('bgSens', -28)), over = -Math.abs(num('bgOver', -8));
-      const rxMin = txMin - total, rxMax = txMax - total;
-      const reserve = rxMin - sens;
-
-      $('bgTotal').textContent = fmtDb(total);
-      $('bgRx').textContent = `${fmtDb(rxMin)} / ${fmtDb(rxMax)} dBm`;
-      $('bgBar').innerHTML = total > 0 ? parts.filter(p => p.v > 0).map(p => `<span style="flex:${p.v};background:${p.c}" title="${p.k}: ${fmtDb(p.v)} dB"></span>`).join('') : '<span style="flex:1;background:var(--border)"></span>';
-      $('bgLegend').innerHTML = parts.map(p => `<span><i style="background:${p.c}"></i>${p.k} <b>${fmtDb(p.v)}</b></span>`).join('');
-
-      const verdict = $('bgVerdict');
-      let cls, text;
-      if (rxMax > over) { cls = 'warn'; text = `Potenza troppo alta per l’ONT (oltre ${over} dBm): serve più attenuazione.`; }
-      else if (reserve < 0) { cls = 'bad'; text = `Fuori budget di ${fmtDb(-reserve)} dB: il collegamento rischia di non funzionare.`; }
-      else if (reserve < 3) { cls = 'warn'; text = `Nel budget, ma con solo ${fmtDb(reserve)} dB di riserva.`; }
-      else { cls = 'ok'; text = `Nel budget con ${fmtDb(reserve)} dB di riserva.`; }
-      verdict.className = `bg-verdict ${cls}`; verdict.textContent = text;
-      $('bgCard').style.setProperty('--accent', cls === 'ok' ? '#10b981' : cls === 'warn' ? '#f59e0b' : '#ef4444');
-
-      // verifica della misura
-      const mRaw = String($('bgMeasured').value).trim();
-      const mBox = $('bgMeasureResult');
-      if (!mRaw) { mBox.hidden = true; return; }
-      const mVal = parseFloat(mRaw.replace(',', '.'));
-      if (!isFinite(mVal)) { mBox.hidden = true; return; }
-      const m = -Math.abs(mVal);   // la potenza ricevuta è sempre negativa: il segno meno è automatico
-      mBox.hidden = false;
-      const excess = rxMin - m;   // quanto la misura è peggiore del caso peggiore previsto
-      let mc, mt;
-      if (m > over) { mc = 'warn'; mt = `${fmtDb(m)} dBm: potenza troppo alta (sopra ${over} dBm), rischio saturazione ONT.`; }
-      else if (m < sens) { mc = 'bad'; mt = `${fmtDb(m)} dBm: sotto la sensibilità (${sens} dBm). ${excess > 0 ? `Mancano ${fmtDb(excess)} dB rispetto al previsto: controlla connettori, giunti e curvature.` : ''}`; }
-      else if (excess > 2) { mc = 'warn'; mt = `${fmtDb(m)} dBm: funziona, ma è ${fmtDb(excess)} dB peggio del previsto. Pulisci i connettori e verifica i giunti.`; }
-      else { mc = 'ok'; mt = `${fmtDb(m)} dBm: valore corretto, in linea con il calcolo.`; }
-      mBox.className = `bg-verdict ${mc}`; mBox.textContent = mt;
-    }
-
-    /* =====================================================================
        PFS QUI: posizioni dei PFS divise per anello
        ===================================================================== */
     let posNearMode = false, posView = 'list', myPos = null, posEditing = null, posGroups = {};
@@ -4335,14 +4154,6 @@
       });
       $('ribPhotoImg').addEventListener('click', () => viewPhoto(ribPhoto, 'Foto splitter'));
       $('ribPhotoRemove').addEventListener('click', () => { clearRibPhoto(); });
-
-      // budget
-      ['bgKm', 'bgCoef', 'bgSplices', 'bgSpliceLoss', 'bgConn', 'bgConnLoss', 'bgMargin', 'bgTxMin', 'bgTxMax', 'bgSens', 'bgOver', 'bgMeasured'].forEach(id => $(id).addEventListener('input', calcBudget));
-      ['bgSpl1', 'bgSpl2'].forEach(id => $(id).addEventListener('change', calcBudget));
-      $('bgWave').addEventListener('change', () => { applyWave(); calcBudget(); });
-      $('bgClass').addEventListener('change', () => { applyClass(); calcBudget(); });
-      ['bgTxMin', 'bgTxMax', 'bgSens', 'bgOver'].forEach(id => $(id).addEventListener('input', () => { $('bgClass').value = 'custom'; }));
-      $('bgCoef').addEventListener('input', () => { $('bgWave').value = 'custom'; });
 
       // PFS Qui
       $('posSearch').addEventListener('input', renderPositions);
@@ -5107,7 +4918,6 @@
       updateQueueUI();
       watchForUpdates();
       setTimeout(() => processQueue(), 1500);
-      applyWave(); applyClass();
     }
 
     /* ---------- Effetti ---------- */

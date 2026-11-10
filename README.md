@@ -1,6 +1,6 @@
 # Fiber Tools
 
-Toolkit per tecnici FTTH: codici colore fibra ottica, PFS, PTE, FiberCop, ribattitura ottici, posizioni dei PFS, budget ottico e generatore di codici a barre Code 128.
+Toolkit per tecnici FTTH: codici colore fibra ottica, PFS, PTE, FiberCop, ribattitura ottici, posizioni dei PFS, foto GPS e generatore di codici a barre Code 128.
 Funziona da telefono, si installa come app e lavora anche senza connessione.
 
 **Apri l'app:** https://napoltano.github.io/fiber-tools/
@@ -18,8 +18,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 | 05 | **Ribattitura ottici** | 16 ottici per splitter, archivio per cartelle PFS condiviso su Google Sheets, scanner, ricerca per ID, controlli duplicati, foto, storico, PDF/Excel |
 | 06 | **Generatore barcode** | Code 128 leggibile da scanner, schermo intero, PNG, scansione di codici esistenti |
 | 07 | **PFS Qui** | Coordinate dei PFS divise per anello (NA_01, NA_02…), ricerca, "vicino a me", mappa e navigazione con Google Maps |
-| 08 | **Budget ottico** | Attenuazione prevista della tratta e verifica della potenza letta col power meter |
-| 09 | **Foto GPS** | Foto e video con timbro: via e civico, CAP e città, regione, coordinate GPS, data e ora; salvati nella galleria del telefono |
+| 08 | **Foto GPS** | Foto e video con timbro: via e civico, CAP e città, regione, coordinate GPS, data e ora; salvati nella galleria del telefono |
 
 ### Ribattitura
 - **Scanner con fotocamera**: il pulsante accanto a ogni ID legge l'etichetta. Con *Passa all'ottico successivo* scansioni gli ottici uno dopo l'altro. Senza fotocamera si può usare *Da foto*.
@@ -58,7 +57,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 
 ## Account e permessi
 
-- **Senza account** si usano liberamente gli strumenti: colori, PFS/PTE, Calculator, FiberCop, modulo ribattitura (copia/condividi), barcode, budget ottico.
+- **Senza account** si usano liberamente gli strumenti: colori, PFS/PTE, Calculator, FiberCop, modulo ribattitura (copia/condividi), barcode, Foto GPS.
 - **I dati sono riservati**: archivio ribattiture, storico e posizioni PFS (elenco, mappa, navigazione, importa/condividi) si vedono **solo con un account approvato**. Un avviso in home e nelle schermate lo spiega. Uscendo dall'account i dati vengono tolti dal telefono.
 - **Registrazione**: *Accedi → Registrati* con nome, **società per cui lavori**, email e password. La richiesta resta **in attesa** finché un amministratore non la approva.
 - **Società**: resta salvata nell'account (colonna *SOCIETA* del foglio *Utenti*) e compare in *Gestione utenti*, dove gli amministratori possono correggerla. Agli account creati prima viene chiesta una volta sola.

@@ -1643,6 +1643,7 @@
               <option value="openfiber">OPEN FIBER</option>
               <option value="enel">ENEL</option>
               <option value="bull_infratel">BULL / INFRATEL</option>
+              <option value="tia">TIA-598-C</option>
             </select>
           </div>
           <div class="field-group">
@@ -1700,6 +1701,7 @@
               <option value="openfiber">OPEN FIBER</option>
               <option value="enel">ENEL</option>
               <option value="bull_infratel">BULL / INFRATEL</option>
+              <option value="tia">TIA-598-C</option>
             </select>
           </div>
           <div class="field-group">
@@ -1746,11 +1748,11 @@
           <div class="field-group">
             <label class="field-label" for="operatorSelect">Operatore</label>
             <select id="operatorSelect" class="custom-select">
-              <option value="fibercop">FIBERCOP</option>
-              <option value="tim">TIM</option>
+              <option value="fibercop">FIBERCOP / TIM</option>
               <option value="openfiber">OPEN FIBER</option>
               <option value="enel">ENEL</option>
               <option value="bull_infratel">BULL / INFRATEL</option>
+              <option value="tia">TIA-598-C</option>
             </select>
           </div>
           <div class="field-group">
@@ -2087,11 +2089,11 @@
     const STD = ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","NERO","ROSA","ARANCIO","TURCHESE","BIANCO","GRIGIO"];
 
     const baseColors = {
-      fibercop: mk(STD),
-      tim: mk(STD),
+      fibercop: mk(STD),           // FiberCop e TIM usano la stessa colorazione (ST 908)
       openfiber: mk(["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","GRIGIO","ARANCIO","ROSA","BIANCO","NERO","TURCHESE"]),
       enel: mk(["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","ROSA","ARANCIO","GRIGIO","NERO","TURCHESE","BIANCO"]),
-      bull_infratel: mk(["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","BIANCO","ROSA","NERO","ARANCIO","GRIGIO","TURCHESE"])
+      bull_infratel: mk(["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","BIANCO","ROSA","NERO","ARANCIO","GRIGIO","TURCHESE"]),
+      tia: mk(["BLU","ARANCIO","VERDE","MARRONE","GRIGIO","BIANCO","ROSSO","NERO","GIALLO","VIOLA","ROSA","TURCHESE"])
     };
 
     let selectedPfsPos = null;      // posizione 1..12/24 in cartolina
@@ -6033,7 +6035,7 @@
     /* ================= SCHEMA DI GIUNZIONE ================= */
     const SJ_CAPS = [12, 24, 48, 96, 120, 144, 192, 288, 396, 432];
     const SJ_NETS = {
-      tia:       { label: 'TIA-598-C', seq: ["BLU","ARANCIO","VERDE","MARRONE","GRIGIO","BIANCO","ROSSO","NERO","GIALLO","VIOLA","ROSA","TURCHESE"] },
+      tia:       { label: 'TIA-598-C', seq: baseColors.tia.map(c => c.name) },
       fibercop:  { label: 'FiberCop / TIM – ST 908', seq: STD },
       openfiber: { label: 'Open Fiber – ST 1701', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","GRIGIO","ARANCIO","ROSA","BIANCO","NERO","TURCHESE"] },
       bul:       { label: 'BUL Infratel', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","BIANCO","ROSA","NERO","ARANCIO","GRIGIO","TURCHESE"] }

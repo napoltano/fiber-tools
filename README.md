@@ -11,9 +11,9 @@ Creato e realizzato da **Marigliano Massimiliano**.
 
 | # | Strumento | Cosa fa |
 |---|-----------|---------|
-| 01 | **PFS** | Da numero permuta a cartolina e colore, e viceversa (Open Fiber, Enel, Bull/Infratel, cartoline da 12 o 24) |
+| 01 | **PFS** | Da numero permuta a cartolina e colore, e viceversa (Open Fiber, Enel, Bull/Infratel, TIA-598-C, cartoline da 12 o 24) |
 | 02 | **PTE** | Selezioni le fibre libere del tubetto e ti dice quale usare per priorità |
-| 03 | **Calculator** | Colore, tubetto e posizione di qualsiasi fibra, con tabella completa |
+| 03 | **Calculator** | Colore, tubetto e posizione di qualsiasi fibra, con tabella completa (FiberCop/TIM, Open Fiber, Enel, Bull/Infratel, TIA-598-C) |
 | 04 | **FiberCop** | Conversione quartina ↔ cartolina ↔ numero fibra |
 | 05 | **Ribattitura ottici** | 16 ottici per splitter, archivio per cartelle PFS condiviso su Google Sheets, scanner, ricerca per ID, controlli duplicati, foto, storico, PDF/Excel |
 | 06 | **Generatore barcode** | Code 128 leggibile da scanner, schermo intero, PNG, scansione di codici esistenti |

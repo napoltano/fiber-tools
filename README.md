@@ -19,6 +19,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 | 06 | **Generatore barcode** | Code 128 leggibile da scanner, schermo intero, PNG, scansione di codici esistenti |
 | 07 | **PFS Qui** | Coordinate dei PFS divise per anello (NA_01, NA_02…), ricerca, "vicino a me", mappa e navigazione con Google Maps |
 | 08 | **Foto GPS** | Foto e video con timbro: via e civico, CAP e città, regione, coordinate GPS, data e ora; salvati nella galleria del telefono |
+| 09 | **Schema di Giunzione** | Abbinamento fibra per fibra tra due cavi (N− / N+): tubetto, numero e colore, per TIA-598-C, FiberCop/TIM ST 908, Open Fiber ST 1701 e BUL Infratel |
 
 ### Ribattitura
 - **Scanner con fotocamera**: il pulsante accanto a ogni ID legge l'etichetta. Con *Passa all'ottico successivo* scansioni gli ottici uno dopo l'altro. Senza fotocamera si può usare *Da foto*.
@@ -46,6 +47,11 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Salvataggio**: su Android vanno subito nella galleria (album *Download*). Su iPhone si tocca *Salva in Foto* → *Salva immagine / Salva video*. C'è anche *Condividi* (WhatsApp, email…).
 - I **video** (fino a 10 minuti, con audio) sono in MP4 dove il telefono lo permette, altrimenti WebM.
 
+### Schema di Giunzione
+- Si sceglie la **rete**, la **capacità** dei due cavi (12–432 fibre), la **fibra iniziale** di ciascuno e **quante fibre** giuntare: la tabella si aggiorna mentre scrivi.
+- **Tubetti**: fino a 48 fibre da 12, da 96 a 192 da 24, da 288 a 432 da 36. Le fibre 13–24 del tubetto sono **anellate**, le 25–36 **doppio anellate** (il nero diventa trasparente).
+- Avvisi se le fibre superano la capacità del cavo 1 o se il cavo 2 non basta. Esporta in **testo**, **PDF** ed **Excel**; funziona anche offline e ricorda gli ultimi valori.
+
 ### Sempre attivi
 - **Coda offline**: se manca la rete, salvataggi ed eliminazioni restano in coda (barra arancione in alto) e partono da soli quando torna la connessione.
 - **Backup**: ⚙️ Impostazioni → *Scarica* / *Ripristina*, utile per cambiare telefono.
@@ -58,7 +64,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 
 ## Account e permessi
 
-- **Senza account** si usano liberamente gli strumenti: colori, PFS/PTE, Calculator, FiberCop, modulo ribattitura (copia/condividi), barcode, Foto GPS.
+- **Senza account** si usano liberamente gli strumenti: colori, PFS/PTE, Calculator, FiberCop, modulo ribattitura (copia/condividi), barcode, Foto GPS, schema di giunzione.
 - **I dati sono riservati**: archivio ribattiture, storico e posizioni PFS (elenco, mappa, navigazione, importa/condividi) si vedono **solo con un account approvato**. Un avviso in home e nelle schermate lo spiega. Uscendo dall'account i dati vengono tolti dal telefono.
 - **Registrazione**: *Accedi → Registrati* con nome, **società per cui lavori**, email e password. La richiesta resta **in attesa** finché un amministratore non la approva.
 - **Società**: resta salvata nell'account (colonna *SOCIETA* del foglio *Utenti*) e compare in *Gestione utenti*, dove gli amministratori possono correggerla. Agli account creati prima viene chiesta una volta sola.

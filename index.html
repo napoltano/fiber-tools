@@ -1184,6 +1184,56 @@
     }
 
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ---------- Schema di giunzione ---------- */
+    .sj-cable { border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px 8px; background: var(--card-2); display: grid; gap: 8px; }
+    .sj-cable-head { font-size: 0.82rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .sj-tag { font-size: 0.68rem; font-weight: 900; padding: 2px 8px; border-radius: 999px; color: #fff; letter-spacing: .3px; }
+    .sj-tag.minus { background: #0284c7; }
+    .sj-tag.plus { background: #ea580c; }
+    .sj-tubes { color: var(--muted); font-weight: 600; font-size: 0.72rem; }
+    .sj-summary { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin: 4px 2px 10px; line-height: 1.45; }
+    .sj-summary b { color: var(--text, inherit); }
+    .sj-card { margin-bottom: 14px; }
+    .sj-row {
+      display: grid; grid-template-columns: 30px 32px minmax(0,1fr) 16px minmax(0,1fr) 32px 30px;
+      align-items: center; gap: 4px; padding: 8px 8px; border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+    .sj-row:last-child { border-bottom: none; }
+    .sj-row.newtube { border-top: 2px solid color-mix(in srgb, var(--primary) 45%, transparent); }
+    .sj-head { font-size: 0.64rem; font-weight: 900; color: var(--muted); letter-spacing: .5px; background: var(--card-2); position: sticky; top: 0; z-index: 1; }
+    .sj-head span:nth-child(3), .sj-head span:nth-child(5) { text-align: center; }
+    .sj-num { font-size: 0.8rem; font-weight: 800; text-align: center; }
+    .sj-tub { font-size: 0.72rem; font-weight: 800; color: var(--muted); text-align: center; }
+    .sj-arrow { color: var(--muted); font-weight: 900; text-align: center; font-size: 0.8rem; }
+    .sj-fib { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .sj-fib.right { flex-direction: row-reverse; text-align: right; }
+    .sj-fib-txt { min-width: 0; display: grid; line-height: 1.15; }
+    .sj-fib-name { font-size: 0.74rem; font-weight: 800; text-transform: uppercase; overflow-wrap: anywhere; }
+    .sj-fib-ring { font-size: 0.6rem; font-weight: 800; color: #be123c; text-transform: uppercase; }
+    [data-theme="dark"] .sj-fib-ring { color: #fda4af; }
+    .sj-dot { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--badge-border, rgba(0,0,0,.25)); background-color: var(--c); }
+    .sj-dot.r1 { background-image: linear-gradient(90deg, transparent 40%, var(--ring) 40% 60%, transparent 60%); }
+    .sj-dot.r2 { background-image: linear-gradient(90deg, transparent 22%, var(--ring) 22% 38%, transparent 38% 62%, var(--ring) 62% 78%, transparent 78%); }
+    .sj-dot.trasp { background-color: #f8fafc; border: 1.5px dashed #94a3b8; }
+    .sj-actions { margin-bottom: 10px; }
+    .sj-note { font-size: 0.68rem; color: var(--muted); text-align: center; margin: 6px 8px 18px; }
+    @media (max-width: 380px) {
+      .sj-row { grid-template-columns: 24px 28px minmax(0,1fr) 12px minmax(0,1fr) 28px 24px; padding: 8px 5px; gap: 3px; }
+      .sj-dot { width: 16px; height: 16px; }
+      .sj-fib { gap: 5px; }
+      .sj-fib-name { font-size: 0.64rem; letter-spacing: -0.1px; }
+      .sj-fib-ring { font-size: 0.56rem; }
+      .sj-fib-name.long { font-size: 0.56rem; letter-spacing: -0.2px; overflow-wrap: normal; }
+    }
+    @media (max-width: 340px) {
+      .sj-row { grid-template-columns: 18px 24px minmax(0,1fr) minmax(0,1fr) 24px 18px; gap: 4px; }
+      .sj-arrow, .sj-head span:nth-child(4) { display: none; }
+      .sj-dot { width: 14px; height: 14px; }
+      .sj-head { font-size: 0.54rem; letter-spacing: 0; }
+    }
+    #printArea .sjp td.dot span { display: inline-block; width: 10pt; height: 10pt; border-radius: 50%; border: 0.6pt solid #555; vertical-align: middle; margin-right: 4pt; }
   </style>
 </head>
 <body>
@@ -1366,6 +1416,16 @@
           </div>
           <span class="badge-num">08</span>
         </button>
+
+        <button class="btn-main full-width" type="button" style="--i:8" data-open="spliceScreen" data-title="Schema giunzione" data-sub="Abbinamento fibre tra due cavi">
+          <div class="tile-icon t-orange"><svg><use href="#i-table"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">Schema di Giunzione</span>
+            <span class="btn-desc">Tubetti, fibre e colori N− / N+ per TIA, FiberCop, Open Fiber e BUL</span>
+          </div>
+          <span class="badge-num">09</span>
+          <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
+        </button>
       </div>
 
       <footer class="app-footer">
@@ -1489,6 +1549,80 @@
         </div>
         <div class="result-swatch"><div id="fcResBadge" class="color-badge"></div></div>
       </div>
+    </section>
+
+    <!-- ================= SCHEMA GIUNZIONE ================= -->
+    <section id="spliceScreen" class="screen">
+      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+
+      <div class="controls-card">
+        <div class="field-group">
+          <label class="field-label" for="sjNet">Rete / codice colori</label>
+          <select id="sjNet" class="custom-select">
+            <option value="tia">TIA-598-C</option>
+            <option value="fibercop" selected>FiberCop / TIM – ST 908</option>
+            <option value="openfiber">Open Fiber – ST 1701</option>
+            <option value="bul">BUL Banda Ultra Larga – Infratel</option>
+          </select>
+        </div>
+
+        <div class="sj-cable">
+          <div class="sj-cable-head"><span class="sj-tag minus">N−</span> Cavo 1</div>
+          <div class="row-fields">
+            <div class="field-group">
+              <label class="field-label" for="sjCap1">Capacità</label>
+              <select id="sjCap1" class="custom-select sj-cap"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="sjStart1">Fibra iniziale</label>
+              <input type="number" inputmode="numeric" id="sjStart1" class="custom-input" min="1" placeholder="es. 1" value="1">
+            </div>
+          </div>
+          <div class="small sj-tubes" id="sjTubes1"></div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="sjCount">Quante fibre devi giuntare?</label>
+          <div class="stepper">
+            <button type="button" class="step-btn" data-step="-1" data-target="sjCount" aria-label="Diminuisci">−</button>
+            <input type="number" inputmode="numeric" id="sjCount" class="custom-input" min="1" placeholder="es. 12" value="12">
+            <button type="button" class="step-btn" data-step="1" data-target="sjCount" aria-label="Aumenta">+</button>
+          </div>
+        </div>
+
+        <div class="sj-cable">
+          <div class="sj-cable-head"><span class="sj-tag plus">N+</span> Cavo 2</div>
+          <div class="row-fields">
+            <div class="field-group">
+              <label class="field-label" for="sjCap2">Capacità</label>
+              <select id="sjCap2" class="custom-select sj-cap"></select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="sjStart2">Fibra iniziale</label>
+              <input type="number" inputmode="numeric" id="sjStart2" class="custom-input" min="1" placeholder="es. 1" value="1">
+            </div>
+          </div>
+          <div class="small sj-tubes" id="sjTubes2"></div>
+        </div>
+        <div class="hint" id="sjHint" role="alert"></div>
+      </div>
+
+      <div id="sjResult" hidden>
+        <div class="sj-summary" id="sjSummary"></div>
+        <div class="color-card sj-card">
+          <div class="sj-row sj-head" aria-hidden="true">
+            <span>TUB</span><span>FO</span><span>N−</span><span></span><span>N+</span><span>FO</span><span>TUB</span>
+          </div>
+          <div id="sjRows"></div>
+        </div>
+        <div class="grid-2 sj-actions">
+          <button class="btn-secondary" type="button" id="sjCopyBtn"><svg><use href="#i-copy"/></svg> Copia testo</button>
+          <button class="btn-secondary" type="button" id="sjShareBtn"><svg><use href="#i-share"/></svg> Condividi</button>
+          <button class="btn-secondary" type="button" id="sjPdfBtn"><svg><use href="#i-file"/></svg> PDF</button>
+          <button class="btn-secondary" type="button" id="sjCsvBtn"><svg><use href="#i-table"/></svg> Excel</button>
+        </div>
+      </div>
+      <p class="sj-note">Strumento di supporto: verifica sempre lo schema con le specifiche tecniche del gestore di rete.</p>
     </section>
 
     <!-- ================= PFS ================= -->
@@ -5896,6 +6030,150 @@
       window.addEventListener('online', () => { if (!$('geocam').hidden) gcMaybeGeocode(true); });
     }
 
+    /* ================= SCHEMA DI GIUNZIONE ================= */
+    const SJ_CAPS = [12, 24, 48, 96, 120, 144, 192, 288, 396, 432];
+    const SJ_NETS = {
+      tia:       { label: 'TIA-598-C', seq: ["BLU","ARANCIO","VERDE","MARRONE","GRIGIO","BIANCO","ROSSO","NERO","GIALLO","VIOLA","ROSA","TURCHESE"] },
+      fibercop:  { label: 'FiberCop / TIM – ST 908', seq: STD },
+      openfiber: { label: 'Open Fiber – ST 1701', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","GRIGIO","ARANCIO","ROSA","BIANCO","NERO","TURCHESE"] },
+      bul:       { label: 'BUL Infratel', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","BIANCO","ROSA","NERO","ARANCIO","GRIGIO","TURCHESE"] }
+    };
+    const SJ_KEY = 'fiber_tools_splice';
+    const RING_TXT = ['', 'anellato', 'doppio anellato'];
+
+    /** Fibre per tubetto in base alla capacità del cavo. */
+    function sjTubeSize(cap) { return cap <= 48 ? 12 : cap <= 192 ? 24 : 36; }
+
+    /** Fibra n di un cavo: tubetto, posizione, colore e anellatura. Nei livelli anellati il nero diventa trasparente. */
+    function sjFiber(net, cap, n) {
+      const ts = sjTubeSize(cap);
+      const tube = Math.ceil(n / ts), pos = ((n - 1) % ts) + 1;
+      const ring = Math.floor((pos - 1) / 12);
+      let color = SJ_NETS[net].seq[(pos - 1) % 12];
+      if (ring > 0 && color === 'NERO') color = 'TRASPARENTE';
+      const name = color + (ring ? ' ' + RING_TXT[ring].toUpperCase() : '');
+      return { n, tube, pos, ring, color, name };
+    }
+
+    function sjRead() {
+      const num = id => { const v = $(id).value.trim(); return v === '' ? null : Number(v); };
+      return { net: $('sjNet').value, cap1: Number($('sjCap1').value), start1: num('sjStart1'), count: num('sjCount'),
+               cap2: Number($('sjCap2').value), start2: num('sjStart2') };
+    }
+
+    /** Controlli come sulla pagina originale. Restituisce un messaggio di errore o ''. */
+    function sjValidate(v) {
+      if ([v.start1, v.count, v.start2].some(x => x === null)) return 'Compila tutti i campi.';
+      if ([v.start1, v.count, v.start2].some(x => !Number.isInteger(x) || x < 1)) return 'Usa numeri interi da 1 in su.';
+      if (v.start1 + v.count - 1 > v.cap1) return `Cavo 1: dalla fibra ${v.start1} ci sono solo ${v.cap1 - v.start1 + 1 > 0 ? v.cap1 - v.start1 + 1 : 0} fibre (cavo da ${v.cap1}).`;
+      if (v.start2 + v.count - 1 > v.cap2) return `Cavo 2: non ha abbastanza fibre per l'associazione (dalla fibra ${v.start2} ne restano ${Math.max(0, v.cap2 - v.start2 + 1)}).`;
+      return '';
+    }
+
+    function sjBuild(v) {
+      const rows = [];
+      for (let i = 0; i < v.count; i++) rows.push([sjFiber(v.net, v.cap1, v.start1 + i), sjFiber(v.net, v.cap2, v.start2 + i)]);
+      return rows;
+    }
+
+    function sjDot(f) {
+      const hex = f.color === 'TRASPARENTE' ? '#f8fafc' : HEX[f.color];
+      const ring = (f.color === 'NERO' || f.color === 'BLU' || f.color === 'VIOLA' || f.color === 'MARRONE') ? '#ffffff' : '#111827';
+      return `<span class="sj-dot${f.ring ? ' r' + f.ring : ''}${f.color === 'TRASPARENTE' ? ' trasp' : ''}" style="--c:${hex};--ring:${ring}" title="${escapeHtml(f.name)}"></span>`;
+    }
+    function sjFibHtml(f, right) {
+      return `<div class="sj-fib${right ? ' right' : ''}">${sjDot(f)}<div class="sj-fib-txt"><span class="sj-fib-name${f.color.length > 9 ? ' long' : ''}">${escapeHtml(f.color)}</span>${f.ring ? `<span class="sj-fib-ring">${RING_TXT[f.ring]}</span>` : ''}</div></div>`;
+    }
+
+    function sjTubesTxt(cap) {
+      const ts = sjTubeSize(cap), nt = Math.ceil(cap / ts);
+      return `${nt} ${nt === 1 ? 'tubetto' : 'tubetti'} da ${ts} fibre`;
+    }
+
+    let sjLast = null;
+    function sjRender() {
+      const v = sjRead();
+      $('sjTubes1').textContent = sjTubesTxt(v.cap1);
+      $('sjTubes2').textContent = sjTubesTxt(v.cap2);
+      try { localStorage.setItem(SJ_KEY, JSON.stringify(v)); } catch (e) {}
+      const err = sjValidate(v);
+      $('sjHint').textContent = err;
+      if (err) { $('sjResult').hidden = true; sjLast = null; return; }
+      const rows = sjBuild(v);
+      sjLast = { v, rows };
+      const a = rows[0], z = rows[rows.length - 1];
+      $('sjSummary').innerHTML = `Rete <b>${escapeHtml(SJ_NETS[v.net].label)}</b> · ${rows.length} ${rows.length === 1 ? 'fibra' : 'fibre'}<br>` +
+        `<span class="sj-tag minus">N−</span> Cavo ${v.cap1} fo: fibre <b>${a[0].n}–${z[0].n}</b> (tub. ${a[0].tube}${z[0].tube !== a[0].tube ? '–' + z[0].tube : ''}) ` +
+        `→ <span class="sj-tag plus">N+</span> Cavo ${v.cap2} fo: fibre <b>${a[1].n}–${z[1].n}</b> (tub. ${a[1].tube}${z[1].tube !== a[1].tube ? '–' + z[1].tube : ''})`;
+      let html = '';
+      rows.forEach(([l, r], i) => {
+        const prev = rows[i - 1];
+        const nt = prev && (prev[0].tube !== l.tube || prev[1].tube !== r.tube);
+        html += `<div class="sj-row${nt ? ' newtube' : ''}"><span class="sj-tub">${l.tube}</span><span class="sj-num">${l.n}</span>${sjFibHtml(l, false)}<span class="sj-arrow">⇄</span>${sjFibHtml(r, true)}<span class="sj-num">${r.n}</span><span class="sj-tub">${r.tube}</span></div>`;
+      });
+      $('sjRows').innerHTML = html;
+      $('sjResult').hidden = false;
+    }
+
+    function sjText() {
+      if (!sjLast) return '';
+      const { v, rows } = sjLast;
+      const lines = [`SCHEMA DI GIUNZIONE – ${SJ_NETS[v.net].label}`,
+        `Cavo 1 (N-) ${v.cap1} fo · fibre ${rows[0][0].n}-${rows[rows.length - 1][0].n}`,
+        `Cavo 2 (N+) ${v.cap2} fo · fibre ${rows[0][1].n}-${rows[rows.length - 1][1].n}`, ''];
+      rows.forEach(([l, r]) => lines.push(`T${l.tube} F${l.n} ${l.name}  <->  ${r.name} F${r.n} T${r.tube}`));
+      return lines.join('\n');
+    }
+    function sjBaseName() { const v = sjLast.v; return `Schema_giunzione_${v.net}_${v.cap1}-${v.cap2}_F${v.start1}-${v.start2}`; }
+
+    function sjCsv() {
+      if (!sjLast) return;
+      const cell = x => /[;"\n]/.test(String(x)) ? `"${String(x).replace(/"/g, '""')}"` : String(x);
+      const out = [['TUB N-', 'FO N-', 'COLORE N-', 'COLORE N+', 'FO N+', 'TUB N+']];
+      sjLast.rows.forEach(([l, r]) => out.push([l.tube, l.n, l.name, r.name, r.n, r.tube]));
+      downloadBlob(new Blob(['﻿' + out.map(r => r.map(cell).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' }), `${safeName(sjBaseName())}.csv`);
+      toast('File Excel scaricato.');
+    }
+
+    function sjPdf() {
+      if (!sjLast) return;
+      const { v, rows } = sjLast;
+      const dot = f => `<span style="background:${f.color === 'TRASPARENTE' ? '#fff' : HEX[f.color]}"></span>`;
+      const area = $('printArea');
+      area.innerHTML = `<h1>Schema di giunzione</h1>
+        <div class="meta">${escapeHtml(SJ_NETS[v.net].label)} • Cavo 1 (N−) ${v.cap1} fo • Cavo 2 (N+) ${v.cap2} fo • ${rows.length} fibre • ${escapeHtml(new Date().toLocaleString('it-IT'))}${getTecnico() ? ' • ' + escapeHtml(getTecnico()) : ''}</div>
+        <table class="sjp"><thead><tr><th>TUB</th><th>FO</th><th>N−</th><th>N+</th><th>FO</th><th>TUB</th></tr></thead><tbody>
+        ${rows.map(([l, r]) => `<tr><td>${l.tube}</td><td>${l.n}</td><td class="dot">${dot(l)}${escapeHtml(l.name)}</td><td class="dot">${dot(r)}${escapeHtml(r.name)}</td><td>${r.n}</td><td>${r.tube}</td></tr>`).join('')}
+        </tbody></table><div class="foot">Fiber Tools • verificare sempre con le specifiche del gestore</div>`;
+      const oldTitle = document.title;
+      document.title = safeName(sjBaseName());
+      const restore = () => { document.title = oldTitle; area.innerHTML = ''; window.removeEventListener('afterprint', restore); };
+      window.addEventListener('afterprint', restore);
+      setTimeout(() => window.print(), 50);
+    }
+
+    function initSplice() {
+      const opts = SJ_CAPS.map(c => `<option value="${c}">${c} fibre</option>`).join('');
+      $('sjCap1').innerHTML = opts; $('sjCap2').innerHTML = opts;
+      $('sjCap1').value = '48'; $('sjCap2').value = '48';
+      try {
+        const s = JSON.parse(localStorage.getItem(SJ_KEY) || 'null');
+        if (s) {
+          if (SJ_NETS[s.net]) $('sjNet').value = s.net;
+          if (SJ_CAPS.includes(s.cap1)) $('sjCap1').value = String(s.cap1);
+          if (SJ_CAPS.includes(s.cap2)) $('sjCap2').value = String(s.cap2);
+          [['sjStart1', s.start1], ['sjCount', s.count], ['sjStart2', s.start2]].forEach(([id, x]) => { if (x != null) $(id).value = x; });
+        }
+      } catch (e) {}
+      ['sjNet', 'sjCap1', 'sjCap2'].forEach(id => $(id).addEventListener('change', sjRender));
+      ['sjStart1', 'sjCount', 'sjStart2'].forEach(id => $(id).addEventListener('input', sjRender));
+      $('sjCopyBtn').addEventListener('click', async () => { const ok = await copyText(sjText()); toast(ok ? 'Schema copiato.' : 'Copia non riuscita.', ok ? 'success' : 'error'); });
+      $('sjShareBtn').addEventListener('click', () => shareText(sjText(), 'Schema di giunzione'));
+      $('sjPdfBtn').addEventListener('click', sjPdf);
+      $('sjCsvBtn').addEventListener('click', sjCsv);
+      sjRender();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
       renderHeroColors();
@@ -5905,6 +6183,7 @@
       initV3();
       initGeoCam();
       initStats();
+      initSplice();
       history.replaceState({}, '', location.pathname + location.search);
     });
   </script>

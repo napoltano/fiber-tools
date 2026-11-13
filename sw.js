@@ -1,6 +1,6 @@
 /* Service worker di Fiber Tools: rende l'app utilizzabile offline.
    Quando modifichi i file dell'app, aumenta VERSION per forzare l'aggiornamento. */
-const VERSION = 'fiber-tools-v10';
+const VERSION = 'fiber-tools-v11';
 // mappa offline: i tasselli OpenStreetMap restano tra un aggiornamento e l'altro
 const TILE_CACHE = 'fiber-tiles-v1';
 const TILE_MAX = 8000;

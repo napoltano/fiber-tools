@@ -64,13 +64,14 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Società**: resta salvata nell'account (colonna *SOCIETA* del foglio *Utenti*) e compare in *Gestione utenti*, dove gli amministratori possono correggerla. Agli account creati prima viene chiesta una volta sola.
 - **Ruoli**: *Proprietario* (il primo account registrato) → gestisce tutto e nomina gli amministratori; *Amministratore* → elimina ribattiture e PFS, approva e blocca i tecnici; *Tecnico* → salva.
 - **Gestione utenti**: pulsante account in alto → *Gestione utenti* (approva, rifiuta, blocca, riattiva, elimina, nomina amministratore).
+- **Ultimo accesso**: in *Gestione utenti* ogni account mostra quando ha usato l'app l'ultima volta (adesso, oggi, ieri, N giorni fa) e da quale dispositivo (es. *Android · Chrome · app*). In alto il riepilogo: attivi oggi, negli ultimi 7 giorni, da più di 7 giorni. Si può ordinare per ultimo accesso, nome o società. Viene aggiornato a ogni apertura e sincronizzazione dell'app, al massimo ogni 10 minuti (colonne *ULTIMO_ACCESSO* e *DISPOSITIVO* del foglio *Utenti*).
 - **Statistiche e backup** (amministratori): pulsante account → *Statistiche e backup*. Ribattiture e posizioni PFS per tecnico o per società, nel periodo scelto (7 giorni, 30 giorni, mese, anno, tutto), attività giorno per giorno ed esportazione in Excel. Sotto c'è lo stato del backup e *Backup adesso*.
 - **Password dimenticata**: ci si registra di nuovo con la stessa email; la nuova password si attiva dopo l'approvazione (fino ad allora vale quella vecchia).
 - I controlli li fa lo **script Google**, non il telefono: le password sono salvate solo come impronta con sale (foglio *Utenti*), gli accessi sono firmati e un account bloccato smette di funzionare subito. Il proprietario può correggere stato e ruolo anche a mano nel foglio *Utenti*.
 
 ## Script Google Sheets
 
-Lo script ([`apps-script/Code.gs`](apps-script/Code.gs), versione 6) gestisce ribattiture, posizioni PFS, foto, storico, account, statistiche e backup.
+Lo script ([`apps-script/Code.gs`](apps-script/Code.gs), versione 7) gestisce ribattiture, posizioni PFS, foto, storico, account, statistiche e backup.
 
 1. Apri il foglio Google collegato all'app → **Estensioni → Apps Script**.
 2. Sostituisci il contenuto di `Code.gs` con quello del repository e salva.
@@ -87,7 +88,7 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v6 (archivio riservato, account, statistiche, backup)
+apps-script/Code.gs     script Google Sheets v7 (archivio riservato, account, statistiche, backup)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.

@@ -1,5 +1,5 @@
 /**
- * Fiber Tools – Script Google Sheets v6
+ * Fiber Tools – Script Google Sheets v7
  * -------------------------------------
  * Archivio condiviso della squadra: ribattiture ottici, posizioni PFS, foto, storico e ACCOUNT.
  *
@@ -31,7 +31,7 @@
  *   Ribattiture   : PFS | SPLITTER | DATA | TECNICO | O1 PERMUTA | O1 ID | ... | O16 ID | FOTO
  *   PFS_Posizioni : ANELLO | PFS | LAT | LNG | NOTE | TECNICO | DATA | FOTO | MAPPA
  *   Storico       : DATA | AZIONE | PFS | SPLITTER | TECNICO | DETTAGLIO
- *   Utenti        : EMAIL | NOME | STATO | RUOLO | ... | SOCIETA (le password sono salvate solo come impronta con sale)
+ *   Utenti        : EMAIL | NOME | STATO | RUOLO | ... | ULTIMO_ACCESSO | ... | SOCIETA | DISPOSITIVO (le password sono salvate solo come impronta con sale)
  *                   STATO: in attesa | attivo | bloccato | rifiutato — RUOLO: tecnico | admin | proprietario
  *                   Il proprietario può sempre correggere STATO e RUOLO anche a mano in questo foglio.
  *
@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 6;
+const SCRIPT_VERSION = 7;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -97,18 +97,20 @@ function teamOk_(key) {
 
 /* ------------------------------------------------------------------ account */
 const SH_USERS = 'Utenti';
-const U = { EMAIL: 0, NOME: 1, STATO: 2, RUOLO: 3, HASH: 4, SALT: 5, NEW_HASH: 6, NEW_SALT: 7, REG: 8, LAST: 9, BY: 10, SOC: 11 };
-const USER_COLS = 12;
+const U = { EMAIL: 0, NOME: 1, STATO: 2, RUOLO: 3, HASH: 4, SALT: 5, NEW_HASH: 6, NEW_SALT: 7, REG: 8, LAST: 9, BY: 10, SOC: 11, DEV: 12 };
+const USER_COLS = 13;
 const ROLE_LEVEL = { tecnico: 1, admin: 2, proprietario: 3 };
 const TOKEN_DAYS = 180;
-const USER_HEADER = ['EMAIL', 'NOME', 'STATO', 'RUOLO', 'HASH', 'SALT', 'NUOVA_PASSWORD_HASH', 'NUOVA_PASSWORD_SALT', 'REGISTRATO', 'ULTIMO_ACCESSO', 'APPROVATO_DA', 'SOCIETA'];
+const USER_HEADER = ['EMAIL', 'NOME', 'STATO', 'RUOLO', 'HASH', 'SALT', 'NUOVA_PASSWORD_HASH', 'NUOVA_PASSWORD_SALT', 'REGISTRATO', 'ULTIMO_ACCESSO', 'APPROVATO_DA', 'SOCIETA', 'DISPOSITIVO'];
 function usersSheet_() {
   const sh = sheet_(SH_USERS, USER_HEADER);
-  // fogli creati con la v4: aggiunge l'intestazione della colonna SOCIETA
-  if (String(sh.getRange(1, U.SOC + 1).getValue()) !== 'SOCIETA') {
-    sh.getRange(1, U.SOC + 1).setValue('SOCIETA').setFontWeight('bold').setBackground('#e0f2fe');
-    sh.getRange(1, U.SOC + 1, sh.getMaxRows(), 1).setNumberFormat('@');
-  }
+  // fogli creati con versioni precedenti: aggiunge le intestazioni delle colonne nuove
+  [[U.SOC, 'SOCIETA'], [U.DEV, 'DISPOSITIVO']].forEach(([c, name]) => {
+    if (String(sh.getRange(1, c + 1).getValue()) !== name) {
+      sh.getRange(1, c + 1).setValue(name).setFontWeight('bold').setBackground('#e0f2fe');
+      sh.getRange(1, c + 1, sh.getMaxRows(), 1).setNumberFormat('@');
+    }
+  });
   return sh;
 }
 const normSoc_ = v => String(v == null ? '' : v).trim().replace(/\s+/g, ' ').toUpperCase();
@@ -231,15 +233,36 @@ function login_(b) {
   const st = stato_(u.row);
   if (st === 'in attesa') return err_('pending', 'Il tuo account è in attesa di approvazione da parte di un amministratore');
   if (st !== 'attivo') return err_('blocked', 'Il tuo account non è attivo: contatta il responsabile');
-  u.row[U.LAST] = nowIt_(); writeUser_(users, u);
+  u.row[U.LAST] = nowIt_(); u.row[U.DEV] = cleanDev_(b.device) || u.row[U.DEV] || ''; writeUser_(users, u);
   return { status: 'success', token: makeToken_(u.row), user: publicUser_(u.row) };
 }
 
 const pendingCount_ = users => users.rows.filter(u => stato_(u.row) === 'in attesa' || (stato_(u.row) === 'attivo' && u.row[U.NEW_HASH])).length;
 
+/* ------------------------------------------------------------------ ultimo accesso */
+const cleanDev_ = v => String(v || '').replace(/[^\w ·.,()\/-]/g, '').trim().slice(0, 60);
+/** Data "dd/MM/yyyy HH:mm" (o Date) -> millisecondi; 0 se vuota. */
+function itMs_(v) {
+  if (Object.prototype.toString.call(v) === '[object Date]') return v.getTime();
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/.exec(String(v || ''));
+  return m ? new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime() : 0;
+}
+/** Aggiorna ultimo accesso e dispositivo; scrive sul foglio al massimo ogni 10 minuti per utente. */
+function touch_(a, device) {
+  try {
+    const dev = cleanDev_(device), row = a.user.row;
+    const cache = CacheService.getScriptCache(), ck = 'seen_' + normEmail_(row[U.EMAIL]);
+    if (cache.get(ck) && (!dev || dev === String(row[U.DEV] || ''))) return;
+    row[U.LAST] = nowIt_(); if (dev) row[U.DEV] = dev;
+    writeUser_(a.users, a.user);
+    cache.put(ck, '1', 600);
+  } catch (e) { /* l'ultimo accesso non deve mai bloccare l'app */ }
+}
+
 function me_(b) {
   const a = authUser_(b.token, 1);
   if (a.error) return a.error;
+  touch_(a, b.device);
   const res = { status: 'success', user: publicUser_(a.user.row) };
   if (ROLE_LEVEL[res.user.ruolo] >= 2) res.pendingCount = pendingCount_(a.users);
   return res;
@@ -272,7 +295,8 @@ function listUsers_(b) {
   const a = authUser_(b.token, 2);
   if (a.error) return a.error;
   return { status: 'success', users: a.users.rows.map(u => Object.assign(publicUser_(u.row), {
-    registrato: String(u.row[U.REG] || ''), ultimoAccesso: String(u.row[U.LAST] || ''), approvatoDa: String(u.row[U.BY] || ''),
+    registrato: String(u.row[U.REG] || ''), ultimoAccesso: String(u.row[U.LAST] || ''), ultimoAccessoMs: itMs_(u.row[U.LAST]),
+    dispositivo: String(u.row[U.DEV] || ''), approvatoDa: String(u.row[U.BY] || ''),
     nuovaPassword: !!u.row[U.NEW_HASH] })) };
 }
 
@@ -593,6 +617,7 @@ function readAction_(b) {
   }
   const a = authUser_(b.token, 1);
   if (a.error) return a.error;
+  if (b.action === 'data') touch_(a, b.device);
   if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
   return { status: 'success', version: SCRIPT_VERSION, data: readRib_(), positions: readPos_() };
 }

@@ -1084,6 +1084,15 @@
     .user-group-title { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin: 14px 0 8px; display: flex; gap: 8px; align-items: center; }
     .user-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.3s var(--ease) both; }
     .user-item.pending { border-color: color-mix(in srgb, #f59e0b 55%, var(--border)); }
+    .seen { display: flex; align-items: center; gap: 6px; font-size: .76rem; font-weight: 700; margin-top: 3px; }
+    .seen i { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
+    .seen.s-now i { background: #22c55e; box-shadow: 0 0 0 3px color-mix(in srgb, #22c55e 25%, transparent); }
+    .seen.s-today i { background: #22c55e; } .seen.s-week i { background: #f59e0b; } .seen.s-old i { background: #ef4444; } .seen.s-never i { background: transparent; border: 2px solid var(--muted); }
+    .seen small { color: var(--muted); font-weight: 600; }
+    .users-sum { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 10px; }
+    .users-sum span { font-size: .74rem; font-weight: 800; padding: 5px 10px; border-radius: 999px; background: var(--card-2); border: 1px solid var(--border); }
+    .users-sort { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: .78rem; font-weight: 700; color: var(--muted); }
+    .users-sort select { flex: 1; }
     .user-top { display: flex; gap: 10px; align-items: flex-start; }
     .user-top .acc-avatar { width: 38px; height: 38px; font-size: 0.9rem; }
     .user-top b { display: block; font-size: 0.9rem; overflow-wrap: anywhere; }
@@ -1708,6 +1717,8 @@
       <div class="controls-card">
         <div class="section-title"><span>Account della squadra</span><span class="count-pill" id="usersCount">—</span></div>
         <p class="small" style="color:var(--muted);font-weight:600" id="usersHint"></p>
+        <div class="users-sum" id="usersSum"></div>
+        <label class="users-sort">Ordina <select id="usersSort" class="custom-select"><option value="seen">Per ultimo accesso</option><option value="name">Per nome</option><option value="soc">Per società</option></select></label>
         <button type="button" class="btn-secondary" id="usersReload" style="margin:0"><svg><use href="#i-sync"/></svg> Aggiorna elenco</button>
       </div>
       <div id="usersList"></div>
@@ -3616,7 +3627,7 @@
       if (!Object.keys(getRibattitureData()).length) $('pfsArchiveContainer').innerHTML = '<div class="skeleton"></div><div class="skeleton"></div>';
       try {
         await processQueue();
-        const r = await sheetsPost({ action: 'data' });
+        const r = await sheetsPost({ action: 'data', device: deviceLabel() });
         if (!r.confirmed) throw new NetError('Risposta non leggibile');
         const json = r.data;
         if (json && json.status === 'success' && json.data && typeof json.data === 'object') {
@@ -4779,10 +4790,43 @@
     }
 
     /** Aggiorna ruolo e stato dal foglio (un admin può averli cambiati). */
+    /** Descrizione breve del dispositivo, es. "Android · Chrome · app" (si vede in Gestione utenti). */
+    function deviceLabel() {
+      const ua = navigator.userAgent || '';
+      const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'iPad'
+        : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'Altro';
+      const br = /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox|FxiOS/.test(ua) ? 'Firefox'
+        : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
+      const app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone ? ' · app' : '';
+      return `${os} · ${br}${app}`;
+    }
+    /** "dd/MM/yyyy HH:mm" -> Date (ora italiana del foglio). */
+    function parseItDate(v) {
+      const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/.exec(String(v || ''));
+      return m ? new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)) : null;
+    }
+    /** Ultimo accesso in parole: "adesso", "oggi alle 14:32", "ieri alle 9:10", "3 giorni fa", "il 02/11/2026". */
+    function seenInfo(v) {
+      const d = parseItDate(v);
+      if (!d) return { cls: 's-never', txt: 'Mai entrato dall’ultimo aggiornamento' };
+      const now = new Date(), min = (now - d) / 60000;
+      const day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const days = Math.round((day0 - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
+      const hm = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      if (min < 15) return { cls: 's-now', txt: 'Attivo adesso', days: 0 };
+      if (days <= 0) return { cls: 's-today', txt: `Oggi alle ${hm}`, days: 0 };
+      if (days === 1) return { cls: 's-week', txt: `Ieri alle ${hm}`, days };
+      if (days < 7) return { cls: 's-week', txt: `${days} giorni fa`, days };
+      if (days < 31) return { cls: 's-old', txt: `${days} giorni fa`, days };
+      return { cls: 's-old', txt: `Il ${d.toLocaleDateString('it-IT')}`, days };
+    }
+
+    let lastAccountRefresh = 0;
     async function refreshAccount() {
       if (!account || navigator.onLine === false) return;
+      lastAccountRefresh = Date.now();
       try {
-        const d = await accountCall({ action: 'me', token: account.token });
+        const d = await accountCall({ action: 'me', token: account.token, device: deviceLabel() });
         if (d.status === 'success' && d.user) {
           accountPending = Number(d.pendingCount || 0);
           setAccount({ ...account, ...d.user });
@@ -4830,7 +4874,7 @@
         const okBtn = $('modalOk'); okBtn.disabled = true;
         try {
           if (mode === 'login') {
-            const d = await accountCall({ action: 'login', email, password: pass });
+            const d = await accountCall({ action: 'login', email, password: pass, device: deviceLabel() });
             if (d.status !== 'success') { showMsg(d.message || 'Accesso non riuscito.', d.code === 'pending' ? 'info' : 'err'); return; }
             done = true; closeModal(true);
             setAccount({ token: d.token, ...d.user });
@@ -5003,6 +5047,11 @@
       const other = usersCache.filter(u => u.stato !== 'attivo' && u.stato !== 'in attesa');
       accountPending = pending.length; updateAccountUI();
       $('usersCount').textContent = `${usersCache.length} account${pending.length ? ` • ${pending.length} da approvare` : ''}`;
+      const act = usersCache.filter(u => u.stato === 'attivo').map(u => seenInfo(u.ultimoAccesso));
+      $('usersSum').innerHTML = `<span>🟢 Oggi ${act.filter(x => x.days === 0).length}</span><span>🗓️ Ultimi 7 giorni ${act.filter(x => x.days != null && x.days < 7).length}</span><span>💤 Da più di 7 giorni ${act.filter(x => x.days != null && x.days >= 7).length}</span>${act.some(x => x.days == null) ? `<span>⚪ Mai entrati ${act.filter(x => x.days == null).length}</span>` : ''}`;
+      const sort = $('usersSort').value, ms = u => { const d = parseItDate(u.ultimoAccesso); return d ? +d : 0; };
+      const sorter = sort === 'name' ? (a, b) => a.nome.localeCompare(b.nome) : sort === 'soc' ? (a, b) => (!a.societa - !b.societa) || (a.societa || '').localeCompare(b.societa || '') || a.nome.localeCompare(b.nome) : (a, b) => ms(b) - ms(a) || a.nome.localeCompare(b.nome);
+      [pending, active, other].forEach(arr => arr.sort(sorter));
       const canManage = u => u.email !== me && u.ruolo !== 'proprietario' && (owner || u.ruolo === 'tecnico');
       const item = (u, i) => {
         const badge = u.stato === 'in attesa' ? '<span class="role-badge attesa">In attesa</span>'
@@ -5019,7 +5068,8 @@
           <div class="user-top"><div class="acc-avatar">${escapeHtml(initials(u.nome))}</div>
             <div style="min-width:0;flex:1"><b>${escapeHtml(u.nome)}${u.email === me ? ' (tu)' : ''}</b><small>${escapeHtml(u.email)}</small>
             <span class="acc-soc">🏢 ${u.societa ? escapeHtml(u.societa) : 'Società non indicata'}</span>
-            <small>${u.stato === 'in attesa' ? 'Richiesta del ' + escapeHtml(u.registrato) : u.ultimoAccesso ? 'Ultimo accesso: ' + escapeHtml(u.ultimoAccesso) : 'Registrato: ' + escapeHtml(u.registrato)}${u.approvatoDa && u.stato === 'attivo' && u.ruolo !== 'proprietario' ? ' • approvato da ' + escapeHtml(u.approvatoDa) : ''}</small>
+            ${u.stato === 'in attesa' ? '' : (() => { const si = seenInfo(u.ultimoAccesso); return `<div class="seen ${si.cls}" title="${escapeHtml(u.ultimoAccesso || '')}"><i></i><span>${si.txt}${u.dispositivo ? ` <small>· ${escapeHtml(u.dispositivo)}</small>` : ''}</span></div>`; })()}
+            <small>${u.stato === 'in attesa' ? 'Richiesta del ' + escapeHtml(u.registrato) : 'Registrato: ' + escapeHtml(u.registrato || '—')}${u.approvatoDa && u.stato === 'attivo' && u.ruolo !== 'proprietario' ? ' • approvato da ' + escapeHtml(u.approvatoDa) : ''}</small>
             ${badge}</div></div>
           ${actions ? `<div class="user-actions">${actions}</div>` : ''}
         </div>`;
@@ -5054,8 +5104,11 @@
     function initV3() {
       loadAccount(); if (!canRead()) purgeData(); updateAccountUI();
       setTimeout(refreshAccount, 1200);
+      // app lasciata aperta: quando torna in primo piano aggiorna account e ultimo accesso (al massimo ogni 10 minuti)
+      document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - lastAccountRefresh > 10 * 60 * 1000) refreshAccount(); });
       document.addEventListener('click', e => { if (e.target.closest('[data-open-account]')) openAccount(); });
       $('usersReload').addEventListener('click', loadUsers);
+      $('usersSort').addEventListener('change', () => { if (usersCache.length) renderUsers(); });
       $('usersList').addEventListener('click', e => {
         const b = e.target.closest('button[data-op]'); if (!b) return;
         manageUser(b.closest('[data-email]').dataset.email, b.dataset.op);

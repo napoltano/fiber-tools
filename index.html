@@ -1471,7 +1471,7 @@
             <label class="field-label" for="fcCardInput">Numero Cartolina (8 fibre / cad.)</label>
             <input type="number" inputmode="numeric" id="fcCardInput" class="custom-input" placeholder="es. 2" min="1">
           </div>
-          <label class="field-label">Seleziona colore in cartolina (1 – 8)</label>
+          <label class="field-label">Seleziona la posizione nella cartolina (1 – 8): i colori seguono la sequenza da 12</label>
           <div id="fcColorGrid" class="color-grid"></div>
         </div>
 
@@ -2385,8 +2385,14 @@
       updateFiberCop();
     }
 
+    /* FiberCop: i colori seguono la sequenza da 12 senza interruzioni; le cartoline da 8 la "tagliano".
+       Fibra 1–8 = rosso…rosa, fibra 9–16 = arancio…marrone, fibra 17–24 = blu…grigio, poi si ricomincia. */
+    const fcColorOf = fiberNum => baseColors.fibercop[(fiberNum - 1) % 12];
+    const fcCardColors = cardNum => Array.from({ length: 8 }, (_, i) => fcColorOf((cardNum - 1) * 8 + i + 1));
+
     function renderFcColors() {
-      const palette = baseColors.fibercop.slice(0, 8);
+      const cardNum = intVal('fcCardInput');
+      const palette = fcCardColors(cardNum > 0 ? cardNum : 1);
       $('fcColorGrid').innerHTML = palette.map((color, idx) => `
         <button type="button" class="color-grid-btn ${selectedFcCardPos === idx + 1 ? 'active' : ''}" data-pos="${idx + 1}" style="--i:${idx}" aria-pressed="${selectedFcCardPos === idx + 1}">
           <span class="check"><svg><use href="#i-check"/></svg></span>
@@ -2397,7 +2403,6 @@
     }
 
     function updateFiberCop() {
-      const palette = baseColors.fibercop;
       let fiberNum = null, title = '', name = '', sub = '';
 
       if (fcSearchMode === 'quartina') {
@@ -2411,10 +2416,10 @@
 
         fiberNum = (q - 1) * 4 + p;
         const card = split(fiberNum, 8);
-        const color = palette[card.pos - 1];
+        const color = fcColorOf(fiberNum);
         title = `Quartina ${q} • Posto ${p}`;
         name = `FIBRA N° ${fiberNum} (${color.name})`;
-        sub = `Cartolina N° ${card.group} • Posizione colore ${card.pos} su 8`;
+        sub = `Cartolina N° ${card.group} • Posizione ${card.pos} su 8 • Colore ${((fiberNum - 1) % 12) + 1} su 12`;
         finishFc(color, title, name, sub, { m: 'q', q, p });
 
       } else if (fcSearchMode === 'cartolina') {
@@ -2424,7 +2429,7 @@
 
         fiberNum = (cardNum - 1) * 8 + selectedFcCardPos;
         const quart = split(fiberNum, 4);
-        const color = palette[selectedFcCardPos - 1];
+        const color = fcColorOf(fiberNum);
         title = `Cartolina ${cardNum} • Posizione ${selectedFcCardPos}`;
         name = `FIBRA N° ${fiberNum} (${color.name})`;
         sub = `Quartina N° ${quart.group} • Posto N° ${quart.pos}`;
@@ -2436,7 +2441,7 @@
         if (!(f > 0)) { hideResult('fcResultCard'); return; }
 
         const quart = split(f, 4), card = split(f, 8);
-        const color = palette[card.pos - 1];
+        const color = fcColorOf(f);
         title = `Fibra N° ${f}`;
         name = `COLORE: ${color.name}`;
         sub = `Quartina ${quart.group} (posto ${quart.pos}) • Cartolina ${card.group} (pos. ${card.pos})`;
@@ -5216,6 +5221,7 @@
       // FiberCop
       document.querySelectorAll('[data-seg="fc"] .pfs-mode-btn').forEach(b => b.addEventListener('click', () => setFcSearchMode(b.dataset.mode)));
       ['fcQuartinaInput', 'fcPostoInput', 'fcFiberInput', 'fcCardInput'].forEach(id => $(id).addEventListener('input', updateFiberCop));
+      $('fcCardInput').addEventListener('input', renderFcColors);   // i colori della cartolina cambiano da una cartolina all'altra
       $('fcColorGrid').addEventListener('click', e => {
         const b = e.target.closest('.color-grid-btn'); if (!b) return;
         selectedFcCardPos = Number(b.dataset.pos);

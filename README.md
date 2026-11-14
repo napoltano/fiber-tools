@@ -19,7 +19,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 | 06 | **Generatore barcode** | Code 128 leggibile da scanner, schermo intero, PNG, scansione di codici esistenti |
 | 07 | **PFS e POP** | Tocca il riquadro: si ingrandisce e scegli **PFS** (coordinate divise per anello) o **POP** (83 centrali Open Fiber). Ricerca, "vicino a me", mappa e navigazione con Google Maps |
 | 08 | **Foto GPS** | Foto e video con timbro: via e civico, CAP e città, regione, coordinate GPS, data e ora; salvati nella galleria del telefono |
-| 09 | **Schema di Giunzione** | Abbinamento fibra per fibra tra due cavi (N− / N+): tubetto, numero e colore, per TIA-598-C, FiberCop/TIM ST 908, Open Fiber ST 1701 e BUL Infratel |
+| 09 | **Schema di Giunzione** | Schema completo del PD/PFS: più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome. Mappa delle fibre per tubetto, controllo delle sovrapposizioni, tabella per ogni cavo |
 
 ### Ribattitura
 - **Scanner con fotocamera**: il pulsante accanto a ogni ID legge l'etichetta. Con *Passa all'ottico successivo* scansioni gli ottici uno dopo l'altro. Senza fotocamera si può usare *Da foto*.
@@ -48,9 +48,10 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - I **video** (fino a 10 minuti, con audio) sono in MP4 dove il telefono lo permette, altrimenti WebM.
 
 ### Schema di Giunzione
-- Si sceglie la **rete**, la **capacità** dei due cavi (12–432 fibre), la **fibra iniziale** di ciascuno e **quante fibre** giuntare: la tabella si aggiorna mentre scrivi.
-- **Tubetti**: fino a 48 fibre da 12, da 96 a 192 da 24, da 288 a 432 da 36. Le fibre 13–24 del tubetto sono **anellate**, le 25–36 **doppio anellate** (il nero diventa trasparente).
-- Avvisi se le fibre superano la capacità del cavo 1 o se il cavo 2 non basta. Esporta in **testo**, **PDF** ed **Excel**; funziona anche offline e ricorda gli ultimi valori.
+- Si sceglie la **rete** e il nome del **PD / PFS**, poi si aggiungono i **cavi N−** (in ingresso: nome e capacità) e i **cavi N+** (in uscita: nome, capacità, cavo N− e fibra da cui parte, fibra di arrivo, numero di fibre).
+- **Mappa delle fibre** di ogni cavo N−, divisa per tubetto: le fibre usate prendono il colore del cavo N+, quelle libere mostrano il loro colore. Tocca un cavo N+ e poi una fibra nella mappa per farlo partire da lì.
+- **Tubetti**: da 12 fibre fino ai cavi da 48, da 24 fibre dai cavi da 96 in su. Nei tubetti da 24 le fibre 13–24 sono **anellate** (il nero diventa trasparente).
+- Avvisi se una fibra N− è usata da due cavi o se un cavo non ha abbastanza fibre. Esporta in **testo**, **PDF** (una sezione per cavo) ed **Excel**; lo schema resta salvato sul telefono.
 
 ### Contatti
 - Pulsante ✉️ nella barra in alto, accanto all'ingranaggio: mostra l'indirizzo **marigliano.lavoro@gmail.com** e un modulo (argomento, nome, messaggio). **Invia mail** apre l'app di posta con oggetto e testo già pronti.

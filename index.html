@@ -1253,6 +1253,17 @@
       .sj-dot { width: 14px; height: 14px; }
       .sj-head { font-size: 0.54rem; letter-spacing: 0; }
     }
+    /* ---------- Contatti ---------- */
+    .ct-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-2); margin-bottom: 12px; }
+    .ct-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; background: var(--primary-soft); color: var(--primary); }
+    .ct-ico svg { width: 22px; height: 22px; }
+    .ct-card b { display: block; font-size: 0.9rem; }
+    .ct-card a { font-size: 0.82rem; font-weight: 700; color: var(--primary); word-break: break-all; text-decoration: none; }
+    .ct-mini { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+    .ct-mini button { font-size: 0.72rem; font-weight: 800; padding: 6px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .ct-mini button svg { width: 14px; height: 14px; }
+    #ctMsg { min-height: 120px; resize: vertical; font: inherit; }
+    @media (max-width: 360px) { .header-actions { gap: 4px; } .header-actions .icon-btn { min-width: 34px; padding: 0 8px; } }
     #printArea .sjp td.dot span { display: inline-block; width: 10pt; height: 10pt; border-radius: 50%; border: 0.6pt solid #555; vertical-align: middle; margin-right: 4pt; }
   </style>
 </head>
@@ -1290,6 +1301,7 @@
       <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></symbol>
       <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
       <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
       <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
       <symbol id="i-torch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 6l2 5v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-9z"/><path d="M6 2h12v4H6zM12 13v3"/></symbol>
       <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></symbol>
@@ -1317,7 +1329,8 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="icon-btn" id="settingsBtn" type="button" aria-label="Impostazioni"><svg><use href="#i-gear"/></svg></button>
+      <button class="icon-btn" id="settingsBtn" type="button" aria-label="Impostazioni" title="Impostazioni"><svg><use href="#i-gear"/></svg></button>
+      <button class="icon-btn" id="contactBtn" type="button" aria-label="Contatti" title="Contatti"><svg><use href="#i-mail"/></svg></button>
       <button class="icon-btn" id="adminLoginBtn" type="button" aria-label="Account">
         <svg id="adminIcon"><use href="#i-user"/></svg> <span class="lbl" id="adminText">Accedi</span>
       </button>
@@ -3499,6 +3512,7 @@
     /* ---------- Collegamento eventi nuove funzioni ---------- */
     function bindExtraEvents() {
       $('settingsBtn').addEventListener('click', openSettings);
+      $('contactBtn').addEventListener('click', openContact);
       $('installBtn').addEventListener('click', doInstall);
       $('installClose').addEventListener('click', () => { $('installCard').hidden = true; lsSet(INSTALL_DISMISS_KEY, '1'); });
 
@@ -6265,6 +6279,66 @@
       $('sjPdfBtn').addEventListener('click', sjPdf);
       $('sjCsvBtn').addEventListener('click', sjCsv);
       sjRender();
+    }
+
+    /* ================= CONTATTI ================= */
+    const CONTACT_EMAIL = 'marigliano.lavoro@gmail.com';
+    const CONTACT_TOPICS = ['Segnalazione problema', 'Suggerimento / nuova funzione', 'Richiesta account o accesso', 'Dati PFS / POP da correggere', 'Altro'];
+
+    function contactMail() {
+      const topic = $('ctTopic').value, name = $('ctName').value.trim(), msg = $('ctMsg').value.trim();
+      const subject = `Fiber Tools – ${topic}${name ? ' – ' + name : ''}`;
+      const body = `${msg}\n\n—\n${name ? 'Da: ' + name + (account && account.societa ? ' (' + account.societa + ')' : '') + '\n' : ''}${account && account.email ? 'Account: ' + account.email + '\n' : ''}Dispositivo: ${deviceLabel()}\nInviato da Fiber Tools`;
+      return { subject, body };
+    }
+
+    async function openContact() {
+      const lastName = (account && account.nome) || getTecnico() || '';
+      const ok = await openModal({
+        title: 'Contatti',
+        okText: 'Invia mail',
+        cancelText: 'Chiudi',
+        bodyHtml: `
+          <div class="ct-card">
+            <span class="ct-ico"><svg><use href="#i-mail"/></svg></span>
+            <div style="min-width:0">
+              <b>Massimiliano Marigliano</b>
+              <a href="mailto:${CONTACT_EMAIL}" id="ctAddr">${CONTACT_EMAIL}</a>
+              <div class="ct-mini"><button type="button" id="ctCopy"><svg><use href="#i-copy"/></svg> Copia indirizzo</button></div>
+            </div>
+          </div>
+          <p class="small" style="margin:0 0 10px">Problemi con l'app, idee per nuove funzioni o dati da correggere: scrivimi qui sotto e premi <b>Invia mail</b>. Si apre la tua app di posta con il messaggio già pronto.</p>
+          <div class="field-group">
+            <label class="field-label" for="ctTopic">Argomento</label>
+            <select id="ctTopic" class="custom-select">${CONTACT_TOPICS.map(t => `<option>${escapeHtml(t)}</option>`).join('')}</select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="ctName">Il tuo nome</label>
+            <input type="text" id="ctName" class="custom-input" autocomplete="name" value="${escapeHtml(lastName)}" placeholder="Nome e cognome">
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="ctMsg">Messaggio</label>
+            <textarea id="ctMsg" class="custom-input" placeholder="Scrivi qui il tuo messaggio..."></textarea>
+          </div>
+          <p class="hint" id="ctHint" role="alert"></p>`,
+        onOpen: () => {
+          $('ctCopy').addEventListener('click', async () => { const ok = await copyText(CONTACT_EMAIL); toast(ok ? 'Indirizzo copiato.' : 'Copia non riuscita.', ok ? 'success' : 'error'); });
+          $('ctMsg').addEventListener('input', () => { $('ctHint').textContent = ''; });
+          // "Invia mail" non chiude finché il messaggio è vuoto
+          const okBtn = $('modalOk');
+          const guard = e => {
+            if (!$('ctMsg').value.trim()) { e.stopImmediatePropagation(); e.preventDefault(); $('ctHint').textContent = 'Scrivi un messaggio prima di inviare.'; $('ctMsg').focus(); }
+          };
+          okBtn.addEventListener('click', guard, { capture: true });
+          const off = new MutationObserver(() => { if ($('modal').hidden) { okBtn.removeEventListener('click', guard, { capture: true }); off.disconnect(); } });
+          off.observe($('modal'), { attributes: true, attributeFilter: ['hidden'] });
+          setTimeout(() => ($('ctName').value ? $('ctMsg') : $('ctName')).focus(), 50);
+        }
+      });
+      if (!ok) return;
+      const { subject, body } = contactMail();
+      location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      toast('Si apre la tua app di posta: premi Invia per spedire.', 'success');
     }
 
     document.addEventListener('DOMContentLoaded', () => {

@@ -52,6 +52,9 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Tubetti**: fino a 48 fibre da 12, da 96 a 192 da 24, da 288 a 432 da 36. Le fibre 13–24 del tubetto sono **anellate**, le 25–36 **doppio anellate** (il nero diventa trasparente).
 - Avvisi se le fibre superano la capacità del cavo 1 o se il cavo 2 non basta. Esporta in **testo**, **PDF** ed **Excel**; funziona anche offline e ricorda gli ultimi valori.
 
+### Contatti
+- Pulsante ✉️ nella barra in alto, accanto all'ingranaggio: mostra l'indirizzo **marigliano.lavoro@gmail.com** e un modulo (argomento, nome, messaggio). **Invia mail** apre l'app di posta con oggetto e testo già pronti.
+
 ### Sempre attivi
 - **Coda offline**: se manca la rete, salvataggi ed eliminazioni restano in coda (barra arancione in alto) e partono da soli quando torna la connessione.
 - **Backup**: ⚙️ Impostazioni → *Scarica* / *Ripristina*, utile per cambiare telefono.

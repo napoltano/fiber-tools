@@ -1126,6 +1126,9 @@
     .lock-note button { margin-left: auto; flex-shrink: 0; }
     body.data-locked [data-need-login] { display: none !important; }
     body:not(.data-locked) [data-locked-only] { display: none !important; }
+    .tile-lock { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 0.66rem; font-weight: 800; color: #b45309; }
+    [data-theme="dark"] .tile-lock { color: #fbbf24; }
+    .tile-lock svg { width: 12px; height: 12px; }
     .data-lock { text-align: center; padding: 26px 20px 22px; border-radius: 20px; margin-bottom: 16px;
       background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 16%, var(--card)), var(--card));
       border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border)); animation: fadeUp .45s ease both; }
@@ -1398,7 +1401,7 @@
           <div class="hero-colors" id="heroColors" aria-hidden="true"></div>
         </div>
       </div>
-      <div class="home-lock" data-locked-only role="note"><svg><use href="#i-lock"/></svg><span>I dati di <b>PFS, posizioni e ribattiture</b> sono riservati: per vederli accedi con un account approvato. Gli altri strumenti sono liberi.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
+      <div class="home-lock" data-locked-only role="note"><svg><use href="#i-lock"/></svg><span>I dati di <b>PFS, posizioni e ribattiture</b> e lo <b>schema di giunzione</b> sono riservati: per vederli accedi con un account approvato. Gli altri strumenti sono liberi.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
 
       <div class="install-card" id="installCard" hidden>
         <img src="icons/icon-192.png" alt="">
@@ -1497,11 +1500,12 @@
           <span class="badge-num">08</span>
         </button>
 
-        <button class="btn-main full-width" type="button" style="--i:8" data-open="spliceScreen" data-title="Schema giunzione" data-sub="Abbinamento fibre tra due cavi">
+        <button class="btn-main full-width" type="button" style="--i:8" data-open="spliceScreen" data-title="Schema giunzione" data-sub="Schema completo del PD / PFS">
           <div class="tile-icon t-orange"><svg><use href="#i-table"/></svg></div>
           <div class="btn-main-content">
             <span class="btn-title">Schema di Giunzione</span>
-            <span class="btn-desc">Tubetti, fibre e colori N− / N+ per TIA, FiberCop, Open Fiber e BUL</span>
+            <span class="btn-desc">Più cavi N− / N+ con tubetti, fibre e colori</span>
+            <span class="tile-lock" data-locked-only><svg><use href="#i-lock"/></svg> Accesso richiesto</span>
           </div>
           <span class="badge-num">09</span>
           <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
@@ -1635,6 +1639,15 @@
     <section id="spliceScreen" class="screen">
       <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
 
+      <div class="data-lock" data-locked-only>
+        <div class="lock-ico"><svg><use href="#i-lock"/></svg></div>
+        <h3>Accesso riservato</h3>
+        <p>Lo schema di giunzione è disponibile solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
+        <button type="button" class="btn-action" data-open-account><svg><use href="#i-user"/></svg> Accedi o registrati</button>
+      </div>
+
+      <div id="sjBody" data-need-login>
+
       <div class="controls-card">
         <div class="row-fields">
           <div class="field-group">
@@ -1677,6 +1690,7 @@
         <button class="btn-secondary sj-reset" type="button" id="sjResetBtn"><svg><use href="#i-trash"/></svg> Nuovo schema</button>
       </div>
       <p class="sj-note">Tubetti da 12 fibre fino ai cavi da 48, da 24 fibre dai cavi da 96 in su. Strumento di supporto: verifica sempre lo schema con le specifiche del gestore di rete.</p>
+      </div>
     </section>
 
     <!-- ================= PFS ================= -->
@@ -4955,6 +4969,7 @@
     function purgeData() {
       let had = false;
       [STORAGE_KEY, POS_KEY].forEach(k => { try { if (localStorage.getItem(k)) had = true; localStorage.removeItem(k); } catch (e) {} });
+      try { if (localStorage.getItem(SJ_KEY)) { localStorage.removeItem(SJ_KEY); if (sj) { sj = sjDefault(); $('sjNet').value = sj.net; $('sjPfs').value = ''; sjForms(); sjDraw(); localStorage.removeItem(SJ_KEY); } } } catch (e) {}
       if (had) {
         try { loadRibattitureArchive(); } catch (e) {}
         try { if ($('pfsPosScreen').classList.contains('active')) renderPositions(); } catch (e) {}
@@ -6198,7 +6213,7 @@
       return s;
     }
     let sj = null, sjLast = null;
-    const sjSave = () => { try { localStorage.setItem(SJ_KEY, JSON.stringify(sj)); } catch (e) {} };
+    const sjSave = () => { if (!canRead()) return; try { localStorage.setItem(SJ_KEY, JSON.stringify(sj)); } catch (e) {} };
     const sjInName = i => (sj.ins[i] && sj.ins[i].name.trim()) || `Cavo N− ${i + 1}`;
     const sjOutName = i => (sj.outs[i] && sj.outs[i].name.trim()) || `Cavo N+ ${i + 1}`;
     const sjColor = i => SJ_PAL[i % SJ_PAL.length];
@@ -6326,6 +6341,7 @@
     }
 
     function sjText() {
+      if (!canRead()) return '';
       if (!sjLast || !sjLast.cables.length) return '';
       const L = [`SCHEMA DI GIUNZIONE${sj.pfs.trim() ? ' – ' + sj.pfs.trim() : ''}`, `Rete: ${SJ_NETS[sj.net].label}`];
       sj.ins.forEach((c, i) => L.push(`N- ${i + 1}: ${sjInName(i)} (${c.cap} fo)`));
@@ -6338,6 +6354,7 @@
     function sjBaseName() { return `Schema_giunzione_${sj.pfs.trim() || SJ_NETS[sj.net].label.split(' ')[0]}`; }
 
     function sjCsv() {
+      if (!requireReader('Lo schema di giunzione è riservato agli account approvati.')) return;
       if (!sjLast || !sjLast.cables.length) return;
       const cell = x => /[;"\n]/.test(String(x)) ? `"${String(x).replace(/"/g, '""')}"` : String(x);
       const out = [['CAVO N-', 'TUB N-', 'FO N-', 'COLORE N-', 'COLORE N+', 'FO N+', 'TUB N+', 'CAVO N+']];
@@ -6347,6 +6364,7 @@
     }
 
     function sjPdf() {
+      if (!requireReader('Lo schema di giunzione è riservato agli account approvati.')) return;
       if (!sjLast || !sjLast.cables.length) return;
       const dot = f => `<span style="background:${f.color === 'TRASPARENTE' ? '#fff' : HEX[f.color]}"></span>`;
       const area = $('printArea');

@@ -52,6 +52,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Mappa delle fibre** di ogni cavo N−, divisa per tubetto: le fibre usate prendono il colore del cavo N+, quelle libere mostrano il loro colore. Tocca un cavo N+ e poi una fibra nella mappa per farlo partire da lì.
 - **Tubetti**: da 12 fibre fino ai cavi da 48, da 24 fibre dai cavi da 96 in su. Nei tubetti da 24 le fibre 13–24 sono **anellate** (il nero diventa trasparente).
 - Avvisi se una fibra N− è usata da due cavi o se un cavo non ha abbastanza fibre. Esporta in **testo**, **PDF** (una sezione per cavo) ed **Excel**; lo schema resta salvato sul telefono.
+- **Riservato**: come PFS, POP e ribattiture, è visibile solo con un account approvato. Senza accesso compare il pannello «Accesso riservato» e, all'uscita dall'account, lo schema viene tolto dal telefono.
 
 ### Contatti
 - Pulsante ✉️ nella barra in alto, accanto all'ingranaggio: mostra l'indirizzo **marigliano.lavoro@gmail.com** e un modulo (argomento, nome, messaggio). **Invia mail** apre l'app di posta con oggetto e testo già pronti.

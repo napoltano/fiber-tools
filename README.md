@@ -17,7 +17,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 | 04 | **FiberCop** | Conversione quartina ↔ cartolina ↔ numero fibra |
 | 05 | **Ribattitura ottici** | 16 ottici per splitter, archivio per cartelle PFS condiviso su Google Sheets, scanner, ricerca per ID, controlli duplicati, foto, storico, PDF/Excel |
 | 06 | **Generatore barcode** | Code 128 leggibile da scanner, schermo intero, PNG, scansione di codici esistenti |
-| 07 | **PFS Qui** | Coordinate dei PFS divise per anello (NA_01, NA_02…), ricerca, "vicino a me", mappa e navigazione con Google Maps |
+| 07 | **PFS e POP** | Tocca il riquadro: si ingrandisce e scegli **PFS** (coordinate divise per anello) o **POP** (83 centrali Open Fiber). Ricerca, "vicino a me", mappa e navigazione con Google Maps |
 | 08 | **Foto GPS** | Foto e video con timbro: via e civico, CAP e città, regione, coordinate GPS, data e ora; salvati nella galleria del telefono |
 | 09 | **Schema di Giunzione** | Abbinamento fibra per fibra tra due cavi (N− / N+): tubetto, numero e colore, per TIA-598-C, FiberCop/TIM ST 908, Open Fiber ST 1701 e BUL Infratel |
 

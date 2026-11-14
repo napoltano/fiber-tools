@@ -234,6 +234,26 @@
       flex-direction: row; align-items: center; gap: 14px;
     }
 
+    .pq-tile { cursor: pointer; transition: transform 0.25s var(--ease), border-color 0.25s, box-shadow 0.25s; }
+    .pq-top { display: flex; flex-direction: column; align-items: flex-start; }
+    .pq-tile.open { grid-column: span 2; border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); box-shadow: var(--shadow-lg); animation: pqGrow 0.35s var(--spring) both; }
+    .pq-tile.open:active { transform: none; }
+    .pq-tile.open .pq-top { flex-direction: row; align-items: center; gap: 14px; }
+    .pq-tile.open .pq-top .tile-icon { margin-bottom: 0; }
+    .pq-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
+      transition: max-height 0.35s var(--ease), opacity 0.25s, margin-top 0.35s var(--ease), visibility 0s 0.35s; }
+    .pq-tile.open .pq-choices { max-height: 140px; opacity: 1; margin-top: 14px; visibility: visible; transition: max-height 0.35s var(--ease), opacity 0.3s 0.08s, margin-top 0.35s var(--ease); }
+    .pq-choice { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card-2); text-align: left; color: inherit; font: inherit; cursor: pointer; transition: transform 0.2s var(--ease), border-color 0.2s, background 0.2s; }
+    .pq-choice:hover, .pq-choice:focus-visible { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-2px); }
+    .pq-choice:active { transform: scale(0.97); }
+    .pq-choice b { display: block; font-size: 1.05rem; font-weight: 900; letter-spacing: -0.2px; }
+    .pq-choice small { display: block; font-size: 0.7rem; color: var(--muted); font-weight: 600; line-height: 1.25; margin-top: 1px; }
+    .pq-ico { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; flex-shrink: 0; background: color-mix(in srgb, #0d9488 15%, transparent); color: #0d9488; }
+    .pq-choice.pop .pq-ico { background: color-mix(in srgb, #db2777 15%, transparent); color: #db2777; }
+    .pq-ico svg { width: 20px; height: 20px; }
+    @keyframes pqGrow { from { transform: scale(0.96); } to { transform: none; } }
+    .pos-kind-tag { display: inline-block; font-size: 0.6rem; font-weight: 900; padding: 1px 6px; border-radius: 6px; background: color-mix(in srgb, #db2777 15%, transparent); color: #db2777; margin-right: 6px; vertical-align: 2px; letter-spacing: .3px; }
+
     @keyframes riseIn { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
     @keyframes popIn { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
 
@@ -1399,14 +1419,26 @@
           <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
         </button>
 
-        <button class="btn-main" type="button" style="--i:6" data-open="pfsPosScreen" data-title="PFS Qui" data-sub="Posizioni PFS per anello">
-          <div class="tile-icon t-teal"><svg><use href="#i-nav"/></svg></div>
-          <div class="btn-main-content">
-            <span class="btn-title">PFS Qui</span>
-            <span class="btn-desc">Coordinate e navigazione</span>
+        <div class="btn-main pq-tile" style="--i:6" id="pqTile" role="button" tabindex="0" aria-expanded="false" aria-controls="pqChoices">
+          <div class="pq-top">
+            <div class="tile-icon t-teal"><svg><use href="#i-nav"/></svg></div>
+            <div class="btn-main-content">
+              <span class="btn-title">PFS e POP</span>
+              <span class="btn-desc">Coordinate e navigazione</span>
+            </div>
           </div>
           <span class="badge-num">07</span>
-        </button>
+          <div class="pq-choices" id="pqChoices">
+            <button type="button" class="pq-choice" data-pq="pfs" tabindex="-1">
+              <span class="pq-ico"><svg><use href="#i-pin"/></svg></span>
+              <span><b>PFS</b><small>Armadi divisi per anello</small></span>
+            </button>
+            <button type="button" class="pq-choice pop" data-pq="pop" tabindex="-1">
+              <span class="pq-ico"><svg><use href="#i-nav"/></svg></span>
+              <span><b>POP</b><small>Centrali Open Fiber</small></span>
+            </button>
+          </div>
+        </div>
 
         <button class="btn-main" type="button" style="--i:7" id="geoCamBtn">
           <div class="tile-icon t-pink"><svg><use href="#i-camera"/></svg></div>
@@ -1895,7 +1927,7 @@
       <div class="data-lock" data-locked-only>
         <div class="lock-ico"><svg><use href="#i-lock"/></svg></div>
         <h3>Dati riservati</h3>
-        <p>Le posizioni dei PFS (elenco, mappa e navigazione) sono visibili solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
+        <p>Le posizioni di PFS e POP (elenco, mappa e navigazione) sono visibili solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
         <button type="button" class="btn-action" data-open-account><svg><use href="#i-user"/></svg> Accedi o registrati</button>
       </div>
       <details class="adv-card" id="posForm" data-need-login>
@@ -1903,10 +1935,10 @@
         <div class="adv-body">
           <div class="row-fields">
             <div class="field-group" style="flex:1.4">
-              <label class="field-label" for="posPfs">Codice PFS</label>
+              <label class="field-label" for="posPfs" id="posPfsLabel">Codice PFS</label>
               <input type="text" id="posPfs" class="custom-input" data-upper autocapitalize="characters" autocomplete="off" placeholder="es. NA_05 08E22">
             </div>
-            <div class="field-group">
+            <div class="field-group" id="posAnelloGroup">
               <label class="field-label" for="posAnello">Anello</label>
               <input type="text" id="posAnello" class="custom-input" data-upper autocapitalize="characters" autocomplete="off" placeholder="auto">
             </div>
@@ -1925,7 +1957,7 @@
             <input type="text" id="posNote" class="custom-input" autocomplete="off" placeholder="es. Via Roma 12, armadio a sinistra del cancello">
           </div>
           <div class="photo-row">
-            <button type="button" class="btn-secondary" id="posPhotoBtn"><svg><use href="#i-photo"/></svg> <span id="posPhotoBtnText">Foto del PFS</span></button>
+            <button type="button" class="btn-secondary" id="posPhotoBtn"><svg><use href="#i-photo"/></svg> <span id="posPhotoBtnText">Foto</span></button>
             <div class="photo-preview" id="posPhotoPreview" hidden>
               <img id="posPhotoImg" alt="Foto PFS">
               <button type="button" id="posPhotoRemove" aria-label="Rimuovi foto">×</button>
@@ -1938,7 +1970,7 @@
       </details>
 
       <div class="controls-card" data-need-login>
-        <div class="section-title"><span>Archivio PFS</span><span class="count-pill" id="posCount">0 PFS</span></div>
+        <div class="section-title"><span id="posArchTitle">Archivio PFS</span><span class="count-pill" id="posCount">0 PFS</span></div>
         <div class="pos-tools">
           <input type="search" id="posSearch" class="custom-input" data-upper autocapitalize="characters" placeholder="Cerca PFS, anello o note..." autocomplete="off">
           <button type="button" class="chip" id="posNearBtn"><svg><use href="#i-target"/></svg>Vicino a me</button>
@@ -1950,7 +1982,7 @@
         </div>
         <div class="pfs-mode-selector" data-seg="pos">
           <span class="seg-indicator"></span>
-          <button type="button" class="pfs-mode-btn active" data-mode="list">Elenco per anello</button>
+          <button type="button" class="pfs-mode-btn active" data-mode="list" id="posListModeBtn">Elenco per anello</button>
           <button type="button" class="pfs-mode-btn" data-mode="map">Mappa</button>
         </div>
       </div>
@@ -2279,7 +2311,7 @@
       else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
       else if (screenId === 'usersScreen') loadUsers();
       else if (screenId === 'statsScreen') { loadStats(); loadBackupInfo(); }
-      else if (screenId === 'pfsPosScreen') { renderPositions(); syncFromGoogleSheets(true); }
+      else if (screenId === 'pfsPosScreen') { setPosKind(title === 'POP' ? 'pop' : 'pfs'); renderPositions(); syncFromGoogleSheets(true); }
       else if (screenId === 'barcodeScreen') {
         renderBarcode(false); renderRecentBarcodes();
         if (!fromHistory && window.matchMedia('(pointer: fine)').matches) setTimeout(() => $('bcInput').focus(), 300);
@@ -4017,6 +4049,32 @@
        PFS QUI: posizioni dei PFS divise per anello
        ===================================================================== */
     let posNearMode = false, posView = 'list', myPos = null, posEditing = null, posGroups = {};
+    /* PFS e POP: stessa archivio, i POP hanno anello "POP" e codice "POP NA_01" */
+    let posKind = 'pfs';
+    const POP_ANELLO = 'POP';
+    const isPop = it => String(it && it.anello || '').toUpperCase() === POP_ANELLO;
+    const posKindOf = it => isPop(it) ? 'pop' : 'pfs';
+    const posLabel = it => isPop(it) ? String(it.pfs).replace(/^POP\s+/, '') : it.pfs;
+    const kindWord = () => posKind === 'pop' ? 'POP' : 'PFS';
+    function canonPop(v) { const c = String(v || '').trim().toUpperCase().replace(/\s+/g, ' ').replace(/^POP[\s_-]*/, ''); return c ? 'POP ' + c : ''; }
+    function kindPositions() { const k = posKind; return Object.values(getPositions()).filter(it => posKindOf(it) === k); }
+
+    function setPosKind(kind) {
+      const changed = kind !== posKind;
+      posKind = kind === 'pop' ? 'pop' : 'pfs';
+      const pop = posKind === 'pop';
+      $('posArchTitle').textContent = pop ? 'Archivio POP' : 'Archivio PFS';
+      $('posSearch').placeholder = pop ? 'Cerca POP o indirizzo...' : 'Cerca PFS, anello o note...';
+      $('posPfsLabel').textContent = pop ? 'Codice POP' : 'Codice PFS';
+      $('posPfs').placeholder = pop ? 'es. NA_06' : 'es. NA_05 08E22';
+      $('posAnelloGroup').hidden = pop;
+      $('posImportBtn').hidden = pop;
+      $('posListModeBtn').textContent = pop ? 'Elenco' : 'Elenco per anello';
+      if (changed) { $('posSearch').value = ''; if (!posEditing) resetPosForm(); else { resetPosForm(); } $('posForm').open = false; }
+    }
+    function openPosKind(kind) {
+      openScreen('pfsPosScreen', kind === 'pop' ? 'POP' : 'PFS', kind === 'pop' ? 'Centrali Open Fiber' : 'Posizioni PFS per anello');
+    }
     let posPhoto = { data: null, thumb: '', fotoId: '' };
     let map = null, mapLayer = null, myMarker = null, leafletPromise = null, pendingFocus = null;
 
@@ -4115,7 +4173,7 @@
           <div class="pos-main">
             ${ph ? `<button type="button" class="pos-thumb" data-pact="photo"><img src="${escapeHtml(ph)}" alt="" loading="lazy"></button>` : ''}
             <div class="pos-body">
-              <div class="pos-name">${escapeHtml(it.pfs)}</div>
+              <div class="pos-name">${isPop(it) ? '<span class="pos-kind-tag">POP</span>' : ''}${escapeHtml(posLabel(it))}</div>
               ${it.note ? `<div class="pos-note">${escapeHtml(it.note)}</div>` : ''}
               <div class="pos-meta">${dist}<span>${escapeHtml(it.updatedAt || '')}</span>${it.tecnico ? `<span>${it.tecnico === 'GOOGLE MY MAPS' ? '🗺️ Da Google My Maps' : '👤 ' + escapeHtml(it.tecnico)}</span>` : ''}${pend}</div>
             </div>
@@ -4135,24 +4193,29 @@
     function filteredPositions() {
       const q = ($('posSearch').value || '').trim().toUpperCase();
       const lq = looseKey(q);
-      return Object.values(getPositions()).filter(it => !q || (lq && looseKey(it.pfs).includes(lq)) || it.anello.includes(q) || String(it.note || '').toUpperCase().includes(q));
+      return kindPositions().filter(it => !q || (lq && looseKey(posLabel(it)).includes(lq)) || (!isPop(it) && it.anello.includes(q)) || String(it.note || '').toUpperCase().includes(q));
     }
 
     function renderPositions() {
       const list = $('posList');
       const items = filteredPositions();
-      const all = getPositions();
-      const anelli = new Set(Object.values(all).map(i => i.anello));
-      $('posCount').textContent = `${Object.keys(all).length} PFS • ${anelli.size} anell${anelli.size === 1 ? 'o' : 'i'}`;
+      const allArr = kindPositions();
+      const all = Object.fromEntries(allArr.map(i => [i.pfs, i]));
+      const anelli = new Set(allArr.map(i => i.anello));
+      $('posCount').textContent = posKind === 'pop' ? `${allArr.length} POP` : `${allArr.length} PFS • ${anelli.size} anell${anelli.size === 1 ? 'o' : 'i'}`;
       $('posNearBtn').classList.toggle('active', posNearMode);
 
       if (posView === 'map') { renderMap(items); }
-      if (!Object.keys(all).length) {
+      if (!allArr.length && posKind === 'pop') {
+        list.innerHTML = `<div class="empty-state"><svg><use href="#i-pin"/></svg><div>Nessun POP salvato. Aggiungilo con il modulo qui sopra.</div></div>`;
+        return;
+      }
+      if (!allArr.length) {
         list.innerHTML = `<div class="empty-state"><svg><use href="#i-pin"/></svg><div>Nessun PFS salvato. Aggiungi il primo con il modulo qui sopra, oppure importali tutti da una mappa.</div>
           <button type="button" class="btn-secondary" data-pos-import style="margin:12px auto 0;max-width:300px"><svg><use href="#i-map"/></svg> Importa da Google My Maps</button></div>`;
         return;
       }
-      if (!items.length) { list.innerHTML = `<div class="empty-state">Nessun PFS trovato.</div>`; return; }
+      if (!items.length) { list.innerHTML = `<div class="empty-state">Nessun ${kindWord()} trovato.</div>`; return; }
 
       if (posNearMode && myPos) {
         const sorted = items.map(it => ({ it, d: distanceM(myPos, it) })).sort((a, b) => a.d - b.d).slice(0, 30);
@@ -4160,6 +4223,12 @@
         return;
       }
       const q = ($('posSearch').value || '').trim();
+      if (posKind === 'pop') {
+        const arr = items.slice().sort((a, b) => posLabel(a).localeCompare(posLabel(b), 'it', { numeric: true }));
+        posGroups = { [POP_ANELLO]: arr };
+        list.innerHTML = arr.map(posItemHtml).join('');
+        return;
+      }
       const openNow = new Set([...list.querySelectorAll('.pfs-folder.open')].map(f => f.dataset.anello));
       const MAX_RESULTS = 200;
       const shown = q ? items.slice(0, MAX_RESULTS) : items;
@@ -4187,7 +4256,7 @@
       posEditing = null;
       $('posPfs').value = prefillPfs || ''; $('posAnello').value = prefillPfs ? anelloFrom(prefillPfs) : '';
       $('posCoords').value = ''; $('posNote').value = '';
-      $('posAcc').textContent = ''; $('posFormTitle').textContent = 'Aggiungi PFS';
+      $('posAcc').textContent = ''; $('posFormTitle').textContent = `Aggiungi ${kindWord()}`;
       $('posCancel').hidden = true;
       posPhoto = { data: null, thumb: '', fotoId: '' }; renderPosPhoto();
       ['posPfs', 'posCoords'].forEach(id => setInvalid(id, ''));
@@ -4202,34 +4271,35 @@
     function editPosition(pfs) {
       const it = getPositions()[pfs]; if (!it) return;
       posEditing = pfs;
-      $('posPfs').value = it.pfs; $('posAnello').value = it.anello;
+      $('posPfs').value = posLabel(it); $('posAnello').value = isPop(it) ? '' : it.anello;
       $('posCoords').value = fmtCoord(it.lat, it.lng); $('posNote').value = it.note || '';
       $('posAcc').textContent = '';
-      $('posFormTitle').textContent = `Modifica ${it.pfs}`; $('posCancel').hidden = false;
+      $('posFormTitle').textContent = `Modifica ${isPop(it) ? 'POP ' : ''}${posLabel(it)}`; $('posCancel').hidden = false;
       posPhoto = { data: null, thumb: it.thumb || '', fotoId: it.fotoId || '' }; renderPosPhoto();
       $('posForm').open = true;
       $('posForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     async function savePosition() {
-      if (!requireWriter('Per salvare un PFS serve un account approvato.')) return;
-      const pfs = canonPfs($('posPfs').value);
+      if (!requireWriter(`Per salvare un ${kindWord()} serve un account approvato.`)) return;
+      const pop = posKind === 'pop';
+      const pfs = pop ? canonPop($('posPfs').value) : canonPfs($('posPfs').value);
       const coords = parseCoords($('posCoords').value);
       setInvalid('posPfs', pfs ? '' : 'x');
       setInvalid('posCoords', coords ? '' : 'x');
-      if (!pfs) { toast('Inserisci il codice del PFS.', 'error'); return; }
+      if (!pfs) { toast(`Inserisci il codice del ${kindWord()}.`, 'error'); return; }
       if (!coords) {
         toast(/goo\.gl|maps\.app/i.test($('posCoords').value) ? 'Link abbreviato: aprilo in Maps e copia le coordinate, oppure usa "Posizione attuale".' : 'Coordinate non valide: usa "Posizione attuale" o incolla es. 40.851800, 14.268100', 'error', 5000);
         return;
       }
       const all = getPositions();
       if (all[pfs] && posEditing !== pfs) {
-        const ok = await confirmBox('PFS già presente', `${pfs} ha già una posizione salvata. Vuoi sostituirla?`, 'Sostituisci');
+        const ok = await confirmBox(`${kindWord()} già presente`, `${pfs} ha già una posizione salvata. Vuoi sostituirla?`, 'Sostituisci');
         if (!ok) return;
       }
       const tecnico = await ensureTecnico();
       const it = {
-        pfs, anello: ($('posAnello').value.trim() || anelloFrom(pfs)).toUpperCase(),
+        pfs, anello: pop ? POP_ANELLO : ($('posAnello').value.trim() || anelloFrom(pfs)).toUpperCase(),
         lat: coords.lat, lng: coords.lng, note: $('posNote').value.trim(),
         tecnico, updatedAt: nowStamp(),
         fotoId: posPhoto.data ? '' : (posPhoto.fotoId || ''), thumb: posPhoto.thumb || ''
@@ -4256,8 +4326,8 @@
     }
 
     async function deletePosition(pfs) {
-      if (!isAdminLoggedIn) { toast('Solo gli amministratori possono eliminare i PFS.', 'error'); return; }
-      const ok = await confirmBox('Elimina PFS', `Eliminare definitivamente la posizione di ${pfs}?`, 'Elimina', true);
+      if (!isAdminLoggedIn) { toast(`Solo gli amministratori possono eliminare i ${kindWord()}.`, 'error'); return; }
+      const ok = await confirmBox(`Elimina ${kindWord()}`, `Eliminare definitivamente la posizione di ${pfs}?`, 'Elimina', true);
       if (!ok) return;
       const all = getPositions(); delete all[pfs]; savePositions(all);
       if (scriptVersion >= 3) enqueue({ action: 'deletePos', pfs, tecnico: getTecnico() });
@@ -4266,8 +4336,9 @@
     }
 
     function sharePosition(it) {
-      const text = `PFS ${it.pfs}${it.note ? ' – ' + it.note : ''}\n${fmtCoord(it.lat, it.lng)}\n${mapsUrl(it)}`;
-      shareText(text, `Posizione PFS ${it.pfs}`);
+      const name = isPop(it) ? `POP ${posLabel(it)}` : `PFS ${it.pfs}`;
+      const text = `${name}${it.note ? ' – ' + it.note : ''}\n${fmtCoord(it.lat, it.lng)}\n${mapsUrl(it)}`;
+      shareText(text, `Posizione ${name}`);
     }
 
 
@@ -4388,8 +4459,8 @@
       items.forEach(it => {
         const many = items.length > 300;
         const m = L.circleMarker([it.lat, it.lng], { radius: many ? 5 : 9, weight: many ? 1.5 : 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 0.95 });
-        m.bindTooltip(it.pfs, { direction: 'top', offset: [0, -8] });
-        m.bindPopup(`<div class="map-pop"><b>${escapeHtml(it.pfs)}</b><br><small>Anello ${escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
+        m.bindTooltip(isPop(it) ? 'POP ' + posLabel(it) : it.pfs, { direction: 'top', offset: [0, -8] });
+        m.bindPopup(`<div class="map-pop"><b>${escapeHtml(isPop(it) ? 'POP ' + posLabel(it) : it.pfs)}</b><br><small>${isPop(it) ? 'POP Open Fiber' : 'Anello ' + escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
         m._pfs = it.pfs;
         m.addTo(mapLayer); pts.push([it.lat, it.lng]);
       });
@@ -4420,7 +4491,7 @@
     }
 
     function openPfsPos(prefillPfs) {
-      openScreen('pfsPosScreen', 'PFS Qui', 'Posizioni PFS per anello');
+      openPosKind('pfs');
       if (prefillPfs) {
         const it = getPositions()[canonPfs(prefillPfs)];
         if (it) { $('posSearch').value = it.pfs; renderPositions(); }
@@ -4749,7 +4820,7 @@
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>${kmlEsc(title)}</name>
-    <description>${kmlEsc(`Creato con Fiber Tools il ${nowStamp()}${getTecnico() ? ' da ' + getTecnico() : ''}. ${items.length} PFS. Per caricarlo: Fiber Tools → PFS Qui → Importa posizioni → Scegli il file (funziona anche offline).`)}</description>${styles}${folders}
+    <description>${kmlEsc(`Creato con Fiber Tools il ${nowStamp()}${getTecnico() ? ' da ' + getTecnico() : ''}. ${items.length} PFS. Per caricarlo: Fiber Tools → PFS e POP → PFS → Importa posizioni → Scegli il file (funziona anche offline).`)}</description>${styles}${folders}
   </Document>
 </kml>
 `;
@@ -4780,7 +4851,7 @@
       const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const kml = buildPositionsKml(items, `Fiber Tools – Posizioni PFS ${label}`);
       const res = await shareOrDownload(kml, `PFS_${safeName(label)}_${date}`, `Posizioni PFS ${label}`,
-        `${items.length} posizioni PFS (${label}). Aprile in Fiber Tools: PFS Qui → Importa posizioni → Scegli il file.`);
+        `${items.length} posizioni PFS (${label}). Aprile in Fiber Tools: PFS e POP → PFS → Importa posizioni → Scegli il file.`);
       if (res === 'downloaded') toast(`File con ${items.length} PFS salvato nei Download: invialo ai colleghi (WhatsApp, email…).`, 'success', 5000);
       else if (res === 'shared') toast(`${items.length} posizioni condivise.`);
     }
@@ -5313,6 +5384,26 @@
         });
       });
       document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goHome()));
+
+      // PFS e POP: il riquadro si ingrandisce e propone la scelta
+      const pq = $('pqTile');
+      const pqSet = open => {
+        pq.classList.toggle('open', open); pq.setAttribute('aria-expanded', String(open));
+        pq.querySelectorAll('.pq-choice').forEach(c => c.tabIndex = open ? 0 : -1);
+        if (open) setTimeout(() => pq.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
+      };
+      pq.addEventListener('click', e => {
+        const c = e.target.closest('[data-pq]');
+        if (c && pq.classList.contains('open')) { pqSet(false); openPosKind(c.dataset.pq); return; }
+        pqSet(!pq.classList.contains('open'));
+      });
+      pq.addEventListener('keydown', e => {
+        if (e.target !== pq) return;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pqSet(!pq.classList.contains('open')); if (pq.classList.contains('open')) pq.querySelector('.pq-choice').focus(); }
+        else if (e.key === 'Escape') pqSet(false);
+      });
+      document.addEventListener('click', e => { if (pq.classList.contains('open') && !pq.contains(e.target)) pqSet(false); });
+      pq.addEventListener('pointermove', e => { const r = pq.getBoundingClientRect(); pq.style.setProperty('--mx', `${e.clientX - r.left}px`); pq.style.setProperty('--my', `${e.clientY - r.top}px`); });
 
       $('adminLoginBtn').addEventListener('click', () => openAccount());
       $('themeToggleBtn').addEventListener('click', toggleTheme);

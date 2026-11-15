@@ -1,5 +1,5 @@
 /**
- * Fiber Tools – Script Google Sheets v7
+ * Fiber Tools – Script Google Sheets v8
  * -------------------------------------
  * Archivio condiviso della squadra: ribattiture ottici, posizioni PFS, foto, storico e ACCOUNT.
  *
@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 7;
+const SCRIPT_VERSION = 8;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -76,6 +76,28 @@ function ribSheet_() {
 const posSheet_ = () => sheet_(SH_POS, ['ANELLO', 'PFS', 'LAT', 'LNG', 'NOTE', 'TECNICO', 'DATA', 'FOTO', 'MAPPA']);
 const logSheet_ = () => sheet_(SH_LOG, ['DATA', 'AZIONE', 'PFS', 'SPLITTER', 'TECNICO', 'DETTAGLIO']);
 
+/**
+ * Scrive righe SEMPRE come testo. Con le impostazioni italiane Fogli Google trasforma da solo
+ * "40.855762" in un orario e "01E11" in un numero (1,00E+11): succede nelle righe oltre la 1000,
+ * che non hanno il formato testo impostato alla creazione del foglio.
+ */
+function writeRows_(sh, row, values) {
+  if (!values.length) return;
+  const w = Math.max.apply(null, values.map(r => r.length));
+  const tz = Session.getScriptTimeZone() || 'Europe/Rome';
+  const data = values.map(r => {
+    const o = r.map(v => v === null || v === undefined ? '' :
+      Object.prototype.toString.call(v) === '[object Date]' ? Utilities.formatDate(v, tz, 'dd/MM/yyyy HH:mm') : String(v));
+    while (o.length < w) o.push('');
+    return o;
+  });
+  const rg = sh.getRange(row, 1, data.length, w);
+  rg.setNumberFormat('@');
+  rg.setValues(data);
+}
+/** Come appendRow, ma come testo. */
+const appendText_ = (sh, row) => writeRows_(sh, sh.getLastRow() + 1, [row]);
+
 function findRow_(values, match) {
   for (let r = 1; r < values.length; r++) if (match(values[r])) return r + 1;   // riga del foglio (1-based)
   return -1;
@@ -86,7 +108,7 @@ function nowIt_() {
 }
 
 function log_(azione, pfs, splitter, tecnico, dettaglio) {
-  logSheet_().appendRow([nowIt_(), azione, pfs, splitter || '', norm_(tecnico), String(dettaglio || '').slice(0, 1500)]);
+  appendText_(logSheet_(), [nowIt_(), azione, pfs, splitter || '', norm_(tecnico), String(dettaglio || '').slice(0, 1500)]);
 }
 
 /* ------------------------------------------------------------------ sicurezza */
@@ -147,7 +169,7 @@ function readUsers_() {
   return { sh: sh, rows: rows };
 }
 const findUser_ = (users, email) => users.rows.find(u => normEmail_(u.row[U.EMAIL]) === email) || null;
-const writeUser_ = (users, u) => users.sh.getRange(u.rowNum, 1, 1, USER_COLS).setValues([u.row]);
+const writeUser_ = (users, u) => writeRows_(users.sh, u.rowNum, [u.row.slice(0, USER_COLS)]);
 const stato_ = row => String(row[U.STATO] || '').trim().toLowerCase();
 const ruolo_ = row => { const r = String(row[U.RUOLO] || '').trim().toLowerCase(); return ROLE_LEVEL[r] ? r : 'tecnico'; };
 const publicUser_ = row => ({ email: normEmail_(row[U.EMAIL]), nome: String(row[U.NOME] || ''), societa: String(row[U.SOC] || ''), stato: stato_(row), ruolo: ruolo_(row) });
@@ -193,7 +215,7 @@ function register_(b) {
   if (!users.rows.length) {
     // il primo account registrato è il proprietario dell'app
     const row = [email, nome, 'attivo', 'proprietario', hash, salt, '', '', now, now, 'PRIMO ACCOUNT', societa];
-    users.sh.appendRow(row);
+    appendText_(users.sh, row);
     log_('Account creato', 'ACCOUNT', email, nome, 'Proprietario dell’app');
     return { status: 'success', stato: 'attivo', token: makeToken_(row), user: publicUser_(row) };
   }
@@ -213,7 +235,7 @@ function register_(b) {
     log_('Richiesta di accesso', 'ACCOUNT', email, nome, 'Ripresentata');
     return { status: 'success', stato: 'in attesa' };
   }
-  users.sh.appendRow([email, nome, 'in attesa', 'tecnico', hash, salt, '', '', now, '', '', societa]);
+  appendText_(users.sh, [email, nome, 'in attesa', 'tecnico', hash, salt, '', '', now, '', '', societa]);
   log_('Richiesta di accesso', 'ACCOUNT', email, nome, societa);
   return { status: 'success', stato: 'in attesa' };
 }
@@ -445,10 +467,10 @@ function saveRib_(b) {
   if (rowNum > 0) {
     const ch = diffOttici_(oldRow, row);
     if (b.photo) ch.push('nuova foto');
-    sh.getRange(rowNum, 1, 1, row.length).setValues([row]);
+    writeRows_(sh, rowNum, [row]);
     log_('Modificata', pfs, splitter, b.tecnico, ch.length ? ch.join('; ') : 'Nessuna modifica agli ottici');
   } else {
-    sh.appendRow(row);
+    appendText_(sh, row);
     let n = 0; for (let i = 0; i < N_OTTICI; i++) if (row[4 + i * 2] || row[5 + i * 2]) n++;
     log_('Creata', pfs, splitter, b.tecnico, n + ' ottici compilati' + (b.photo ? ', con foto' : ''));
   }
@@ -492,10 +514,10 @@ function savePos_(b) {
     if (String(oldRow[4] || '') !== row[4]) ch.push('note aggiornate');
     if (norm_(oldRow[0]) !== anello) ch.push('anello ' + norm_(oldRow[0]) + ' → ' + anello);
     if (b.photo) ch.push('nuova foto');
-    sh.getRange(rowNum, 1, 1, row.length).setValues([row]);
+    writeRows_(sh, rowNum, [row]);
     log_('Posizione modificata', pfs, '', b.tecnico, ch.length ? ch.join('; ') : 'Nessuna modifica');
   } else {
-    sh.appendRow(row);
+    appendText_(sh, row);
     log_('Posizione salvata', pfs, '', b.tecnico, row[2] + ', ' + row[3] + (b.photo ? ', con foto' : ''));
   }
   return { status: 'success', saved: true, fotoId: fotoId };
@@ -521,7 +543,7 @@ function savePosBatch_(b) {
     if (i !== undefined) { if (it.note === undefined || it.note === '') row[4] = body[i][4]; body[i] = row; updated++; }
     else { index[pfs] = body.length; body.push(row); added++; }
   });
-  if (body.length) sh.getRange(2, 1, body.length, 9).setValues(body);
+  if (body.length) writeRows_(sh, 2, body);
   if (added || updated) log_('Importazione posizioni', 'IMPORTAZIONE', '', b.tecnico, added + ' nuove, ' + updated + ' aggiornate' + (skipped ? ', ' + skipped + ' scartate' : ''));
   return { status: 'success', added: added, updated: updated, skipped: skipped };
 }

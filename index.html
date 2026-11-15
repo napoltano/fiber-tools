@@ -1300,6 +1300,19 @@
       .sj-dot { width: 14px; height: 14px; }
       .sj-head { font-size: 0.54rem; letter-spacing: 0; }
     }
+    /* ---------- Novità ---------- */
+    .news-head { display: flex; align-items: center; gap: 10px; margin: -2px 0 12px; }
+    .news-badge { font-size: 0.66rem; font-weight: 900; letter-spacing: .4px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); }
+    .news-date { font-size: 0.74rem; color: var(--muted); font-weight: 700; }
+    .news-list { display: grid; gap: 10px; margin: 0 0 12px; padding: 0; list-style: none; max-height: min(52vh, 460px); overflow-y: auto; }
+    .news-item { display: flex; gap: 11px; align-items: flex-start; padding: 11px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-2); opacity: 0; transform: translateY(8px); animation: newsIn .4s var(--ease) forwards; animation-delay: calc(var(--i) * 70ms + 80ms); }
+    .news-ico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); }
+    .news-ico svg { width: 18px; height: 18px; }
+    .news-item b { display: block; font-size: 0.86rem; font-weight: 800; margin-bottom: 2px; }
+    .news-item p { margin: 0; font-size: 0.76rem; line-height: 1.45; color: var(--muted); font-weight: 600; }
+    .news-foot { font-size: 0.74rem; color: var(--muted); margin: 0; text-align: center; font-weight: 600; }
+    @keyframes newsIn { to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .news-item { animation: none; opacity: 1; transform: none; } }
     /* ---------- Contatti ---------- */
     .ct-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--card-2); margin-bottom: 12px; }
     .ct-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; background: var(--primary-soft); color: var(--primary); }
@@ -4070,6 +4083,7 @@
             <span class="field-label">Account</span>
             ${account ? accountCardHtml() : '<p class="small">Non hai effettuato l’accesso: puoi consultare tutto, ma per salvare serve un account approvato.</p>'}
             <button type="button" class="btn-secondary" id="setAccount" style="margin-top:6px"><svg><use href="#i-user"/></svg> ${account ? 'Il mio account' : 'Accedi o registrati'}</button>
+            <button type="button" class="btn-secondary" id="setNews" style="margin-top:6px"><svg><use href="#i-check"/></svg> Novità dell’app</button>
           </div>
           <hr>
           <div class="field-group">
@@ -4098,6 +4112,7 @@
           $('setRestore').addEventListener('click', () => $('setRestoreFile').click());
           $('setRestoreFile').addEventListener('change', e => { const f = e.target.files[0]; closeModal(false); restoreBackup(f); });
           $('setAccount').addEventListener('click', () => { closeModal(false); openAccount(); });
+          $('setNews').addEventListener('click', () => { closeModal(false); setTimeout(openNews, 50); });
         }
       });
     }
@@ -6503,6 +6518,47 @@
       $('sjCsvBtn').addEventListener('click', sjCsv);
     }
 
+    /* ================= NOVITÀ ================= */
+    // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
+    const NEWS_ID = '2026-11-15';
+    const NEWS_KEY = 'fiber_tools_news_seen';
+    const NEWS = [
+      { c: '#0d9488', i: 'i-nav', t: 'PFS, PFP, POP e PD', d: 'La voce 07 ora si apre e ti fa scegliere tra quattro archivi: PFS, PFP (armadi primari), POP (oltre 80 centrali Open Fiber in tutta Italia) e PD (punti di distribuzione, raggruppati per PFS). Ognuno con ricerca, “Vicino a me”, mappa e Naviga.' },
+      { c: '#2563eb', i: 'i-pin', t: 'Nuove zone in archivio', d: 'Pisa (PI_01) con 192 PFS e Benevento (BN_01) con 26 PFP e 302 PD. Tocca “Aggiorna da Google Sheets” per vederli.' },
+      { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 48 fo e da 24 dai 96 fo. Esporta in PDF ed Excel. Riservato agli account approvati.' },
+      { c: '#db2777', i: 'i-mail', t: 'Contatti', d: 'Nuovo pulsante con la busta in alto, accanto all’ingranaggio: scrivi direttamente per segnalare problemi, proporre idee o mandare PFS da aggiungere.' },
+      { c: '#16a34a', i: 'i-check', t: 'Archivio più affidabile', d: 'Corretto un problema che in alcuni casi trasformava le coordinate in orari. Se una posizione ti sembrava sbagliata, tocca “Aggiorna da Google Sheets”: ora è corretta.' }
+    ];
+
+    function openNews() {
+      try { localStorage.setItem(NEWS_KEY, NEWS_ID); } catch (e) {}
+      return openModal({
+        title: 'Novità di Fiber Tools',
+        okText: 'Ho capito',
+        cancelText: 'Chiudi',
+        bodyHtml: `
+          <div class="news-head"><span class="news-badge">Aggiornamento</span><span class="news-date">14 – 15 novembre 2026</span></div>
+          <ul class="news-list">${NEWS.map((n, k) => `
+            <li class="news-item" style="--i:${k};--c:${n.c}">
+              <span class="news-ico"><svg><use href="#${n.i}"/></svg></span>
+              <div><b>${escapeHtml(n.t)}</b><p>${escapeHtml(n.d)}</p></div>
+            </li>`).join('')}
+          </ul>
+          <p class="news-foot">Grazie a tutta la community! Hai PFS da aggiungere o un’idea? Usa il pulsante Contatti.</p>`
+      });
+    }
+    function maybeShowNews() {
+      let seen = null;
+      try { seen = localStorage.getItem(NEWS_KEY); } catch (e) {}
+      if (seen === NEWS_ID) return;
+      // aspetta che l'app sia pronta e che non ci sia già un'altra finestra aperta
+      const tryOpen = (n = 0) => {
+        if (!$('modal').hidden) { if (n < 20) setTimeout(() => tryOpen(n + 1), 1500); return; }
+        openNews();
+      };
+      setTimeout(tryOpen, 900);
+    }
+
     /* ================= CONTATTI ================= */
     const CONTACT_EMAIL = 'marigliano.lavoro@gmail.com';
     const CONTACT_TOPICS = ['Segnalazione problema', 'Suggerimento / nuova funzione', 'Richiesta account o accesso', 'Dati PFS / POP da correggere', 'Altro'];
@@ -6573,6 +6629,7 @@
       initGeoCam();
       initStats();
       initSplice();
+      maybeShowNews();
       history.replaceState({}, '', location.pathname + location.search);
     });
   </script>

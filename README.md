@@ -57,6 +57,10 @@ Creato e realizzato da **Marigliano Massimiliano**.
 ### Contatti
 - Pulsante ✉️ nella barra in alto, accanto all'ingranaggio: mostra l'indirizzo **marigliano.lavoro@gmail.com** e un modulo (argomento, nome, messaggio). **Invia mail** apre l'app di posta con oggetto e testo già pronti.
 
+### Novità
+- Al primo avvio dopo un aggiornamento compare il popup **«Novità di Fiber Tools»** con l'elenco delle ultime funzioni; si vede una sola volta, poi resta disponibile da ⚙️ Impostazioni → *Novità dell'app*.
+- Per annunciare un nuovo aggiornamento: modificare l'array `NEWS` in `index.html` e cambiare `NEWS_ID` (es. la data). Così il popup ricompare a tutti una volta.
+
 ### Sempre attivi
 - **Coda offline**: se manca la rete, salvataggi ed eliminazioni restano in coda (barra arancione in alto) e partono da soli quando torna la connessione.
 - **Backup**: ⚙️ Impostazioni → *Scarica* / *Ripristina*, utile per cambiare telefono.

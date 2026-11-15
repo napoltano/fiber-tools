@@ -1323,6 +1323,11 @@
     .ct-mini button { font-size: 0.72rem; font-weight: 800; padding: 6px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--card); color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
     .ct-mini button svg { width: 14px; height: 14px; }
     #ctMsg { min-height: 120px; resize: vertical; font: inherit; }
+    #ribNoteInput { min-height: 84px; resize: vertical; font: inherit; line-height: 1.45; }
+    .note-hint { font-size: 12px; color: var(--text-muted, #64748b); margin-top: 6px; }
+    .splitter-note { margin-top: 6px; font-size: 12.5px; line-height: 1.4; color: var(--text-muted, #64748b); white-space: pre-line;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .splitter-note b { color: inherit; font-weight: 600; }
     @media (max-width: 360px) { .header-actions { gap: 4px; } .header-actions .icon-btn { min-width: 34px; padding: 0 8px; } }
     #printArea .sjp td.dot span { display: inline-block; width: 10pt; height: 10pt; border-radius: 50%; border: 0.6pt solid #555; vertical-align: middle; margin-right: 4pt; }
   </style>
@@ -1594,6 +1599,14 @@
           <span></span>
         </div>
         <div class="ottici-grid" id="ribOtticiContainer"></div>
+      </div>
+
+      <div class="controls-card">
+        <div class="field-group" style="margin-bottom:0">
+          <label class="field-label" for="ribNoteInput">Note</label>
+          <textarea id="ribNoteInput" class="custom-input" maxlength="2000" placeholder="Indirizzi, fibre tolte o staccate, cessazioni…"></textarea>
+          <div class="note-hint">Es. «O7: Via Roma 20» • «Tolta P186 ID 2218». Nel campo ID resta solo il codice.</div>
+        </div>
       </div>
 
       <button class="btn-action" type="button" id="ribSaveBtn"><svg><use href="#i-save"/></svg> Salva in Cartella PFS &amp; Google Sheets</button>
@@ -2793,12 +2806,13 @@
         if (!ok) return;
       }
       const tecnico = await ensureTecnico();
-      const item = { updatedAt: timestamp, tecnico, ottici, fotoId: ribPhoto.data ? '' : (ribPhoto.fotoId || ''), thumb: ribPhoto.thumb || '' };
+      const note = $('ribNoteInput').value.trim();
+      const item = { updatedAt: timestamp, tecnico, ottici, note, fotoId: ribPhoto.data ? '' : (ribPhoto.fotoId || ''), thumb: ribPhoto.thumb || '' };
       if (ribPhoto.data) item.photoPending = true;
       (db[pfsKey] = db[pfsKey] || {})[splitterKey] = item;
       saveRibattitureData(db);
 
-      const payload = { action: 'save', pfs: pfsKey, splitter: splitterKey, timestamp, tecnico, ottici, fotoId: item.fotoId };
+      const payload = { action: 'save', pfs: pfsKey, splitter: splitterKey, timestamp, tecnico, ottici, note, fotoId: item.fotoId };
       if (ribPhoto.data) payload.photo = ribPhoto.data;
       ribPhoto.data = null; renderRibPhoto();
       const sending = enqueue(payload);
@@ -2826,6 +2840,7 @@
       let html = '', shown = 0;
       pfsKeys.forEach(pfs => {
         const spls = Object.keys(db[pfs] || {}).filter(spl => !q || pfs.toUpperCase().includes(q) || spl.toUpperCase().includes(q)
+          || String(db[pfs][spl]?.note || '').toUpperCase().includes(q)
           || (db[pfs][spl]?.ottici || []).some(o => String(o.fibra || '').toUpperCase().includes(q) || String(o.pte || '').toUpperCase().includes(q)));
         if (!spls.length) return;
         const isOpen = openNow.has(pfs) || (q && spls.length);
@@ -2838,6 +2853,7 @@
                 <div class="splitter-date">Aggiornato: ${escapeHtml(db[pfs][spl]?.updatedAt || '—')}</div>
                 ${db[pfs][spl]?.tecnico ? `<span class="splitter-tech"><svg width="11" height="11"><use href="#i-user"/></svg>${escapeHtml(db[pfs][spl].tecnico)}</span>` : ''}
                 ${hasPending('rib', pfs, spl) ? '<span class="pend">⏳ da inviare</span>' : ''}
+                ${db[pfs][spl]?.note ? `<div class="splitter-note"><b>Note:</b> ${escapeHtml(db[pfs][spl].note)}</div>` : ''}
               </div>
             </div>
             <div class="splitter-actions">
@@ -2885,6 +2901,7 @@
           $(`ribFibra${n}`).value = String(o.fibra ?? '').toUpperCase();
         }
       });
+      $('ribNoteInput').value = String(item.note || '');
       refreshRibProgress();
       setRibPhotoFromItem(item);
       setInvalid('ribPfsInput', ''); setInvalid('ribSplitterInput', '');
@@ -2899,7 +2916,7 @@
       }
     }
 
-    function buildRibText(pfs, splitter, ottici, dateLine) {
+    function buildRibText(pfs, splitter, ottici, dateLine, note) {
       let t = `=== RIBATTITURA OTTICI ===\nPFS: ${String(pfs).toUpperCase()}\nSPLITTER: ${String(splitter).toUpperCase()}\n`;
       if (dateLine) t += `DATA: ${dateLine}\n`;
       t += `-------------------------\n`;
@@ -2912,13 +2929,14 @@
       });
       if (!has) t += '(Nessun dato ottico inserito)\n';
       t += '-------------------------';
+      if (note && String(note).trim()) t += `\nNOTE:\n${String(note).trim()}\n-------------------------`;
       return t;
     }
 
     async function copySplitterText(pfs, splitter) {
       const item = getRibattitureData()[pfs]?.[splitter];
       if (!item) return;
-      const ok = await copyText(buildRibText(pfs, splitter, item.ottici, item.updatedAt));
+      const ok = await copyText(buildRibText(pfs, splitter, item.ottici, item.updatedAt, item.note));
       toast(ok ? 'Ribattitura copiata negli appunti!' : 'Copia non riuscita su questo dispositivo.', ok ? 'success' : 'error');
     }
 
@@ -2943,18 +2961,19 @@
     async function copyRibattituraText() {
       const pfs = $('ribPfsInput').value.trim() || 'N/D';
       const spl = $('ribSplitterInput').value.trim() || 'N/D';
-      const text = buildRibText(pfs, spl, collectOttici()) + `\nData: ${new Date().toLocaleDateString('it-IT')}`;
+      const text = buildRibText(pfs, spl, collectOttici(), '', $('ribNoteInput').value) + `\nData: ${new Date().toLocaleDateString('it-IT')}`;
       const ok = await copyText(text);
       toast(ok ? 'Dati ribattitura copiati negli appunti!' : 'Copia non riuscita su questo dispositivo.', ok ? 'success' : 'error');
     }
 
     async function clearRibForm() {
-      const any = $('ribPfsInput').value || $('ribSplitterInput').value || collectOttici().some(o => o.pte || o.fibra);
+      const any = $('ribPfsInput').value || $('ribSplitterInput').value || $('ribNoteInput').value.trim() || collectOttici().some(o => o.pte || o.fibra);
       if (!any) return;
       const ok = await confirmBox('Svuota modulo', 'Cancellare tutti i campi del modulo? L’archivio salvato non viene toccato.', 'Svuota', true);
       if (!ok) return;
       $('ribPfsInput').value = ''; $('ribSplitterInput').value = '';
       for (let i = 1; i <= 16; i++) { $(`ribPte${i}`).value = ''; $(`ribFibra${i}`).value = ''; }
+      $('ribNoteInput').value = '';
       refreshRibProgress();
       clearRibPhoto();
     }
@@ -3235,13 +3254,14 @@
         item: {
           updatedAt: now.toLocaleDateString('it-IT') + ' ' + now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
           tecnico: getTecnico(),
-          ottici: collectOttici()
+          ottici: collectOttici(),
+          note: $('ribNoteInput').value.trim()
         }
       };
     }
 
     function entryText(e) {
-      let t = buildRibText(e.pfs, e.spl, e.item.ottici, e.item.updatedAt);
+      let t = buildRibText(e.pfs, e.spl, e.item.ottici, e.item.updatedAt, e.item.note);
       if (e.item.tecnico) t = t.replace('-------------------------\n', `TECNICO: ${e.item.tecnico}\n-------------------------\n`);
       return t;
     }
@@ -3274,13 +3294,13 @@
         if (/^[=+@]/.test(s)) s = "'" + s;           // evita che Excel lo interpreti come formula
         return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
       };
-      const rows = [['PFS', 'SPLITTER', 'OTTICO', 'PERMUTA', 'ID', 'DATA', 'TECNICO']];
+      const rows = [['PFS', 'SPLITTER', 'OTTICO', 'PERMUTA', 'ID', 'DATA', 'TECNICO', 'NOTE']];
       entries.forEach(e => {
         const byNum = {};
         (e.item.ottici || []).forEach(o => { byNum[Number(o.ottico)] = o; });
         for (let n = 1; n <= 16; n++) {
           const o = byNum[n] || {};
-          rows.push([e.pfs, e.spl, n, String(o.pte || '').toUpperCase(), String(o.fibra || '').toUpperCase(), e.item.updatedAt || '', e.item.tecnico || '']);
+          rows.push([e.pfs, e.spl, n, String(o.pte || '').toUpperCase(), String(o.fibra || '').toUpperCase(), e.item.updatedAt || '', e.item.tecnico || '', n === 1 ? String(e.item.note || '') : '']);
         }
       });
       return '﻿' + rows.map(r => r.map(cell).join(';')).join('\r\n');
@@ -3313,6 +3333,7 @@
             <h2>${escapeHtml(e.pfs)} • ${escapeHtml(e.spl)}</h2>
             <div class="sub">Aggiornato: ${escapeHtml(e.item.updatedAt || '—')}${e.item.tecnico ? ' • Tecnico: ' + escapeHtml(e.item.tecnico) : ''}</div>
             <table><thead><tr><th style="width:16%">Ottico</th><th>Permuta</th><th>ID</th></tr></thead><tbody>${rows}</tbody></table>
+            ${e.item.note ? `<div class="sub" style="white-space:pre-line;margin-top:6px"><b>Note:</b> ${escapeHtml(e.item.note)}</div>` : ''}
           </section>`;
         }).join('')}
         <div class="foot">Fiber Tools</div>`;
@@ -3832,7 +3853,7 @@
         Object.keys(local).forEach(p => Object.keys(local[p]).forEach(s => {
           const it = local[p][s];
           if (canWrite() && it.synced !== true && !hasPending('rib', p, s)) {
-            enqueue({ action: 'save', pfs: p, splitter: s, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], fotoId: it.fotoId || '' });
+            enqueue({ action: 'save', pfs: p, splitter: s, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], note: it.note || '', fotoId: it.fotoId || '' });
           }
         }));
       }
@@ -3901,7 +3922,7 @@
       if (!list.length && !pos.length) { toast('L’archivio è vuoto.', 'info'); return; }
       const ok = await confirmBox('Invia tutto a Google Sheets', `Verranno inviate ${list.length} ribattiture${pos.length && scriptVersion >= 3 ? ` e ${pos.length} posizioni PFS` : ''}. Quelle già presenti sul foglio saranno aggiornate.`, 'Invia');
       if (!ok) return;
-      list.forEach(([pfs, splitter, it]) => enqueue({ action: 'save', pfs, splitter, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], fotoId: it.fotoId || '' }));
+      list.forEach(([pfs, splitter, it]) => enqueue({ action: 'save', pfs, splitter, timestamp: it.updatedAt || nowStamp(), tecnico: it.tecnico || '', ottici: it.ottici || [], note: it.note || '', fotoId: it.fotoId || '' }));
       if (scriptVersion >= 3) enqueuePosBatches(pos);
       toast('Invio avviato: segui l’avanzamento nella barra in alto.', 'info');
     }
@@ -6526,6 +6547,7 @@
       { c: '#0d9488', i: 'i-nav', t: 'PFS, PFP, POP e PD', d: 'La voce 07 ora si apre e ti fa scegliere tra quattro archivi: PFS, PFP (armadi primari), POP (oltre 80 centrali Open Fiber in tutta Italia) e PD (punti di distribuzione, raggruppati per PFS). Ognuno con ricerca, “Vicino a me”, mappa e Naviga.' },
       { c: '#2563eb', i: 'i-pin', t: 'Nuove zone in archivio', d: 'Pisa (PI_01) con 192 PFS e Benevento (BN_01) con 26 PFP e 302 PD. Tocca “Aggiorna da Google Sheets” per vederli.' },
       { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 48 fo e da 24 dai 96 fo. Esporta in PDF ed Excel. Riservato agli account approvati.' },
+      { c: '#0891b2', i: 'i-file', t: 'Note nella ribattitura', d: 'Sotto i 16 ottici c’è il nuovo campo Note per indirizzi, fibre tolte o staccate e cessazioni: compare nell’archivio, nella ricerca, nel testo condiviso e in PDF/Excel. Nel campo ID resta solo il codice.' },
       { c: '#db2777', i: 'i-mail', t: 'Contatti', d: 'Nuovo pulsante con la busta in alto, accanto all’ingranaggio: scrivi direttamente per segnalare problemi, proporre idee o mandare PFS da aggiungere.' },
       { c: '#16a34a', i: 'i-check', t: 'Archivio più affidabile', d: 'Corretto un problema che in alcuni casi trasformava le coordinate in orari. Se una posizione ti sembrava sbagliata, tocca “Aggiorna da Google Sheets”: ora è corretta.' }
     ];

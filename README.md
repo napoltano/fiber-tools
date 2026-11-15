@@ -25,6 +25,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Scanner con fotocamera**: il pulsante accanto a ogni ID legge l'etichetta. Con *Passa all'ottico successivo* scansioni gli ottici uno dopo l'altro. Senza fotocamera si può usare *Da foto*.
 - **Controlli duplicati**: avviso se lo stesso ID compare in due ottici, se una permuta è ripetuta, o se l'ID è già usato in un altro splitter dell'archivio.
 - **Riepilogo cartella**: per ogni PFS quanti ottici hanno l'ID, quanti sono NO IDR e quanti vuoti.
+- **Note**: campo libero sotto i 16 ottici per indirizzi, fibre tolte o staccate, cessazioni (es. «O7: Via Roma 20», «Tolta P186 ID 2218»). Si vede nell'archivio, si trova con la ricerca ed esce nel testo condiviso e in PDF/Excel; sul foglio va nella colonna **NOTE** (script v9).
 - **Foto dello splitter**, salvata su Google Drive.
 - **Storico**: chi ha modificato cosa e quando.
 - **Ricerca** per PFS, splitter, ID o permuta; **PDF / Excel** per splitter o cartella intera; **Condividi** su WhatsApp.
@@ -103,7 +104,7 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v8 (archivio riservato, account, statistiche, backup; scrive sempre come testo)
+apps-script/Code.gs     script Google Sheets v9 (archivio riservato, note delle ribattiture, account, statistiche, backup; scrive sempre come testo)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.

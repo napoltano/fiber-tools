@@ -21,14 +21,14 @@
  *  Tutte le azioni di scrittura qui sotto richiedono anche "token".
  *
  *  GET   -> solo la versione dello script: i dati si leggono con POST "data" (serve il token).
- *  POST  { action: "save",      pfs, splitter, timestamp, tecnico, ottici[], photo?, fotoId? }
+ *  POST  { action: "save",      pfs, splitter, timestamp, tecnico, ottici[], note?, photo?, fotoId? }
  *        { action: "delete",    pfs, splitter, adminKey }
  *        { action: "savePos",   pfs, anello, lat, lng, note, tecnico, timestamp, photo?, fotoId? }
  *        { action: "deletePos", pfs, adminKey }
  *        { action: "savePosBatch", items: [{ pfs, anello, lat, lng, note, tecnico, timestamp }] }  (importazione)
  *
  * Fogli (creati in automatico):
- *   Ribattiture   : PFS | SPLITTER | DATA | TECNICO | O1 PERMUTA | O1 ID | ... | O16 ID | FOTO
+ *   Ribattiture   : PFS | SPLITTER | DATA | TECNICO | O1 PERMUTA | O1 ID | ... | O16 ID | FOTO | NOTE
  *   PFS_Posizioni : ANELLO | PFS | LAT | LNG | NOTE | TECNICO | DATA | FOTO | MAPPA
  *   Storico       : DATA | AZIONE | PFS | SPLITTER | TECNICO | DETTAGLIO
  *   Utenti        : EMAIL | NOME | STATO | RUOLO | ... | ULTIMO_ACCESSO | ... | SOCIETA | DISPOSITIVO (le password sono salvate solo come impronta con sale)
@@ -41,10 +41,11 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 8;
+const SCRIPT_VERSION = 9;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
+const RIB_NOTE_COL = RIB_FOTO_COL + 1;        // colonna 38 (dalla v9)
 
 const norm_ = v => String(v == null ? '' : v).trim().toUpperCase();
 const json_ = obj => ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
@@ -67,10 +68,16 @@ function sheet_(name, header) {
 function ribSheet_() {
   const header = ['PFS', 'SPLITTER', 'DATA', 'TECNICO'];
   for (let i = 1; i <= N_OTTICI; i++) header.push('O' + i + ' PERMUTA', 'O' + i + ' ID');
-  header.push('FOTO');
+  header.push('FOTO', 'NOTE');
   const sh = sheet_(SH_RIB, header);
   // foglio creato dalla v2: aggiunge l'intestazione FOTO se manca
   if (!sh.getRange(1, RIB_FOTO_COL).getValue()) sh.getRange(1, RIB_FOTO_COL).setValue('FOTO').setFontWeight('bold').setBackground('#e0f2fe');
+  // dalla v9: colonna NOTE (indirizzi, fibre tolte o staccate…)
+  if (sh.getMaxColumns() < RIB_NOTE_COL) sh.insertColumnsAfter(sh.getMaxColumns(), RIB_NOTE_COL - sh.getMaxColumns());
+  if (!sh.getRange(1, RIB_NOTE_COL).getValue()) {
+    sh.getRange(1, RIB_NOTE_COL).setValue('NOTE').setFontWeight('bold').setBackground('#e0f2fe');
+    sh.getRange(1, RIB_NOTE_COL, sh.getMaxRows(), 1).setNumberFormat('@').setWrap(true);
+  }
   return sh;
 }
 const posSheet_ = () => sheet_(SH_POS, ['ANELLO', 'PFS', 'LAT', 'LNG', 'NOTE', 'TECNICO', 'DATA', 'FOTO', 'MAPPA']);
@@ -399,7 +406,7 @@ function readRib_() {
     if (!pfs || !spl) continue;
     const ottici = [];
     for (let i = 0; i < N_OTTICI; i++) ottici.push({ ottico: i + 1, pte: String(row[4 + i * 2] || ''), fibra: String(row[5 + i * 2] || '') });
-    (data[pfs] = data[pfs] || {})[spl] = { updatedAt: String(row[2] || ''), tecnico: String(row[3] || ''), ottici: ottici, fotoId: String(row[RIB_FOTO_COL - 1] || '') };
+    (data[pfs] = data[pfs] || {})[spl] = { updatedAt: String(row[2] || ''), tecnico: String(row[3] || ''), ottici: ottici, fotoId: String(row[RIB_FOTO_COL - 1] || ''), note: String(row[RIB_NOTE_COL - 1] || '') };
   }
   return data;
 }
@@ -463,10 +470,15 @@ function saveRib_(b) {
   (b.ottici || []).forEach(o => { byNum[Number(o.ottico)] = o; });
   for (let i = 1; i <= N_OTTICI; i++) { const o = byNum[i] || {}; row.push(norm_(o.pte), norm_(o.fibra)); }
   row.push(fotoId);
+  // le app precedenti alla v9 non mandano la nota: in quel caso resta quella già salvata
+  const oldNote = oldRow ? String(oldRow[RIB_NOTE_COL - 1] || '') : '';
+  const note = b.note === undefined ? oldNote : String(b.note || '').trim().slice(0, 2000);
+  row.push(note);
 
   if (rowNum > 0) {
     const ch = diffOttici_(oldRow, row);
     if (b.photo) ch.push('nuova foto');
+    if (note !== oldNote) ch.push('note aggiornate');
     writeRows_(sh, rowNum, [row]);
     log_('Modificata', pfs, splitter, b.tecnico, ch.length ? ch.join('; ') : 'Nessuna modifica agli ottici');
   } else {

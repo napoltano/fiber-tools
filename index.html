@@ -240,9 +240,9 @@
     .pq-tile.open:active { transform: none; }
     .pq-tile.open .pq-top { flex-direction: row; align-items: center; gap: 14px; }
     .pq-tile.open .pq-top .tile-icon { margin-bottom: 0; }
-    .pq-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
+    .pq-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; max-height: 0; opacity: 0; overflow: hidden; visibility: hidden;
       transition: max-height 0.35s var(--ease), opacity 0.25s, margin-top 0.35s var(--ease), visibility 0s 0.35s; }
-    .pq-tile.open .pq-choices { max-height: 140px; opacity: 1; margin-top: 14px; visibility: visible; transition: max-height 0.35s var(--ease), opacity 0.3s 0.08s, margin-top 0.35s var(--ease); }
+    .pq-tile.open .pq-choices { max-height: 220px; opacity: 1; margin-top: 14px; visibility: visible; transition: max-height 0.35s var(--ease), opacity 0.3s 0.08s, margin-top 0.35s var(--ease); }
     .pq-choice { display: flex; align-items: center; gap: 10px; padding: 14px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--card-2); text-align: left; color: inherit; font: inherit; cursor: pointer; transition: transform 0.2s var(--ease), border-color 0.2s, background 0.2s; }
     .pq-choice:hover, .pq-choice:focus-visible { border-color: var(--primary); background: var(--primary-soft); transform: translateY(-2px); }
     .pq-choice:active { transform: scale(0.97); }
@@ -251,6 +251,13 @@
     .pq-ico { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; flex-shrink: 0; background: color-mix(in srgb, #0d9488 15%, transparent); color: #0d9488; }
     .pq-choice.pop .pq-ico { background: color-mix(in srgb, #db2777 15%, transparent); color: #db2777; }
     .pq-ico svg { width: 20px; height: 20px; }
+    .pq-choice.pd .pq-ico { background: color-mix(in srgb, #d97706 16%, transparent); color: #d97706; }
+    @media (max-width: 460px) {
+      .pq-choice { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 10px; }
+      .pq-choice small { font-size: 0.66rem; }
+    }
+    .pos-kind-tag.pd { background: color-mix(in srgb, #d97706 16%, transparent); color: #b45309; }
+    [data-theme="dark"] .pos-kind-tag.pd { color: #fbbf24; }
     @keyframes pqGrow { from { transform: scale(0.96); } to { transform: none; } }
     .pos-kind-tag { display: inline-block; font-size: 0.6rem; font-weight: 900; padding: 1px 6px; border-radius: 6px; background: color-mix(in srgb, #db2777 15%, transparent); color: #db2777; margin-right: 6px; vertical-align: 2px; letter-spacing: .3px; }
 
@@ -1474,7 +1481,7 @@
           <div class="pq-top">
             <div class="tile-icon t-teal"><svg><use href="#i-nav"/></svg></div>
             <div class="btn-main-content">
-              <span class="btn-title">PFS e POP</span>
+              <span class="btn-title">PFS, POP e PD</span>
               <span class="btn-desc">Coordinate e navigazione</span>
             </div>
           </div>
@@ -1487,6 +1494,10 @@
             <button type="button" class="pq-choice pop" data-pq="pop" tabindex="-1">
               <span class="pq-ico"><svg><use href="#i-nav"/></svg></span>
               <span><b>POP</b><small>Centrali Open Fiber</small></span>
+            </button>
+            <button type="button" class="pq-choice pd" data-pq="pd" tabindex="-1">
+              <span class="pq-ico"><svg><use href="#i-pin"/></svg></span>
+              <span><b>PD</b><small>Punti di distribuzione</small></span>
             </button>
           </div>
         </div>
@@ -1963,7 +1974,7 @@
       <div class="data-lock" data-locked-only>
         <div class="lock-ico"><svg><use href="#i-lock"/></svg></div>
         <h3>Dati riservati</h3>
-        <p>Le posizioni di PFS e POP (elenco, mappa e navigazione) sono visibili solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
+        <p>Le posizioni di PFS, POP e PD (elenco, mappa e navigazione) sono visibili solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
         <button type="button" class="btn-action" data-open-account><svg><use href="#i-user"/></svg> Accedi o registrati</button>
       </div>
       <details class="adv-card" id="posForm" data-need-login>
@@ -2347,7 +2358,7 @@
       else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
       else if (screenId === 'usersScreen') loadUsers();
       else if (screenId === 'statsScreen') { loadStats(); loadBackupInfo(); }
-      else if (screenId === 'pfsPosScreen') { setPosKind(title === 'POP' ? 'pop' : 'pfs'); renderPositions(); syncFromGoogleSheets(true); }
+      else if (screenId === 'pfsPosScreen') { setPosKind(title === 'POP' ? 'pop' : title === 'PD' ? 'pd' : 'pfs'); renderPositions(); syncFromGoogleSheets(true); }
       else if (screenId === 'barcodeScreen') {
         renderBarcode(false); renderRecentBarcodes();
         if (!fromHistory && window.matchMedia('(pointer: fine)').matches) setTimeout(() => $('bcInput').focus(), 300);
@@ -4086,31 +4097,46 @@
        PFS QUI: posizioni dei PFS divise per anello
        ===================================================================== */
     let posNearMode = false, posView = 'list', myPos = null, posEditing = null, posGroups = {};
-    /* PFS e POP: stessa archivio, i POP hanno anello "POP" e codice "POP NA_01" */
+    /* PFS, POP e PD condividono lo stesso archivio */
     let posKind = 'pfs';
-    const POP_ANELLO = 'POP';
-    const isPop = it => String(it && it.anello || '').toUpperCase() === POP_ANELLO;
-    const posKindOf = it => isPop(it) ? 'pop' : 'pfs';
-    const posLabel = it => isPop(it) ? String(it.pfs).replace(/^POP\s+/, '') : it.pfs;
-    const kindWord = () => posKind === 'pop' ? 'POP' : 'PFS';
+    /* stesso archivio per tre tipi: PFS (anello reale), POP (anello "POP", codice "POP NA_01"),
+       PD (anello "PD", codice "PD BN_01/01E12 PD_001": punti di distribuzione di un PFS) */
+    const POP_ANELLO = 'POP', PD_ANELLO = 'PD';
+    const KIND_ANELLO = { pop: POP_ANELLO, pd: PD_ANELLO };
+    const posKindOf = it => { const a = String(it && it.anello || '').toUpperCase(); return a === POP_ANELLO ? 'pop' : a === PD_ANELLO ? 'pd' : 'pfs'; };
+    const isPop = it => posKindOf(it) === 'pop';
+    const isPd = it => posKindOf(it) === 'pd';
+    const isSpecial = it => posKindOf(it) !== 'pfs';
+    const posLabel = it => isSpecial(it) ? String(it.pfs).replace(/^(POP|PD)\s+/, '') : it.pfs;
+    const posFullName = it => isPop(it) ? 'POP ' + posLabel(it) : isPd(it) ? posLabel(it) : it.pfs;
+    const pdParent = it => posLabel(it).split(' ')[0];
+    const kindWord = () => posKind === 'pop' ? 'POP' : posKind === 'pd' ? 'PD' : 'PFS';
     function canonPop(v) { const c = String(v || '').trim().toUpperCase().replace(/\s+/g, ' ').replace(/^POP[\s_-]*/, ''); return c ? 'POP ' + c : ''; }
+    /** "bn_01 01e12 pd_1" → "PD BN_01/01E12 PD_001" ('' se manca il numero del PD) */
+    function canonPd(v) {
+      const m = /^(?:PD\s+)?(.+?)[\s_-]+PD[\s_-]*(\d{1,4})$/.exec(String(v || '').trim().toUpperCase().replace(/\s+/g, ' '));
+      if (!m) return '';
+      const pfs = canonPfs(m[1]);
+      return pfs ? `PD ${pfs} PD_${m[2].padStart(3, '0')}` : '';
+    }
     function kindPositions() { const k = posKind; return Object.values(getPositions()).filter(it => posKindOf(it) === k); }
 
     function setPosKind(kind) {
       const changed = kind !== posKind;
-      posKind = kind === 'pop' ? 'pop' : 'pfs';
-      const pop = posKind === 'pop';
-      $('posArchTitle').textContent = pop ? 'Archivio POP' : 'Archivio PFS';
-      $('posSearch').placeholder = pop ? 'Cerca POP o indirizzo...' : 'Cerca PFS, anello o note...';
-      $('posPfsLabel').textContent = pop ? 'Codice POP' : 'Codice PFS';
-      $('posPfs').placeholder = pop ? 'es. NA_06' : 'es. NA_05 08E22';
-      $('posAnelloGroup').hidden = pop;
-      $('posImportBtn').hidden = pop;
-      $('posListModeBtn').textContent = pop ? 'Elenco' : 'Elenco per anello';
+      posKind = kind === 'pop' || kind === 'pd' ? kind : 'pfs';
+      const pop = posKind === 'pop', pd = posKind === 'pd', special = pop || pd;
+      $('posArchTitle').textContent = `Archivio ${kindWord()}`;
+      $('posSearch').placeholder = pop ? 'Cerca POP o indirizzo...' : pd ? 'Cerca PFS o PD...' : 'Cerca PFS, anello o note...';
+      $('posPfsLabel').textContent = `Codice ${kindWord()}`;
+      $('posPfs').placeholder = pop ? 'es. NA_06' : pd ? 'es. BN_01/01E12 PD_001' : 'es. NA_05 08E22';
+      $('posAnelloGroup').hidden = special;
+      $('posImportBtn').hidden = special;
+      $('posListModeBtn').textContent = pop ? 'Elenco' : pd ? 'Elenco per PFS' : 'Elenco per anello';
       if (changed) { $('posSearch').value = ''; if (!posEditing) resetPosForm(); else { resetPosForm(); } $('posForm').open = false; }
     }
     function openPosKind(kind) {
-      openScreen('pfsPosScreen', kind === 'pop' ? 'POP' : 'PFS', kind === 'pop' ? 'Centrali Open Fiber' : 'Posizioni PFS per anello');
+      const T = { pop: ['POP', 'Centrali Open Fiber'], pd: ['PD', 'Punti di distribuzione per PFS'], pfs: ['PFS', 'Posizioni PFS per anello'] }[kind] || ['PFS', 'Posizioni PFS per anello'];
+      openScreen('pfsPosScreen', T[0], T[1]);
     }
     let posPhoto = { data: null, thumb: '', fotoId: '' };
     let map = null, mapLayer = null, myMarker = null, leafletPromise = null, pendingFocus = null;
@@ -4210,7 +4236,7 @@
           <div class="pos-main">
             ${ph ? `<button type="button" class="pos-thumb" data-pact="photo"><img src="${escapeHtml(ph)}" alt="" loading="lazy"></button>` : ''}
             <div class="pos-body">
-              <div class="pos-name">${isPop(it) ? '<span class="pos-kind-tag">POP</span>' : ''}${escapeHtml(posLabel(it))}</div>
+              <div class="pos-name">${isSpecial(it) ? `<span class="pos-kind-tag ${posKindOf(it)}">${isPop(it) ? 'POP' : 'PD'}</span>` : ''}${escapeHtml(posLabel(it))}</div>
               ${it.note ? `<div class="pos-note">${escapeHtml(it.note)}</div>` : ''}
               <div class="pos-meta">${dist}<span>${escapeHtml(it.updatedAt || '')}</span>${it.tecnico ? `<span>${it.tecnico === 'GOOGLE MY MAPS' ? '🗺️ Da Google My Maps' : '👤 ' + escapeHtml(it.tecnico)}</span>` : ''}${pend}</div>
             </div>
@@ -4230,7 +4256,7 @@
     function filteredPositions() {
       const q = ($('posSearch').value || '').trim().toUpperCase();
       const lq = looseKey(q);
-      return kindPositions().filter(it => !q || (lq && looseKey(posLabel(it)).includes(lq)) || (!isPop(it) && it.anello.includes(q)) || String(it.note || '').toUpperCase().includes(q));
+      return kindPositions().filter(it => !q || (lq && looseKey(posLabel(it)).includes(lq)) || (!isSpecial(it) && it.anello.includes(q)) || String(it.note || '').toUpperCase().includes(q));
     }
 
     function renderPositions() {
@@ -4239,12 +4265,15 @@
       const allArr = kindPositions();
       const all = Object.fromEntries(allArr.map(i => [i.pfs, i]));
       const anelli = new Set(allArr.map(i => i.anello));
-      $('posCount').textContent = posKind === 'pop' ? `${allArr.length} POP` : `${allArr.length} PFS • ${anelli.size} anell${anelli.size === 1 ? 'o' : 'i'}`;
+      const pdPfs = posKind === 'pd' ? new Set(allArr.map(pdParent)).size : 0;
+      $('posCount').textContent = posKind === 'pop' ? `${allArr.length} POP`
+        : posKind === 'pd' ? `${allArr.length} PD • ${pdPfs} PFS`
+        : `${allArr.length} PFS • ${anelli.size} anell${anelli.size === 1 ? 'o' : 'i'}`;
       $('posNearBtn').classList.toggle('active', posNearMode);
 
       if (posView === 'map') { renderMap(items); }
-      if (!allArr.length && posKind === 'pop') {
-        list.innerHTML = `<div class="empty-state"><svg><use href="#i-pin"/></svg><div>Nessun POP salvato. Aggiungilo con il modulo qui sopra.</div></div>`;
+      if (!allArr.length && posKind !== 'pfs') {
+        list.innerHTML = `<div class="empty-state"><svg><use href="#i-pin"/></svg><div>Nessun ${kindWord()} salvato. Aggiungilo con il modulo qui sopra.</div></div>`;
         return;
       }
       if (!allArr.length) {
@@ -4270,19 +4299,20 @@
       const MAX_RESULTS = 200;
       const shown = q ? items.slice(0, MAX_RESULTS) : items;
       const groups = {};
-      shown.forEach(it => (groups[it.anello] = groups[it.anello] || []).push(it));
+      const pdMode = posKind === 'pd';
+      shown.forEach(it => { const k = pdMode ? pdParent(it) : it.anello; (groups[k] = groups[k] || []).push(it); });
       const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
       Object.values(groups).forEach(arr => arr.sort((a, b) => a.pfs.localeCompare(b.pfs, 'it', { numeric: true })));
       posGroups = groups;
-      const more = q && items.length > MAX_RESULTS ? `<div class="more-note">Trovati ${items.length} PFS: mostro i primi ${MAX_RESULTS}, affina la ricerca.</div>` : '';
+      const more = q && items.length > MAX_RESULTS ? `<div class="more-note">Trovati ${items.length} ${kindWord()}: mostro i primi ${MAX_RESULTS}, affina la ricerca.</div>` : '';
       list.innerHTML = more + keys.map((an, gi) => {
         const arr = groups[an];
         const isOpen = openNow.has(an) || !!q || keys.length === 1;
         return `
           <div class="pfs-folder ${isOpen ? 'open' : ''}" data-anello="${escapeHtml(an)}" style="--i:${gi}">
             <button type="button" class="pfs-folder-header" aria-expanded="${isOpen}">
-              <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(an)}"></span>Anello ${escapeHtml(an)}</span>
-              <span class="folder-meta">${arr.length} PFS <svg><use href="#i-down"/></svg></span>
+              <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(pdMode ? anelloFrom(an) : an)}"></span>${pdMode ? 'PFS' : 'Anello'} ${escapeHtml(an)}</span>
+              <span class="folder-meta">${arr.length} ${pdMode ? 'PD' : 'PFS'} <svg><use href="#i-down"/></svg></span>
             </button>
             <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${isOpen ? arr.map(posItemHtml).join('') : ''}</div></div></div>
           </div>`;
@@ -4308,10 +4338,10 @@
     function editPosition(pfs) {
       const it = getPositions()[pfs]; if (!it) return;
       posEditing = pfs;
-      $('posPfs').value = posLabel(it); $('posAnello').value = isPop(it) ? '' : it.anello;
+      $('posPfs').value = posLabel(it); $('posAnello').value = isSpecial(it) ? '' : it.anello;
       $('posCoords').value = fmtCoord(it.lat, it.lng); $('posNote').value = it.note || '';
       $('posAcc').textContent = '';
-      $('posFormTitle').textContent = `Modifica ${isPop(it) ? 'POP ' : ''}${posLabel(it)}`; $('posCancel').hidden = false;
+      $('posFormTitle').textContent = `Modifica ${posFullName(it)}`; $('posCancel').hidden = false;
       posPhoto = { data: null, thumb: it.thumb || '', fotoId: it.fotoId || '' }; renderPosPhoto();
       $('posForm').open = true;
       $('posForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -4319,12 +4349,12 @@
 
     async function savePosition() {
       if (!requireWriter(`Per salvare un ${kindWord()} serve un account approvato.`)) return;
-      const pop = posKind === 'pop';
-      const pfs = pop ? canonPop($('posPfs').value) : canonPfs($('posPfs').value);
+      const pop = posKind === 'pop', pd = posKind === 'pd';
+      const pfs = pop ? canonPop($('posPfs').value) : pd ? canonPd($('posPfs').value) : canonPfs($('posPfs').value);
       const coords = parseCoords($('posCoords').value);
       setInvalid('posPfs', pfs ? '' : 'x');
       setInvalid('posCoords', coords ? '' : 'x');
-      if (!pfs) { toast(`Inserisci il codice del ${kindWord()}.`, 'error'); return; }
+      if (!pfs) { toast(pd ? 'Scrivi PFS e numero del PD, es. BN_01/01E12 PD_001.' : `Inserisci il codice del ${kindWord()}.`, 'error'); return; }
       if (!coords) {
         toast(/goo\.gl|maps\.app/i.test($('posCoords').value) ? 'Link abbreviato: aprilo in Maps e copia le coordinate, oppure usa "Posizione attuale".' : 'Coordinate non valide: usa "Posizione attuale" o incolla es. 40.851800, 14.268100', 'error', 5000);
         return;
@@ -4336,7 +4366,7 @@
       }
       const tecnico = await ensureTecnico();
       const it = {
-        pfs, anello: pop ? POP_ANELLO : ($('posAnello').value.trim() || anelloFrom(pfs)).toUpperCase(),
+        pfs, anello: KIND_ANELLO[posKind] || ($('posAnello').value.trim() || anelloFrom(pfs)).toUpperCase(),
         lat: coords.lat, lng: coords.lng, note: $('posNote').value.trim(),
         tecnico, updatedAt: nowStamp(),
         fotoId: posPhoto.data ? '' : (posPhoto.fotoId || ''), thumb: posPhoto.thumb || ''
@@ -4373,7 +4403,7 @@
     }
 
     function sharePosition(it) {
-      const name = isPop(it) ? `POP ${posLabel(it)}` : `PFS ${it.pfs}`;
+      const name = isPop(it) ? `POP ${posLabel(it)}` : isPd(it) ? `PD ${posLabel(it)}` : `PFS ${it.pfs}`;
       const text = `${name}${it.note ? ' – ' + it.note : ''}\n${fmtCoord(it.lat, it.lng)}\n${mapsUrl(it)}`;
       shareText(text, `Posizione ${name}`);
     }
@@ -4496,8 +4526,8 @@
       items.forEach(it => {
         const many = items.length > 300;
         const m = L.circleMarker([it.lat, it.lng], { radius: many ? 5 : 9, weight: many ? 1.5 : 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 0.95 });
-        m.bindTooltip(isPop(it) ? 'POP ' + posLabel(it) : it.pfs, { direction: 'top', offset: [0, -8] });
-        m.bindPopup(`<div class="map-pop"><b>${escapeHtml(isPop(it) ? 'POP ' + posLabel(it) : it.pfs)}</b><br><small>${isPop(it) ? 'POP Open Fiber' : 'Anello ' + escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
+        m.bindTooltip(posFullName(it), { direction: 'top', offset: [0, -8] });
+        m.bindPopup(`<div class="map-pop"><b>${escapeHtml(posFullName(it))}</b><br><small>${isPop(it) ? 'POP Open Fiber' : isPd(it) ? 'PD del PFS ' + escapeHtml(pdParent(it)) : 'Anello ' + escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
         m._pfs = it.pfs;
         m.addTo(mapLayer); pts.push([it.lat, it.lng]);
       });
@@ -4865,7 +4895,7 @@
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>${kmlEsc(title)}</name>
-    <description>${kmlEsc(`Creato con Fiber Tools il ${nowStamp()}${getTecnico() ? ' da ' + getTecnico() : ''}. ${items.length} PFS. Per caricarlo: Fiber Tools → PFS e POP → PFS → Importa posizioni → Scegli il file (funziona anche offline).`)}</description>${styles}${folders}
+    <description>${kmlEsc(`Creato con Fiber Tools il ${nowStamp()}${getTecnico() ? ' da ' + getTecnico() : ''}. ${items.length} PFS. Per caricarlo: Fiber Tools → PFS, POP e PD → PFS → Importa posizioni → Scegli il file (funziona anche offline).`)}</description>${styles}${folders}
   </Document>
 </kml>
 `;
@@ -4896,7 +4926,7 @@
       const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const kml = buildPositionsKml(items, `Fiber Tools – Posizioni PFS ${label}`);
       const res = await shareOrDownload(kml, `PFS_${safeName(label)}_${date}`, `Posizioni PFS ${label}`,
-        `${items.length} posizioni PFS (${label}). Aprile in Fiber Tools: PFS e POP → PFS → Importa posizioni → Scegli il file.`);
+        `${items.length} posizioni PFS (${label}). Aprile in Fiber Tools: PFS, POP e PD → PFS → Importa posizioni → Scegli il file.`);
       if (res === 'downloaded') toast(`File con ${items.length} PFS salvato nei Download: invialo ai colleghi (WhatsApp, email…).`, 'success', 5000);
       else if (res === 'shared') toast(`${items.length} posizioni condivise.`);
     }
@@ -5431,7 +5461,7 @@
       });
       document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goHome()));
 
-      // PFS e POP: il riquadro si ingrandisce e propone la scelta
+      // PFS, POP e PD: il riquadro si ingrandisce e propone la scelta
       const pq = $('pqTile');
       const pqSet = open => {
         pq.classList.toggle('open', open); pq.setAttribute('aria-expanded', String(open));

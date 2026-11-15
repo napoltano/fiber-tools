@@ -4157,6 +4157,14 @@
     const posFullName = it => isPop(it) ? 'POP ' + posLabel(it) : isPfp(it) ? 'PFP ' + posLabel(it) : isPd(it) ? posLabel(it) : it.pfs;
     const KIND_TAG = { pop: 'POP', pd: 'PD', pfp: 'PFP' };
     const pdParent = it => posLabel(it).split(' ')[0];
+    const isRingCode = a => /^[A-Z]+_\d+$/.test(String(a || ''));
+    /** Gruppo di un PFP: l'anello se il codice è nel formato "BN_01/01E1", altrimenti il comune scritto nella nota (es. PFP della Lombardia "L929_GC1"). */
+    function pfpGroup(it) {
+      const ring = anelloFrom(posLabel(it));
+      if (isRingCode(ring)) return ring;
+      const m = /Comune:\s*([^·\n]+)/i.exec(String(it.note || ''));
+      return m ? m[1].trim().toUpperCase() : 'ALTRI';
+    }
     const kindWord = () => KIND_TAG[posKind] || 'PFS';
     /** "mc_01 01e1" → "PFP MC_01/01E1" ('' se non è un codice PFP: anello + 2 cifre + E/W + 1 cifra) */
     function canonPfp(v) {
@@ -4318,11 +4326,12 @@
       const all = Object.fromEntries(allArr.map(i => [i.pfs, i]));
       const anelli = new Set(allArr.map(i => i.anello));
       const pdPfs = posKind === 'pd' ? new Set(allArr.map(pdParent)).size : 0;
-      const pfpRings = posKind === 'pfp' ? new Set(allArr.map(it => anelloFrom(posLabel(it)))).size : 0;
+      const pfpSet = posKind === 'pfp' ? new Set(allArr.map(pfpGroup)) : new Set(), pfpRings = pfpSet.size;
+      const grpWord = (set, n) => [...set].every(isRingCode) ? `anell${n === 1 ? 'o' : 'i'}` : `grupp${n === 1 ? 'o' : 'i'}`;
       $('posCount').textContent = posKind === 'pop' ? `${allArr.length} POP`
-        : posKind === 'pfp' ? `${allArr.length} PFP • ${pfpRings} anell${pfpRings === 1 ? 'o' : 'i'}`
+        : posKind === 'pfp' ? `${allArr.length} PFP • ${pfpRings} ${grpWord(pfpSet, pfpRings)}`
         : posKind === 'pd' ? `${allArr.length} PD • ${pdPfs} PFS`
-        : `${allArr.length} PFS • ${anelli.size} anell${anelli.size === 1 ? 'o' : 'i'}`;
+        : `${allArr.length} PFS • ${anelli.size} ${grpWord(anelli, anelli.size)}`;
       $('posNearBtn').classList.toggle('active', posNearMode);
 
       if (posView === 'map') { renderMap(items); }
@@ -4354,7 +4363,7 @@
       const shown = q ? items.slice(0, MAX_RESULTS) : items;
       const groups = {};
       const pdMode = posKind === 'pd';
-      shown.forEach(it => { const k = pdMode ? pdParent(it) : posKind === 'pfp' ? anelloFrom(posLabel(it)) : it.anello; (groups[k] = groups[k] || []).push(it); });
+      shown.forEach(it => { const k = pdMode ? pdParent(it) : posKind === 'pfp' ? pfpGroup(it) : it.anello; (groups[k] = groups[k] || []).push(it); });
       const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
       Object.values(groups).forEach(arr => arr.sort((a, b) => posLabel(a).localeCompare(posLabel(b), 'it', { numeric: true })));
       posGroups = groups;
@@ -4365,7 +4374,7 @@
         return `
           <div class="pfs-folder ${isOpen ? 'open' : ''}" data-anello="${escapeHtml(an)}" style="--i:${gi}">
             <button type="button" class="pfs-folder-header" aria-expanded="${isOpen}">
-              <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(pdMode ? anelloFrom(an) : an)}"></span>${pdMode ? 'PFS' : 'Anello'} ${escapeHtml(an)}</span>
+              <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(pdMode ? anelloFrom(an) : an)}"></span>${pdMode ? 'PFS ' : isRingCode(an) ? 'Anello ' : ''}${escapeHtml(an)}</span>
               <span class="folder-meta">${arr.length} ${pdMode ? 'PD' : kindWord()} <svg><use href="#i-down"/></svg></span>
             </button>
             <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${isOpen ? arr.map(posItemHtml).join('') : ''}</div></div></div>
@@ -4404,7 +4413,9 @@
     async function savePosition() {
       if (!requireWriter(`Per salvare un ${kindWord()} serve un account approvato.`)) return;
       const pop = posKind === 'pop', pd = posKind === 'pd', pfp = posKind === 'pfp';
-      const pfs = pop ? canonPop($('posPfs').value) : pd ? canonPd($('posPfs').value) : pfp ? canonPfp($('posPfs').value) : canonPfs($('posPfs').value);
+      const rawPfs = $('posPfs').value;
+      const loosePfp = v => { const c = String(v || '').trim().toUpperCase().replace(/\s+/g, ' ').replace(/^PFP[\s_-]*/, ''); return c ? 'PFP ' + c : ''; };
+      const pfs = pop ? canonPop(rawPfs) : pd ? canonPd(rawPfs) : pfp ? (canonPfp(rawPfs) || loosePfp(rawPfs)) : canonPfs(rawPfs);
       const coords = parseCoords($('posCoords').value);
       setInvalid('posPfs', pfs ? '' : 'x');
       setInvalid('posCoords', coords ? '' : 'x');

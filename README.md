@@ -55,6 +55,9 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - Avvisi se una fibra N− è usata da due cavi o se un cavo non ha abbastanza fibre. Esporta in **testo**, **PDF** (una sezione per cavo) ed **Excel**; lo schema resta salvato sul telefono.
 - **Riservato**: come PFS, POP e ribattiture, è visibile solo con un account approvato. Senza accesso compare il pannello «Accesso riservato» e, all'uscita dall'account, lo schema viene tolto dal telefono.
 
+### Lombardia (GIS PNI)
+- PFS, PFP e POP di Bergamo e Brescia importati dal progetto GIS: i PFS sono raggruppati **per comune** (es. «PIANICO (BG)») invece che per anello; i PFP con codici tipo «L929_GC1» sono raggruppati per comune (preso dalla nota) e il modulo PFP accetta anche questi codici.
+
 ### Contatti
 - Pulsante ✉️ nella barra in alto, accanto all'ingranaggio: mostra l'indirizzo **marigliano.lavoro@gmail.com** e un modulo (argomento, nome, messaggio). **Invia mail** apre l'app di posta con oggetto e testo già pronti.
 

@@ -99,7 +99,7 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v7 (archivio riservato, account, statistiche, backup)
+apps-script/Code.gs     script Google Sheets v8 (archivio riservato, account, statistiche, backup; scrive sempre come testo)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.

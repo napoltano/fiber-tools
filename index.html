@@ -1032,6 +1032,23 @@
       animation: fadeUp 0.3s var(--ease) both; animation-delay: calc(var(--i, 0) * 25ms);
     }
     #posList > .pos-item { margin-bottom: 8px; }
+    /* zone (province) e recenti */
+    .zone-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .zone-row::-webkit-scrollbar { display: none; }
+    .zone-row .chip { flex-shrink: 0; white-space: nowrap; }
+    .zone-row .chip.sel { color: #fff; background: var(--primary); border-color: var(--primary); }
+    .zone-row .chip small { opacity: 0.75; font-weight: 700; margin-left: 3px; }
+    .zone-badge { font-size: 0.68rem; font-weight: 900; background: var(--primary); color: #fff; border-radius: 6px; padding: 2px 6px; letter-spacing: 0.4px; flex-shrink: 0; }
+    .zone-tag { font-size: 0.62rem; font-weight: 800; color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; margin-left: 4px; }
+    .zone-folder > .pfs-folder-header { padding: 15px 14px; }
+    .pfs-folder-inner > div > .pfs-folder { margin-bottom: 0; }
+    .recent-box { margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .recent-box .chip-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .recent-box .chip-row::-webkit-scrollbar { display: none; }
+    .recent-box .chip { flex-shrink: 0; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+    .recent-box .anello-dot { width: 8px; height: 8px; }
+    .pfs-folder.flash > .pfs-folder-header { animation: flashHdr 1.2s var(--ease); }
+    @keyframes flashHdr { 0%, 40% { background: color-mix(in srgb, var(--primary) 18%, var(--card)); } 100% { background: var(--card); } }
     .pos-main { display: flex; gap: 10px; align-items: flex-start; }
     .pos-thumb { border: none; padding: 0; background: none; flex-shrink: 0; }
     .pos-thumb img { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); }
@@ -2067,6 +2084,7 @@
           <button type="button" class="pfs-mode-btn active" data-mode="list" id="posListModeBtn">Elenco per anello</button>
           <button type="button" class="pfs-mode-btn" data-mode="map">Mappa</button>
         </div>
+        <div class="zone-row" id="posZoneRow" role="group" aria-label="Filtra per zona" hidden></div>
       </div>
 
       <div class="map-wrap" id="posMapWrap" data-need-login hidden>
@@ -4316,23 +4334,134 @@
     function filteredPositions() {
       const q = ($('posSearch').value || '').trim().toUpperCase();
       const lq = looseKey(q);
-      return kindPositions().filter(it => !q || (lq && looseKey(posLabel(it)).includes(lq)) || ((!isSpecial(it) || isPfp(it)) && anelloFrom(posLabel(it)).includes(q)) || String(it.note || '').toUpperCase().includes(q));
+      return kindPositions().filter(it => !q || (lq && looseKey(posLabel(it)).includes(lq)) || ((!isSpecial(it) || isPfp(it)) && (anelloFrom(posLabel(it)).includes(q) || posGroupKey(it).includes(q))) || String(it.note || '').toUpperCase().includes(q));
+    }
+
+    /* ---------- Zone (province), filtro zona e recenti ---------- */
+    const PROV_NAMES = Object.fromEntries('AG:Agrigento,AL:Alessandria,AN:Ancona,AO:Aosta,AP:Ascoli Piceno,AQ:L’Aquila,AR:Arezzo,AT:Asti,AV:Avellino,BA:Bari,BG:Bergamo,BI:Biella,BL:Belluno,BN:Benevento,BO:Bologna,BR:Brindisi,BS:Brescia,BT:Barletta-Andria-Trani,BZ:Bolzano,CA:Cagliari,CB:Campobasso,CE:Caserta,CH:Chieti,CL:Caltanissetta,CN:Cuneo,CO:Como,CR:Cremona,CS:Cosenza,CT:Catania,CZ:Catanzaro,EN:Enna,FC:Forlì-Cesena,FE:Ferrara,FG:Foggia,FI:Firenze,FM:Fermo,FR:Frosinone,GE:Genova,GO:Gorizia,GR:Grosseto,IM:Imperia,IS:Isernia,KR:Crotone,LC:Lecco,LE:Lecce,LI:Livorno,LO:Lodi,LT:Latina,LU:Lucca,MB:Monza e Brianza,MC:Macerata,ME:Messina,MI:Milano,MN:Mantova,MO:Modena,MS:Massa-Carrara,MT:Matera,NA:Napoli,NO:Novara,NU:Nuoro,OR:Oristano,PA:Palermo,PC:Piacenza,PD:Padova,PE:Pescara,PG:Perugia,PI:Pisa,PN:Pordenone,PO:Prato,PR:Parma,PT:Pistoia,PU:Pesaro e Urbino,PV:Pavia,PZ:Potenza,RA:Ravenna,RC:Reggio Calabria,RE:Reggio Emilia,RG:Ragusa,RI:Rieti,RM:Roma,RN:Rimini,RO:Rovigo,SA:Salerno,SI:Siena,SO:Sondrio,SP:La Spezia,SR:Siracusa,SS:Sassari,SU:Sud Sardegna,SV:Savona,TA:Taranto,TE:Teramo,TN:Trento,TO:Torino,TP:Trapani,TR:Terni,TS:Trieste,TV:Treviso,UD:Udine,VA:Varese,VB:Verbano-Cusio-Ossola,VC:Vercelli,VE:Venezia,VI:Vicenza,VR:Verona,VT:Viterbo,VV:Vibo Valentia'.split(',').map(s => s.split(':')));
+    const OTHER_ZONE = 'ALTRO';
+    const zoneName = z => z === OTHER_ZONE ? 'Altre zone' : PROV_NAMES[z] || z;
+    /** Cartella in cui sta una posizione: anello / comune (PFS), anello o comune (PFP), PFS padre (PD), tutti insieme (POP). */
+    function posGroupKey(it) {
+      const k = posKindOf(it);
+      return k === 'pd' ? pdParent(it) : k === 'pfp' ? pfpGroup(it) : k === 'pop' ? POP_ANELLO : String(it.anello || '');
+    }
+    /** Provincia di una posizione: dalla nota "Comune: X (BG)", dal gruppo "PIANICO (BG)" o dal codice (NA_05, BG_02, MIH_5 → MI). */
+    function posZone(it, groupKey) {
+      const m1 = /Comune:[^·\n]*\(([A-Za-z]{2})\)/.exec(String(it.note || ''));
+      if (m1 && PROV_NAMES[m1[1].toUpperCase()]) return m1[1].toUpperCase();
+      const g = String(groupKey == null ? posGroupKey(it) : groupKey).toUpperCase();
+      const m2 = /\(([A-Z]{2})\)\s*$/.exec(g);
+      if (m2 && PROV_NAMES[m2[1]]) return m2[1];
+      for (const s of [g, String(posLabel(it)).toUpperCase()]) {
+        const m = /^([A-Z]{2,3})_\d/.exec(s);
+        if (!m) continue;
+        let p = m[1];
+        if (p.length === 3 && p.endsWith('H')) p = p.slice(0, 2);
+        if (PROV_NAMES[p]) return p;
+      }
+      return OTHER_ZONE;
+    }
+    const ZONE_KEY = 'fiber_tools_pos_zone', RECENT_KEY = 'fiber_tools_pos_recent';
+    function zonePrefs() { try { return JSON.parse(lsGet(ZONE_KEY, '{}')) || {}; } catch (e) { return {}; } }
+    const getPosZoneSel = () => zonePrefs()[posKind] || '';
+    function setPosZoneSel(z) {
+      const p = zonePrefs();
+      if (z) p[posKind] = z; else delete p[posKind];
+      try { localStorage.setItem(ZONE_KEY, JSON.stringify(p)); } catch (e) {}
+    }
+    function getRecent() { try { const a = JSON.parse(lsGet(RECENT_KEY, '[]')); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+    /** Ricorda un gruppo aperto ({k, g}) o una posizione usata ({k, p}): i più recenti in cima. */
+    function pushRecent(e) {
+      const a = getRecent().filter(x => !(x.k === e.k && x.g === e.g && x.p === e.p));
+      a.unshift(e);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(a.slice(0, 40))); } catch (err) {}
+    }
+    let posZoneMap = {}, posJump = null, posAllGroups = {};
+    const grpWordFor = (keys, n) => keys.every(isRingCode) ? `anell${n === 1 ? 'o' : 'i'}` : `grupp${n === 1 ? 'o' : 'i'}`;
+
+    function groupFolderHtml(an, arr, gi, isOpen, zoneTag) {
+      const pdMode = posKind === 'pd';
+      return `
+          <div class="pfs-folder ${isOpen ? 'open' : ''}" data-anello="${escapeHtml(an)}" style="--i:${Math.min(gi, 12)}">
+            <button type="button" class="pfs-folder-header" aria-expanded="${isOpen}">
+              <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(pdMode ? anelloFrom(an) : an)}"></span>${pdMode ? 'PFS ' : isRingCode(an) ? 'Anello ' : ''}${escapeHtml(an)}${zoneTag ? `<span class="zone-tag">${escapeHtml(zoneTag)}</span>` : ''}</span>
+              <span class="folder-meta">${arr.length} ${pdMode ? 'PD' : kindWord()} <svg><use href="#i-down"/></svg></span>
+            </button>
+            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${isOpen ? arr.map(posItemHtml).join('') : ''}</div></div></div>
+          </div>`;
+    }
+    /** Contenuto di una cartella provincia: le cartelle dei suoi anelli/comuni, oppure (POP) direttamente le posizioni. */
+    function zoneInnerHtml(z, openSet) {
+      const keys = posZoneMap[z] || [];
+      if (posKind === 'pop') return keys.map(posItemHtml).join('');
+      return keys.map((an, gi) => groupFolderHtml(an, posGroups[an] || [], gi, !!(openSet && openSet.has(an)))).join('');
+    }
+    function renderZoneRow(counts, sel, show) {
+      const row = $('posZoneRow');
+      const zones = Object.keys(counts).sort((a, b) => (a === OTHER_ZONE) - (b === OTHER_ZONE) || counts[b] - counts[a] || a.localeCompare(b));
+      row.hidden = !show || zones.length < 2;
+      if (row.hidden) return;
+      const total = zones.reduce((s, z) => s + counts[z], 0);
+      row.innerHTML = `<button type="button" class="chip ${sel ? '' : 'sel'}" data-zone="">Tutte<small>${total}</small></button>` +
+        zones.map(z => `<button type="button" class="chip ${sel === z ? 'sel' : ''}" data-zone="${escapeHtml(z)}" title="${escapeHtml(zoneName(z))}">${escapeHtml(z === OTHER_ZONE ? 'Altre' : zoneName(z))}<small>${counts[z]}</small></button>`).join('');
+    }
+    function recentHtml() {
+      const all = getPositions();
+      const out = [];
+      for (const r of getRecent()) {
+        if (r.k !== posKind || out.length >= 8) continue;
+        if (r.g && posAllGroups[r.g]) out.push(`<button type="button" class="chip" data-recent-g="${escapeHtml(r.g)}"><span class="anello-dot" style="background:${anelloColor(posKind === 'pd' ? anelloFrom(r.g) : r.g)}"></span>${escapeHtml(r.g)}</button>`);
+        else if (r.p && all[r.p]) out.push(`<button type="button" class="chip" data-recent-p="${escapeHtml(r.p)}"><svg><use href="#i-pin"/></svg>${escapeHtml(posLabel(all[r.p]))}</button>`);
+      }
+      return out.length ? `<div class="recent-box"><div class="hits-title">Recenti</div><div class="chip-row">${out.join('')}</div></div>` : '';
+    }
+    /** Apre la cartella di un gruppo (e la sua provincia) e la porta in vista. */
+    function jumpToGroup(g) {
+      const it = (posAllGroups[g] || [])[0]; if (!it) return;
+      const z = posZone(it, g);
+      const sel = getPosZoneSel();
+      if (sel && sel !== z) setPosZoneSel(z);
+      $('posSearch').value = '';
+      posJump = { zone: z, group: g };
+      pushRecent({ k: posKind, g });
+      renderPositions();
+      const el = [...$('posList').querySelectorAll('.pfs-folder[data-anello]')].find(f => f.dataset.anello === g);
+      if (el) { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1300); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     }
 
     function renderPositions() {
       const list = $('posList');
-      const items = filteredPositions();
       const allArr = kindPositions();
-      const all = Object.fromEntries(allArr.map(i => [i.pfs, i]));
       const anelli = new Set(allArr.map(i => i.anello));
       const pdPfs = posKind === 'pd' ? new Set(allArr.map(pdParent)).size : 0;
       const pfpSet = posKind === 'pfp' ? new Set(allArr.map(pfpGroup)) : new Set(), pfpRings = pfpSet.size;
-      const grpWord = (set, n) => [...set].every(isRingCode) ? `anell${n === 1 ? 'o' : 'i'}` : `grupp${n === 1 ? 'o' : 'i'}`;
+      const grpWord = (set, n) => grpWordFor([...set], n);
       $('posCount').textContent = posKind === 'pop' ? `${allArr.length} POP`
         : posKind === 'pfp' ? `${allArr.length} PFP • ${pfpRings} ${grpWord(pfpSet, pfpRings)}`
         : posKind === 'pd' ? `${allArr.length} PD • ${pdPfs} PFS`
         : `${allArr.length} PFS • ${anelli.size} ${grpWord(anelli, anelli.size)}`;
       $('posNearBtn').classList.toggle('active', posNearMode);
+
+      // gruppi completi e provincia di ogni gruppo (per recenti, salto e filtro zona)
+      posAllGroups = {};
+      const zoneOfKey = {}, zoneCounts = {};
+      allArr.forEach(it => {
+        const g = posGroupKey(it);
+        (posAllGroups[g] = posAllGroups[g] || []).push(it);
+        const z = posKind === 'pop' ? posZone(it, '') : (zoneOfKey[g] = zoneOfKey[g] || posZone(it, g));
+        zoneCounts[z] = (zoneCounts[z] || 0) + 1;
+      });
+      const itemZone = it => posKind === 'pop' ? posZone(it, '') : zoneOfKey[posGroupKey(it)];
+
+      const q = ($('posSearch').value || '').trim();
+      let sel = getPosZoneSel();
+      if (sel && !zoneCounts[sel]) sel = '';
+      const multiZone = Object.keys(zoneCounts).length > 1;
+      renderZoneRow(zoneCounts, sel, !q && !posNearMode && allArr.length > 0);
+      let items = filteredPositions();
+      const zoneActive = !!sel && !q && !posNearMode;
+      if (zoneActive) items = items.filter(it => itemZone(it) === sel);
 
       if (posView === 'map') { renderMap(items); }
       if (!allArr.length && posKind !== 'pfs') {
@@ -4351,33 +4480,67 @@
         list.innerHTML = `<div class="hits-title" style="margin-bottom:8px">I più vicini a te${myPos.acc ? ` (precisione ±${Math.round(myPos.acc)} m)` : ''}</div>` + sorted.map((x, i) => posItemHtml(x.it, i)).join('');
         return;
       }
-      const q = ($('posSearch').value || '').trim();
+      const recent = q ? '' : recentHtml();
+      const openNow = new Set([...list.querySelectorAll('.pfs-folder.open[data-anello]')].map(f => f.dataset.anello));
+      const openZones = new Set([...list.querySelectorAll('.zone-folder.open')].map(f => f.dataset.zone));
+      const jump = posJump; posJump = null;
+      if (jump) { openNow.add(jump.group); openZones.add(jump.zone); }
+      const byLabel = (a, b) => posLabel(a).localeCompare(posLabel(b), 'it', { numeric: true });
+      const cmpKey = (a, b) => a.localeCompare(b, 'it', { numeric: true });
+      const useZoneFolders = !q && !zoneActive && multiZone;
+
       if (posKind === 'pop') {
-        const arr = items.slice().sort((a, b) => posLabel(a).localeCompare(posLabel(b), 'it', { numeric: true }));
+        const arr = items.slice().sort(byLabel);
         posGroups = { [POP_ANELLO]: arr };
-        list.innerHTML = arr.map(posItemHtml).join('');
+        if (!useZoneFolders) { list.innerHTML = recent + arr.map(posItemHtml).join(''); return; }
+        posZoneMap = {};
+        arr.forEach(it => { const z = itemZone(it); (posZoneMap[z] = posZoneMap[z] || []).push(it); });
+        list.innerHTML = recent + zoneFoldersHtml(posZoneMap, z => `${posZoneMap[z].length} POP`, openZones, openNow);
         return;
       }
-      const openNow = new Set([...list.querySelectorAll('.pfs-folder.open')].map(f => f.dataset.anello));
+
       const MAX_RESULTS = 200;
       const shown = q ? items.slice(0, MAX_RESULTS) : items;
       const groups = {};
-      const pdMode = posKind === 'pd';
-      shown.forEach(it => { const k = pdMode ? pdParent(it) : posKind === 'pfp' ? pfpGroup(it) : it.anello; (groups[k] = groups[k] || []).push(it); });
-      const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
-      Object.values(groups).forEach(arr => arr.sort((a, b) => posLabel(a).localeCompare(posLabel(b), 'it', { numeric: true })));
+      shown.forEach(it => { const k = posGroupKey(it); (groups[k] = groups[k] || []).push(it); });
+      Object.values(groups).forEach(arr => arr.sort(byLabel));
       posGroups = groups;
-      const more = q && items.length > MAX_RESULTS ? `<div class="more-note">Trovati ${items.length} ${kindWord()}: mostro i primi ${MAX_RESULTS}, affina la ricerca.</div>` : '';
-      list.innerHTML = more + keys.map((an, gi) => {
-        const arr = groups[an];
-        const isOpen = openNow.has(an) || !!q || keys.length === 1;
+
+      if (q) {
+        // ricerca: prima le cartelle il cui nome corrisponde (già aperte), poi le altre
+        const lq = looseKey(q);
+        const hit = k => !!lq && looseKey(k).includes(lq);
+        const keys = Object.keys(groups).sort((a, b) => hit(b) - hit(a) || cmpKey(a, b));
+        const openAll = shown.length <= 40 || keys.length <= 3;
+        const more = items.length > MAX_RESULTS ? `<div class="more-note">Trovati ${items.length} ${kindWord()}: mostro i primi ${MAX_RESULTS}, affina la ricerca.</div>` : '';
+        const note = multiZone ? `<div class="more-note" style="padding-top:0">Ricerca in tutte le zone</div>` : '';
+        list.innerHTML = more + note + keys.map((an, gi) => groupFolderHtml(an, groups[an], gi, openAll || hit(an) || openNow.has(an), multiZone ? zoneOfKey[an] : '')).join('');
+        return;
+      }
+
+      const keys = Object.keys(groups).sort(cmpKey);
+      if (!useZoneFolders) {
+        list.innerHTML = recent + keys.map((an, gi) => groupFolderHtml(an, groups[an], gi, openNow.has(an) || keys.length === 1)).join('');
+        return;
+      }
+      posZoneMap = {};
+      keys.forEach(k => { const z = zoneOfKey[k]; (posZoneMap[z] = posZoneMap[z] || []).push(k); });
+      list.innerHTML = recent + zoneFoldersHtml(posZoneMap, z => {
+        const ks = posZoneMap[z], n = ks.reduce((s, k) => s + groups[k].length, 0);
+        return `${ks.length} ${grpWordFor(ks, ks.length)} • ${n} ${kindWord()}`;
+      }, openZones, openNow);
+    }
+    function zoneFoldersHtml(zmap, metaFn, openZones, openNow) {
+      const zones = Object.keys(zmap).sort((a, b) => (a === OTHER_ZONE) - (b === OTHER_ZONE) || zoneName(a).localeCompare(zoneName(b), 'it'));
+      return zones.map((z, i) => {
+        const open = openZones.has(z);
         return `
-          <div class="pfs-folder ${isOpen ? 'open' : ''}" data-anello="${escapeHtml(an)}" style="--i:${gi}">
-            <button type="button" class="pfs-folder-header" aria-expanded="${isOpen}">
-              <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(pdMode ? anelloFrom(an) : an)}"></span>${pdMode ? 'PFS ' : isRingCode(an) ? 'Anello ' : ''}${escapeHtml(an)}</span>
-              <span class="folder-meta">${arr.length} ${pdMode ? 'PD' : kindWord()} <svg><use href="#i-down"/></svg></span>
+          <div class="pfs-folder zone-folder ${open ? 'open' : ''}" data-zone="${escapeHtml(z)}" style="--i:${Math.min(i, 12)}">
+            <button type="button" class="pfs-folder-header" aria-expanded="${open}">
+              <span class="pfs-folder-title">${z === OTHER_ZONE ? '' : `<span class="zone-badge">${escapeHtml(z)}</span>`}${escapeHtml(zoneName(z))}</span>
+              <span class="folder-meta">${metaFn(z)} <svg><use href="#i-down"/></svg></span>
             </button>
-            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${isOpen ? arr.map(posItemHtml).join('') : ''}</div></div></div>
+            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${open ? zoneInnerHtml(z, openNow) : ''}</div></div></div>
           </div>`;
       }).join('');
     }
@@ -4664,6 +4827,12 @@
 
       // PFS Qui
       $('posSearch').addEventListener('input', renderPositions);
+      $('posZoneRow').addEventListener('click', e => {
+        const c = e.target.closest('[data-zone]'); if (!c) return;
+        setPosZoneSel(c.dataset.zone);
+        renderPositions();
+        const selC = $('posZoneRow').querySelector('.sel'); if (selC) selC.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+      });
       $('posOfflineBtn').addEventListener('click', () => { if (tileDl) { tileDl.stop = true; return; } openOfflineMap(); });
       $('posPfs').addEventListener('input', () => {
         setInvalid('posPfs', '');
@@ -4712,18 +4881,26 @@
 
       $('posList').addEventListener('click', e => {
         if (e.target.closest('[data-pos-import]')) { openImport(); return; }
+        const rg = e.target.closest('[data-recent-g]');
+        if (rg) { jumpToGroup(rg.dataset.recentG); return; }
+        const rp = e.target.closest('[data-recent-p]');
+        if (rp) { $('posSearch').value = rp.dataset.recentP; renderPositions(); return; }
         const header = e.target.closest('.pfs-folder-header');
         if (header) {
           const f = header.parentElement; f.classList.toggle('open');
-          header.setAttribute('aria-expanded', f.classList.contains('open'));
+          const open = f.classList.contains('open');
+          header.setAttribute('aria-expanded', open);
           const inner = f.querySelector('.pfs-folder-inner > div');
-          // i PFS di un anello vengono disegnati solo quando lo apri
-          if (f.classList.contains('open') && !inner.children.length) inner.innerHTML = (posGroups[f.dataset.anello] || []).map(posItemHtml).join('');
+          // il contenuto di una provincia o di un anello viene disegnato solo quando lo apri
+          if (f.classList.contains('zone-folder')) { if (open && !inner.children.length) inner.innerHTML = zoneInnerHtml(f.dataset.zone); return; }
+          if (open && !inner.children.length) inner.innerHTML = (posGroups[f.dataset.anello] || []).map(posItemHtml).join('');
+          if (open && posKind !== 'pop') pushRecent({ k: posKind, g: f.dataset.anello });
           return;
         }
         const b = e.target.closest('[data-pact]'); if (!b) return;
         const pfs = b.closest('[data-pos]').dataset.pos;
         const it = getPositions()[pfs]; if (!it) return;
+        if (b.dataset.pact !== 'delete') pushRecent({ k: posKind, p: pfs });
         switch (b.dataset.pact) {
           case 'nav': navigateTo(it); break;
           case 'map': pendingFocus = pfs; setPosView('map'); break;
@@ -6552,9 +6729,10 @@
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-15';
+    const NEWS_ID = '2026-11-15b';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#7c3aed', i: 'i-folder', t: 'Elenco per provincia e Lombardia', d: 'Arrivate 2.841 posizioni di Bergamo e Brescia. L’elenco ora è diviso per provincia (Napoli, Bergamo, Brescia…): scegli la tua zona con i pulsanti sopra l’elenco e l’app la ricorda. In cima trovi gli anelli e i PFS aperti di recente, e la ricerca apre subito la cartella giusta.' },
       { c: '#0d9488', i: 'i-nav', t: 'PFS, PFP, POP e PD', d: 'La voce 07 ora si apre e ti fa scegliere tra quattro archivi: PFS, PFP (armadi primari), POP (oltre 80 centrali Open Fiber in tutta Italia) e PD (punti di distribuzione, raggruppati per PFS). Ognuno con ricerca, “Vicino a me”, mappa e Naviga.' },
       { c: '#2563eb', i: 'i-pin', t: 'Nuove zone in archivio', d: 'Pisa (PI_01) con 192 PFS e Benevento (BN_01) con 26 PFP e 302 PD. Tocca “Aggiorna da Google Sheets” per vederli.' },
       { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 48 fo e da 24 dai 96 fo. Esporta in PDF ed Excel. Riservato agli account approvati.' },

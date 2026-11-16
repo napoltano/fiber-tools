@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 10;
+const SCRIPT_VERSION = 11;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -182,6 +182,14 @@ function readUsers_() {
     if (normEmail_(row[U.EMAIL])) rows.push({ rowNum: r + 1, row: row });
   }
   return { sh: sh, rows: rows };
+}
+/** Numero di account attivi (contatore pubblico in home): solo il totale, nessun dato personale. Tenuto in cache 5 minuti. */
+function activeUsersCount_() {
+  const c = CacheService.getScriptCache(), v = c.get('n_utenti');
+  if (v) return Number(v);
+  const n = readUsers_().rows.filter(u => stato_(u.row) === 'attivo').length;
+  c.put('n_utenti', String(n), 300);
+  return n;
 }
 const findUser_ = (users, email) => users.rows.find(u => normEmail_(u.row[U.EMAIL]) === email) || null;
 const writeUser_ = (users, u) => writeRows_(users.sh, u.rowNum, [u.row.slice(0, USER_COLS)]);
@@ -446,7 +454,7 @@ function doGet(e) {
   const p = (e && e.parameter) || {};
   if (!teamOk_(p.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
   // i dati non sono più leggibili senza account: si chiedono con POST { action: "data", token }
-  return json_({ status: 'error', code: 'login', version: SCRIPT_VERSION, message: 'Accedi con un account approvato per vedere PFS, posizioni e ribattiture' });
+  return json_({ status: 'error', code: 'login', version: SCRIPT_VERSION, utenti: activeUsersCount_(), message: 'Accedi con un account approvato per vedere PFS, posizioni e ribattiture' });
 }
 
 /* ------------------------------------------------------------------ scrittura */

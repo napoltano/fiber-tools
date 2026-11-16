@@ -191,6 +191,15 @@
       background: rgba(255,255,255,0.16); padding: 4px 10px; border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.22);
     }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .hero-users {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22);
+      animation: fadeIn 0.4s var(--ease);
+    }
+    .hero-users b { font-weight: 900; font-variant-numeric: tabular-nums; }
+    .hero-users svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; }
     .hero-kicker .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74,222,128,0.7); animation: ping 2s infinite; }
     @keyframes ping { 70% { box-shadow: 0 0 0 7px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
     .hero h2 { font-size: 1.75rem; font-weight: 900; letter-spacing: -0.8px; margin-top: 12px; line-height: 1.05; }
@@ -1442,7 +1451,7 @@
           <path class="pulse" stroke="#f9a8d4" d="M-10 130 C 90 120, 200 20, 410 30"/>
         </svg>
         <div class="hero-content">
-          <span class="hero-kicker"><span class="dot"></span>Toolkit tecnico FTTH</span>
+          <div class="hero-badges"><span class="hero-kicker"><span class="dot"></span>Toolkit tecnico FTTH</span><span class="hero-users" id="heroUsers" hidden title="Account approvati"><svg><use href="#i-user"/></svg><b id="heroUsersNum">0</b> <span id="heroUsersWord">iscritti</span></span></div>
           <h2>Fiber Tools</h2>
           <p>Codici colore, permute, cartoline e ribattiture in un solo posto.</p>
           <div class="hero-colors" id="heroColors" aria-hidden="true"></div>
@@ -6830,6 +6839,30 @@
       toast('Si apre la tua app di posta: premi Invia per spedire.', 'success');
     }
 
+    /* ---------- Contatore iscritti (home, visibile a tutti) ---------- */
+    const USERS_COUNT_KEY = 'fiber_tools_users_count';
+    function showUsersCount(n, animate) {
+      if (!(n > 0)) return;
+      const box = $('heroUsers'), num = $('heroUsersNum');
+      $('heroUsersWord').textContent = n === 1 ? 'iscritto' : 'iscritti';
+      box.hidden = false;
+      const from = animate ? Number(num.textContent) || 0 : n;
+      if (from === n || matchMedia('(prefers-reduced-motion: reduce)').matches) { num.textContent = n.toLocaleString('it-IT'); return; }
+      const t0 = performance.now(), dur = 900;
+      const step = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); num.textContent = Math.round(from + (n - from) * e).toLocaleString('it-IT'); if (k < 1) requestAnimationFrame(step); };
+      requestAnimationFrame(step);
+    }
+    async function initUsersCount() {
+      showUsersCount(Number(lsGet(USERS_COUNT_KEY, '0')), false);
+      if (!navigator.onLine) return;
+      try {
+        const res = await fetchWithTimeout(sheetsUrl({ t: Date.now() }));
+        const j = await res.json();
+        const n = Number(j && j.utenti);
+        if (n > 0) { const old = Number(lsGet(USERS_COUNT_KEY, '0')); lsSet(USERS_COUNT_KEY, String(n)); if (n !== old || $('heroUsers').hidden) showUsersCount(n, true); }
+      } catch (e) { /* offline o script vecchio: resta l'ultimo valore noto */ }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       initTheme();
       renderHeroColors();
@@ -6841,6 +6874,7 @@
       initStats();
       initSplice();
       maybeShowNews();
+      initUsersCount();
       history.replaceState({}, '', location.pathname + location.search);
     });
   </script>

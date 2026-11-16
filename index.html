@@ -1653,8 +1653,7 @@
       <div class="grid-2">
         <button class="btn-secondary" type="button" id="ribCopyBtn"><svg><use href="#i-copy"/></svg> Copia testo</button>
         <button class="btn-secondary" type="button" id="ribShareBtn"><svg><use href="#i-share"/></svg> Condividi</button>
-        <button class="btn-secondary" type="button" id="ribExportBtn"><svg><use href="#i-file"/></svg> PDF / Excel</button>
-        <button class="btn-secondary" type="button" id="ribClearBtn"><svg><use href="#i-eraser"/></svg> Svuota modulo</button>
+        <button class="btn-secondary" type="button" id="ribClearBtn" style="grid-column:1 / -1"><svg><use href="#i-eraser"/></svg> Svuota modulo</button>
       </div>
 
       <div class="archive-card" data-need-login>
@@ -2903,7 +2902,6 @@
               <button type="button" class="btn-xs" data-act="load"><svg><use href="#i-eye"/></svg> Apri</button>
               <button type="button" class="btn-xs" data-act="copy"><svg><use href="#i-copy"/></svg> Copia</button>
               <button type="button" class="btn-xs" data-act="share" aria-label="Condividi"><svg><use href="#i-share"/></svg></button>
-              <button type="button" class="btn-xs" data-act="export" aria-label="PDF o Excel"><svg><use href="#i-file"/></svg></button>
               <button type="button" class="btn-xs" data-act="history" aria-label="Storico"><svg><use href="#i-clock"/></svg></button>
               <button type="button" class="btn-xs danger" data-act="delete" aria-label="Elimina"><svg><use href="#i-x"/></svg></button>
             </div>
@@ -2917,8 +2915,6 @@
             <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>
               <div class="folder-actions">
                 <span class="lbl">Cartella:</span>
-                <button type="button" class="btn-xs" data-act="folder-pdf"><svg><use href="#i-file"/></svg> PDF</button>
-                <button type="button" class="btn-xs" data-act="folder-xls"><svg><use href="#i-table"/></svg> Excel</button>
                 <button type="button" class="btn-xs" data-act="folder-share"><svg><use href="#i-share"/></svg> Condividi</button>
                 ${positions[canonPfs(pfs)] ? '<button type="button" class="btn-xs pos-chip" data-act="folder-nav"><svg><use href="#i-nav"/></svg> Naviga</button>' : '<button type="button" class="btn-xs" data-act="folder-pos"><svg><use href="#i-pin"/></svg> Posizione</button>'}
               </div>
@@ -3652,11 +3648,6 @@
         const e = formEntry();
         if (!e.item.ottici.some(o => o.pte || o.fibra) && e.pfs === 'N/D') { toast('Compila prima la ribattitura.', 'error'); return; }
         shareText(entryText(e), `Ribattitura ${e.pfs} ${e.spl}`);
-      });
-      $('ribExportBtn').addEventListener('click', () => {
-        const e = formEntry();
-        if (!e.item.ottici.some(o => o.pte || o.fibra) && e.pfs === 'N/D') { toast('Compila prima la ribattitura.', 'error'); return; }
-        chooseExportEntries(() => [formEntry()], `Ribattitura_${e.pfs}_${e.spl}`);
       });
     }
 
@@ -7025,7 +7016,7 @@
       { c: '#0d9488', i: 'i-nav', t: 'PFS, PFP, POP e PD', d: 'La voce 07 ora si apre e ti fa scegliere tra quattro archivi: PFS, PFP (armadi primari), POP (oltre 80 centrali Open Fiber in tutta Italia) e PD (punti di distribuzione, raggruppati per PFS). Ognuno con ricerca, “Vicino a me”, mappa e Naviga.' },
       { c: '#2563eb', i: 'i-pin', t: 'Nuove zone in archivio', d: 'Pisa (PI_01) con 192 PFS e Benevento (BN_01) con 26 PFP e 302 PD. Tocca “Aggiorna da Google Sheets” per vederli.' },
       { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 72 fo e da 24 dai 96 fo. Esporta in PDF ed Excel. Riservato agli account approvati.' },
-      { c: '#0891b2', i: 'i-file', t: 'Note nella ribattitura', d: 'Sotto i 16 ottici c’è il nuovo campo Note per indirizzi, fibre tolte o staccate e cessazioni: compare nell’archivio, nella ricerca, nel testo condiviso e in PDF/Excel. Nel campo ID resta solo il codice.' },
+      { c: '#0891b2', i: 'i-file', t: 'Note nella ribattitura', d: 'Sotto i 16 ottici c’è il nuovo campo Note per indirizzi, fibre tolte o staccate e cessazioni: compare nell’archivio, nella ricerca e nel testo condiviso. Nel campo ID resta solo il codice.' },
       { c: '#db2777', i: 'i-mail', t: 'Contatti', d: 'Nuovo pulsante con la busta in alto, accanto all’ingranaggio: scrivi direttamente per segnalare problemi, proporre idee o mandare PFS da aggiungere.' },
       { c: '#16a34a', i: 'i-check', t: 'Archivio più affidabile', d: 'Corretto un problema che in alcuni casi trasformava le coordinate in orari. Se una posizione ti sembrava sbagliata, tocca “Aggiorna da Google Sheets”: ora è corretta.' }
     ];

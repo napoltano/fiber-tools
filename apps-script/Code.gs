@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 9;
+const SCRIPT_VERSION = 10;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -108,6 +108,14 @@ const appendText_ = (sh, row) => writeRows_(sh, sh.getLastRow() + 1, [row]);
 function findRow_(values, match) {
   for (let r = 1; r < values.length; r++) if (match(values[r])) return r + 1;   // riga del foglio (1-based)
   return -1;
+}
+
+/** "dd/MM/yyyy HH:mm" → numero confrontabile (yyyyMMddHHmm); 0 se non leggibile. */
+function itKey_(v) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/.exec(String(v || '').trim());
+  if (!m) return 0;
+  const pad = x => ('0' + (x || '0')).slice(-2);
+  return Number(m[3] + pad(m[2]) + pad(m[1]) + pad(m[4]) + pad(m[5]));
 }
 
 function nowIt_() {
@@ -476,7 +484,16 @@ function saveRib_(b) {
   row.push(note);
 
   if (rowNum > 0) {
+    // un invio più vecchio della versione sul foglio (es. un telefono che rimanda l'archivio scaricato prima) non la sovrascrive
+    const tNew = itKey_(b.timestamp), tOld = itKey_(oldRow[2]);
+    if (tNew && tOld && tNew < tOld) {
+      log_('Invio ignorato', pfs, splitter, b.tecnico, 'Versione del ' + b.timestamp + ' più vecchia di quella sul foglio (' + oldRow[2] + ')');
+      return { status: 'success', saved: false, stale: true, fotoId: String(oldRow[RIB_FOTO_COL - 1] || '') };
+    }
+    const oldFoto = String(oldRow[RIB_FOTO_COL - 1] || '');
     const ch = diffOttici_(oldRow, row);
+    // reinvio identico: non riscrive la riga e non cambia il tecnico
+    if (!ch.length && !b.photo && note === oldNote && fotoId === oldFoto) return { status: 'success', saved: true, unchanged: true, fotoId: fotoId };
     if (b.photo) ch.push('nuova foto');
     if (note !== oldNote) ch.push('note aggiornate');
     writeRows_(sh, rowNum, [row]);

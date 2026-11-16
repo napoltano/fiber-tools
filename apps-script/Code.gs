@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 11;
+const SCRIPT_VERSION = 12;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -678,8 +678,24 @@ function readAction_(b) {
   if (a.error) return a.error;
   if (b.action === 'data') touch_(a, b.device);
   if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
-  return { status: 'success', version: SCRIPT_VERSION, data: readRib_(), positions: readPos_() };
+  // sincronizzazione leggera: se il telefono ha già l'ultima versione di una parte, quella parte non viene rimandata
+  const rr = revToken_('rib'), rp = revToken_('pos');
+  const out = { status: 'success', version: SCRIPT_VERSION, revRib: rr, revPos: rp };
+  if (b.revRib && b.revRib === rr) out.ribUnchanged = true; else out.data = readRib_();
+  if (b.revPos && b.revPos === rp) out.posUnchanged = true; else out.positions = readPos_();
+  return out;
 }
+
+/* ------------------------------------------------------------------ revisioni (sincronizzazione leggera) */
+const REV_PROP = { rib: 'REV_RIB', pos: 'REV_POS' };
+/** Identifica la versione di ribattiture o posizioni: cambia a ogni salvataggio dallo script e se cambia il numero di righe del foglio. */
+function revToken_(k) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(k === 'rib' ? SH_RIB : SH_POS);
+  return (props_().getProperty(REV_PROP[k]) || '0') + '.' + (sh ? sh.getLastRow() : 0);
+}
+function bumpRev_(k) { const p = props_(), old = Number(p.getProperty(REV_PROP[k]) || 0); p.setProperty(REV_PROP[k], String(Math.max(Date.now(), old + 1))); }
+/** Da eseguire dall'editor dopo aver modificato il foglio a mano: i telefoni riscaricano tutto alla prossima apertura. */
+function segnaFoglioModificato() { bumpRev_('rib'); bumpRev_('pos'); Logger.log('Fatto: i telefoni riscaricheranno ribattiture e posizioni.'); }
 
 function doPost(e) {
   let b;
@@ -708,7 +724,9 @@ function doPost(e) {
     const a = authUser_(b.token, w[1]);
     if (a.error) return json_(a.error);
     b.tecnico = String(a.user.row[U.NOME] || normEmail_(a.user.row[U.EMAIL]));   // il nome lo decide l'account, non il telefono
-    return json_(w[0](b));
+    const res = w[0](b);
+    if (res && res.status === 'success' && !res.unchanged && !res.stale) bumpRev_(action === 'save' || action === 'delete' ? 'rib' : 'pos');
+    return json_(res);
   } catch (err) {
     return json_({ status: 'error', message: String(err) });
   } finally {

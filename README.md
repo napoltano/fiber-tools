@@ -26,6 +26,8 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Controlli duplicati**: avviso se lo stesso ID compare in due ottici, se una permuta è ripetuta, o se l'ID è già usato in un altro splitter dell'archivio.
 - **Riepilogo cartella**: per ogni PFS quanti ottici hanno l'ID, quanti sono NO IDR e quanti vuoti.
 - **Note**: campo libero sotto i 16 ottici per indirizzi, fibre tolte o staccate, cessazioni (es. «O7: Via Roma 20», «Tolta P186 ID 2218»). Si vede nell'archivio, si trova con la ricerca ed esce nel testo condiviso e in PDF/Excel; sul foglio va nella colonna **NOTE** (script v9).
+- **Sincronizzazione leggera** (script v12): il telefono manda allo script la versione di ribattiture e posizioni che ha già; lo script rimanda solo la parte cambiata (se nulla è cambiato, la risposta è quasi vuota). Ogni 6 ore, con «Sincronizza» manuale o se l'archivio locale è stato svuotato, scarica comunque tutto. Dopo modifiche fatte a mano sul foglio si può eseguire `segnaFoglioModificato` dall'editor dello script per far riscaricare tutto subito.
+- **Controlli sulla ribattitura**: oltre a ID e permute ripetute, l'app evidenzia i valori con «?» e le porte che nelle note sono «Tolta/Staccato pX» ma sono ancora assegnate a un ottico; al salvataggio ricorda anche gli ottici vuoti e chiede conferma.
 - **Contatore iscritti** (script v11): in home, accanto a «Toolkit tecnico FTTH», il numero di account approvati, visibile a tutti anche senza accesso (solo il totale, nessun nome). Offline resta l'ultimo valore noto.
 - **Reinvii protetti** (script v10): se un telefono rimanda una ribattitura identica a quella sul foglio, la riga non cambia (resta il tecnico originale); se rimanda una versione con data più vecchia, viene ignorata e annotata nello Storico come «Invio ignorato».
 - **Foto dello splitter**, salvata su Google Drive.
@@ -109,7 +111,7 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v11 (contatore iscritti, archivio riservato, note delle ribattiture, reinvii identici o più vecchi ignorati, account, statistiche, backup; scrive sempre come testo)
+apps-script/Code.gs     script Google Sheets v12 (sincronizzazione leggera, contatore iscritti, archivio riservato, note delle ribattiture, reinvii identici o più vecchi ignorati, account, statistiche, backup; scrive sempre come testo)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.

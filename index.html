@@ -1007,6 +1007,9 @@
     .dup-box { font-size: 0.78rem; font-weight: 600; line-height: 1.45; border-radius: 12px; padding: 10px 12px;
       background: color-mix(in srgb, #f59e0b 12%, var(--card)); border: 1px solid color-mix(in srgb, #f59e0b 45%, var(--border)); animation: fadeUp 0.3s var(--ease); }
     .dup-box ul { margin: 4px 0 0 18px; }
+    .code-input { font-size: 1.5rem; font-weight: 800; letter-spacing: 0.45em; text-align: center; font-variant-numeric: tabular-nums; }
+    .link-btn { background: none; border: none; padding: 4px 0; color: var(--primary); font-weight: 700; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; align-self: flex-start; }
+    .link-btn:disabled { opacity: 0.5; cursor: default; }
 
     .split-head { display: flex; gap: 10px; align-items: flex-start; }
     .split-thumb { border: none; padding: 0; background: none; flex-shrink: 0; }
@@ -3716,7 +3719,7 @@
       try { json = await res.json(); } catch (e) { /* script vecchio: risposta non JSON */ }
       if (json && json.status === 'error') {
         if (AUTH_CODES.includes(json.code)) throw new AuthError(json.message, json.code);
-        const err = new Error(json.message || 'Errore dello script'); err.server = true; throw err;
+        const err = new Error(json.message || 'Errore dello script'); err.server = true; err.code = json.code; err.data = json; throw err;
       }
       return { confirmed: !!json, data: json };
     }
@@ -5440,7 +5443,7 @@
 
     async function openAccount(why) {
       if (account) return openAccountMenu();
-      let mode = 'login', done = false;
+      let mode = 'login', done = false, verifyEmail = '';
       const fieldsHtml = () => mode === 'login' ? `
           <div class="field-group"><label class="field-label" for="accEmail">Email</label>
             <input id="accEmail" type="email" class="custom-input" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="nome@email.it"></div>
@@ -5457,16 +5460,56 @@
             <input id="accPass" type="password" class="custom-input" autocomplete="new-password"></div>
           <div class="field-group"><label class="field-label" for="accPass2">Ripeti password</label>
             <input id="accPass2" type="password" class="custom-input" autocomplete="new-password"></div>
-          <p class="small" style="color:var(--muted)">La richiesta deve essere approvata da un amministratore: solo dopo potrai vedere e salvare PFS, posizioni e ribattiture.</p>`;
+          <p class="small" style="color:var(--muted)">Ti mandiamo un codice di 6 cifre via email: inseriscilo qui e l’account si attiva subito, senza attendere l’approvazione.</p>`;
+      const verifyHtml = () => `
+          <div class="form-msg info">Ti abbiamo mandato un codice di 6 cifre a <b>${escapeHtml(verifyEmail)}</b>. Controlla anche la cartella spam.</div>
+          <div class="field-group"><label class="field-label" for="accCode">Codice di verifica</label>
+            <input id="accCode" class="custom-input code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000"></div>
+          <button type="button" class="link-btn" id="accResend">Non è arrivato? Invia di nuovo il codice</button>`;
       const render = (msg, cls) => {
         $('accTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
-        $('accFields').innerHTML = fieldsHtml();
+        $('accFields').innerHTML = mode === 'verify' ? verifyHtml() : fieldsHtml();
         $('accMsg').className = 'form-msg ' + (cls || ''); $('accMsg').hidden = !msg; $('accMsg').textContent = msg || '';
-        $('modalOk').textContent = mode === 'login' ? 'Accedi' : 'Invia richiesta';
+        $('modalOk').textContent = mode === 'login' ? 'Accedi' : mode === 'verify' ? 'Conferma' : 'Registrati';
+        if (mode === 'verify') {
+          setTimeout(() => $('accCode') && $('accCode').focus(), 60);
+          $('accResend').addEventListener('click', async () => {
+            const btn = $('accResend'); btn.disabled = true;
+            try {
+              const d = await accountCall({ action: 'resendCode', email: verifyEmail });
+              if (d.status === 'success') showMsg('Codice inviato di nuovo: controlla l’email.', 'ok');
+              else showMsg(d.message || 'Invio non riuscito.', 'err');
+            } catch (e) { showMsg(accountError(e), 'err'); }
+            finally { setTimeout(() => { if ($('accResend')) $('accResend').disabled = false; }, 3000); }
+          });
+        }
       };
+      const goVerify = (email, msg, cls) => { verifyEmail = email; mode = 'verify'; render(msg, cls); };
       const showMsg = (msg, cls) => { $('accMsg').className = 'form-msg ' + cls; $('accMsg').hidden = false; $('accMsg').textContent = msg; };
 
       const submit = async () => {
+        if (mode === 'verify') {
+          const code = ($('accCode').value || '').replace(/\D/g, '');
+          if (code.length !== 6) { showMsg('Il codice è di 6 cifre.', 'err'); return; }
+          const okBtn = $('modalOk'); okBtn.disabled = true;
+          try {
+            const d = await accountCall({ action: 'verifyEmail', email: verifyEmail, code, device: deviceLabel() });
+            if (d.status !== 'success') {
+              if (d.code === 'done') { mode = 'login'; render(d.message, 'info'); $('accEmail').value = verifyEmail; }
+              else showMsg(d.message || 'Codice non valido.', 'err');
+              return;
+            }
+            done = true; closeModal(true);
+            setAccount({ token: d.token, ...d.user });
+            toast(`Email verificata: benvenuto, ${d.user.nome}!`, 'success', 5000);
+            processQueue(true); afterLogin(); refreshAccount();
+          } catch (e) {
+            if (e && e.code === 'done') { mode = 'login'; render(e.message, 'info'); $('accEmail').value = verifyEmail; }
+            else showMsg(accountError(e), 'err');
+          }
+          finally { okBtn.disabled = false; }
+          return;
+        }
         const email = ($('accEmail').value || '').trim(), pass = $('accPass').value || '';
         if (!email || !pass) { showMsg('Inserisci email e password.', 'err'); return; }
         const okBtn = $('modalOk'); okBtn.disabled = true;
@@ -5496,12 +5539,14 @@
               afterLogin();
               return;
             }
+            if (d.stato === 'da verificare') { goVerify(d.email || email.toLowerCase()); return; }
             mode = 'login'; render(d.stato === 'password in attesa'
               ? 'Richiesta di nuova password inviata: potrai usarla dopo l’approvazione. Fino ad allora vale quella vecchia.'
               : 'Richiesta inviata! Potrai accedere appena un amministratore la approva.', 'ok');
             $('accEmail').value = email;
           }
         } catch (e) {
+          if (e && e.code === 'verify') { goVerify((e.data && e.data.email) || email.toLowerCase(), e.data && e.data.sent ? 'Ti abbiamo mandato un nuovo codice.' : '', 'info'); return; }
           showMsg(e instanceof AuthError ? e.message : accountError(e), e instanceof AuthError && e.code === 'pending' ? 'info' : 'err');
         } finally { okBtn.disabled = false; }
       };
@@ -5653,12 +5698,13 @@
       const canManage = u => u.email !== me && u.ruolo !== 'proprietario' && (owner || u.ruolo === 'tecnico');
       const item = (u, i) => {
         const badge = u.stato === 'in attesa' ? '<span class="role-badge attesa">In attesa</span>'
+          : u.stato === 'da verificare' ? '<span class="role-badge attesa">Email da verificare</span>'
           : u.nuovaPassword ? '<span class="role-badge attesa">Nuova password richiesta</span>'
           : u.stato === 'attivo' ? `<span class="role-badge ${u.ruolo}">${ROLE_LABEL[u.ruolo] || u.ruolo}</span>`
           : `<span class="role-badge bloccato">${u.stato === 'rifiutato' ? 'Rifiutato' : 'Bloccato'}</span>`;
         let actions = '';
         if (canManage(u)) {
-          if (u.stato === 'in attesa' || u.nuovaPassword) actions = `<button type="button" class="btn-xs ok" data-op="approva">Approva</button><button type="button" class="btn-xs danger" data-op="rifiuta" style="margin-left:0">Rifiuta</button>`;
+          if (u.stato === 'in attesa' || u.stato === 'da verificare' || u.nuovaPassword) actions = `<button type="button" class="btn-xs ok" data-op="approva">Approva</button><button type="button" class="btn-xs danger" data-op="rifiuta" style="margin-left:0">Rifiuta</button>`;
           else if (u.stato === 'attivo') actions = `${owner ? `<select class="custom-select" data-op="ruolo" aria-label="Ruolo"><option value="tecnico"${u.ruolo === 'tecnico' ? ' selected' : ''}>Tecnico</option><option value="admin"${u.ruolo === 'admin' ? ' selected' : ''}>Amministratore</option></select>` : ''}<button type="button" class="btn-xs" data-op="societa">Società</button><button type="button" class="btn-xs danger" data-op="blocca">Blocca</button>`;
           else actions = `<button type="button" class="btn-xs ok" data-op="riattiva">Riattiva</button><button type="button" class="btn-xs danger" data-op="elimina">Elimina</button>`;
         }

@@ -26,6 +26,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Controlli duplicati**: avviso se lo stesso ID compare in due ottici, se una permuta è ripetuta, o se l'ID è già usato in un altro splitter dell'archivio.
 - **Riepilogo cartella**: per ogni PFS quanti ottici hanno l'ID, quanti sono NO IDR e quanti vuoti.
 - **Note**: campo libero sotto i 16 ottici per indirizzi, fibre tolte o staccate, cessazioni (es. «O7: Via Roma 20», «Tolta P186 ID 2218»). Si vede nell'archivio, si trova con la ricerca ed esce nel testo condiviso e in PDF/Excel; sul foglio va nella colonna **NOTE** (script v9).
+- **Verifica email dei nuovi iscritti** (script v13): alla registrazione arriva un codice di 6 cifre via email (valido 15 minuti, 5 tentativi, nuovo invio al massimo una volta al minuto); inserito il codice l'account si attiva da solo, senza approvazione. Gli utenti registrati prima restano com'erano. Se l'email non parte, la richiesta torna «in attesa» e la approva un amministratore come prima. In Gestione utenti chi non ha ancora inserito il codice compare come «Email da verificare» e si può approvare a mano. Lo script va autorizzato una volta a inviare email eseguendo `autorizzaEmail` dall'editor.
 - **Sincronizzazione leggera** (script v12): il telefono manda allo script la versione di ribattiture e posizioni che ha già; lo script rimanda solo la parte cambiata (se nulla è cambiato, la risposta è quasi vuota). Ogni 6 ore, con «Sincronizza» manuale o se l'archivio locale è stato svuotato, scarica comunque tutto. Dopo modifiche fatte a mano sul foglio si può eseguire `segnaFoglioModificato` dall'editor dello script per far riscaricare tutto subito.
 - **Controlli sulla ribattitura**: oltre a ID e permute ripetute, l'app evidenzia i valori con «?» e le porte che nelle note sono «Tolta/Staccato pX» ma sono ancora assegnate a un ottico; al salvataggio ricorda anche gli ottici vuoti e chiede conferma.
 - **Contatore iscritti** (script v11): in home, accanto a «Toolkit tecnico FTTH», il numero di account approvati, visibile a tutti anche senza accesso (solo il totale, nessun nome). Offline resta l'ultimo valore noto.
@@ -111,7 +112,7 @@ manifest.webmanifest    installazione come app
 sw.js                   funzionamento offline
 icons/                  icone dell'app
 vendor/                 lettore codici a barre (zxing) e mappa (Leaflet)
-apps-script/Code.gs     script Google Sheets v12 (sincronizzazione leggera, contatore iscritti, archivio riservato, note delle ribattiture, reinvii identici o più vecchi ignorati, account, statistiche, backup; scrive sempre come testo)
+apps-script/Code.gs     script Google Sheets v13 (verifica email dei nuovi iscritti, sincronizzazione leggera, contatore iscritti, archivio riservato, note delle ribattiture, reinvii identici o più vecchi ignorati, account, statistiche, backup; scrive sempre come testo)
 ```
 
 Quando modifichi i file, aumenta `VERSION` in `sw.js` così i telefoni scaricano la versione nuova.

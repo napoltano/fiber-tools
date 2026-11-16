@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 12;
+const SCRIPT_VERSION = 13;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -253,14 +253,86 @@ function register_(b) {
       log_('Richiesta nuova password', 'ACCOUNT', email, ex.row[U.NOME], '');
       return { status: 'success', stato: 'password in attesa' };
     }
+    if (st === 'da verificare') {
+      // registrazione ripetuta prima di aver inserito il codice: aggiorna i dati e manda un codice nuovo
+      ex.row[U.NOME] = nome; ex.row[U.SOC] = societa; ex.row[U.HASH] = hash; ex.row[U.SALT] = salt; ex.row[U.REG] = now;
+      writeUser_(users, ex);
+      const sent = sendVerifyCode_(email, nome, true);
+      if (sent.ok) return { status: 'success', stato: 'da verificare', email: email };
+      ex.row[U.STATO] = 'in attesa'; writeUser_(users, ex);
+      log_('Richiesta di accesso', 'ACCOUNT', email, nome, societa + ' · email non inviata, serve l’approvazione');
+      return { status: 'success', stato: 'in attesa' };
+    }
     ex.row[U.NOME] = nome; ex.row[U.SOC] = societa; ex.row[U.STATO] = 'in attesa'; ex.row[U.HASH] = hash; ex.row[U.SALT] = salt; ex.row[U.REG] = now;
     writeUser_(users, ex);
     log_('Richiesta di accesso', 'ACCOUNT', email, nome, 'Ripresentata');
     return { status: 'success', stato: 'in attesa' };
   }
-  appendText_(users.sh, [email, nome, 'in attesa', 'tecnico', hash, salt, '', '', now, '', '', societa]);
-  log_('Richiesta di accesso', 'ACCOUNT', email, nome, societa);
-  return { status: 'success', stato: 'in attesa' };
+  // nuovo iscritto: verifica dell'email con un codice; se l'email non parte, resta l'approvazione manuale di prima
+  const sent = sendVerifyCode_(email, nome, true);
+  appendText_(users.sh, [email, nome, sent.ok ? 'da verificare' : 'in attesa', 'tecnico', hash, salt, '', '', now, '', '', societa]);
+  log_(sent.ok ? 'Registrazione: email da verificare' : 'Richiesta di accesso', 'ACCOUNT', email, nome, societa + (sent.ok ? '' : ' · email non inviata, serve l’approvazione'));
+  return sent.ok ? { status: 'success', stato: 'da verificare', email: email } : { status: 'success', stato: 'in attesa' };
+}
+
+/* ------------------------------------------------------------------ verifica email dei nuovi iscritti */
+const VERIFY_TTL = 15 * 60, VERIFY_MAX_TRIES = 5;
+const codeHash_ = (email, code) => b64_(Utilities.computeHmacSha256Signature(Utilities.newBlob(email + ':' + code).getBytes(), Utilities.newBlob(secret_()).getBytes()));
+function newCode_() { const hex = Utilities.getUuid().replace(/-/g, ''); return String(parseInt(hex.slice(0, 12), 16) % 1000000).padStart(6, '0'); }
+/** Manda il codice di verifica (al massimo uno al minuto per indirizzo, salvo force). */
+function sendVerifyCode_(email, nome, force) {
+  const cache = CacheService.getScriptCache(), rl = 'vsent_' + email;
+  if (!force && cache.get(rl)) return { ok: false, wait: true };
+  const code = newCode_();
+  try {
+    MailApp.sendEmail({
+      to: email, name: 'Fiber Tools', subject: 'Fiber Tools – il tuo codice di verifica: ' + code,
+      body: 'Ciao ' + (nome || '') + ',\n\nil tuo codice per attivare l’account Fiber Tools è: ' + code + '\n\nInseriscilo nell’app entro 15 minuti. Se non ti sei registrato tu, ignora questa email.',
+      htmlBody: '<div style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a">Ciao ' + String(nome || '').replace(/[<>&]/g, '') + ',<br><br>il tuo codice per attivare l’account <b>Fiber Tools</b> è:<div style="font-size:30px;font-weight:bold;letter-spacing:6px;margin:16px 0;color:#1d4ed8">' + code + '</div>Inseriscilo nell’app entro 15 minuti.<br><br><span style="color:#64748b;font-size:13px">Se non ti sei registrato tu, ignora questa email.</span></div>'
+    });
+  } catch (e) {
+    log_('Email di verifica non inviata', 'ACCOUNT', email, nome, String(e).slice(0, 200));
+    return { ok: false, error: String(e) };
+  }
+  cache.put('vcode_' + email, JSON.stringify({ h: codeHash_(email, code), t: 0 }), VERIFY_TTL);
+  cache.put(rl, '1', 60);
+  return { ok: true };
+}
+function verifyEmail_(b) {
+  const email = normEmail_(b.email), code = String(b.code || '').replace(/\D/g, '');
+  const users = readUsers_(), u = findUser_(users, email);
+  if (!u) return err_('code', 'Codice non valido');
+  const st = stato_(u.row);
+  if (st === 'attivo') return err_('done', 'Email già verificata: accedi con email e password');
+  if (st !== 'da verificare') return err_('blocked', 'Questo account non può essere attivato con il codice');
+  const cache = CacheService.getScriptCache(), ck = 'vcode_' + email;
+  let v = null; try { v = JSON.parse(cache.get(ck) || 'null'); } catch (e) {}
+  if (!v) return err_('expired', 'Codice scaduto: chiedine uno nuovo');
+  if (v.t >= VERIFY_MAX_TRIES) return err_('locked', 'Troppi tentativi sbagliati: chiedi un codice nuovo');
+  if (code.length !== 6 || codeHash_(email, code) !== v.h) {
+    v.t++; cache.put(ck, JSON.stringify(v), VERIFY_TTL);
+    return err_('code', v.t >= VERIFY_MAX_TRIES ? 'Codice errato. Troppi tentativi: chiedi un codice nuovo' : 'Codice errato: controlla l’email e riprova');
+  }
+  cache.remove(ck);
+  const now = nowIt_();
+  u.row[U.STATO] = 'attivo'; u.row[U.BY] = 'EMAIL VERIFICATA'; u.row[U.LAST] = now; u.row[U.DEV] = cleanDev_(b.device) || '';
+  writeUser_(users, u);
+  cache.remove('n_utenti');
+  log_('Email verificata', 'ACCOUNT', email, u.row[U.NOME], 'Accesso attivato automaticamente');
+  return { status: 'success', token: makeToken_(u.row), user: publicUser_(u.row) };
+}
+function resendCode_(b) {
+  const email = normEmail_(b.email);
+  const users = readUsers_(), u = findUser_(users, email);
+  if (!u || stato_(u.row) !== 'da verificare') return { status: 'success' };   // non rivela se l'email esiste
+  const r = sendVerifyCode_(email, u.row[U.NOME], false);
+  if (r.wait) return err_('wait', 'Hai appena ricevuto un codice: aspetta un minuto prima di chiederne un altro');
+  if (!r.ok) return err_('mail', 'Non è stato possibile inviare l’email: riprova più tardi');
+  return { status: 'success' };
+}
+/** Da eseguire una volta dall'editor: autorizza lo script a inviare le email con i codici. */
+function autorizzaEmail() {
+  Logger.log('Email rimanenti oggi: ' + MailApp.getRemainingDailyQuota());
 }
 
 function login_(b) {
@@ -277,6 +349,10 @@ function login_(b) {
   cache.remove(ck);
   const st = stato_(u.row);
   if (st === 'in attesa') return err_('pending', 'Il tuo account è in attesa di approvazione da parte di un amministratore');
+  if (st === 'da verificare') {
+    const r = sendVerifyCode_(email, u.row[U.NOME], false);
+    return { status: 'error', code: 'verify', email: email, sent: !!r.ok, message: 'Conferma la tua email: inserisci il codice che ti abbiamo mandato' };
+  }
   if (st !== 'attivo') return err_('blocked', 'Il tuo account non è attivo: contatta il responsabile');
   u.row[U.LAST] = nowIt_(); u.row[U.DEV] = cleanDev_(b.device) || u.row[U.DEV] || ''; writeUser_(users, u);
   return { status: 'success', token: makeToken_(u.row), user: publicUser_(u.row) };
@@ -713,6 +789,8 @@ function doPost(e) {
     if (action === 'register') return json_(register_(b));
     if (action === 'login') return json_(login_(b));
     if (action === 'me') return json_(me_(b));
+    if (action === 'verifyEmail') return json_(verifyEmail_(b));
+    if (action === 'resendCode') return json_(resendCode_(b));
     if (action === 'changePassword') return json_(changePassword_(b));
     if (action === 'setProfile') return json_(setProfile_(b));
     if (action === 'users') return json_(listUsers_(b));

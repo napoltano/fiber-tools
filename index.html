@@ -1120,6 +1120,14 @@
     .icon-btn { position: relative; }
     .icon-btn .acc-dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
       background: #ef4444; color: #fff; font-size: 0.66rem; font-weight: 900; display: grid; place-items: center; border: 2px solid var(--card); }
+    .notif-list { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+    .notif-item { display: flex; gap: 10px; align-items: flex-start; text-align: left; width: 100%; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; color: var(--text); font: inherit; cursor: pointer; }
+    .notif-item.new { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); background: color-mix(in srgb, var(--primary) 8%, var(--card-2)); }
+    .notif-item .ni-ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; color: #fff; }
+    .notif-item .ni-ico svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+    .notif-item b { display: block; font-size: 0.86rem; }
+    .notif-item small { display: block; color: var(--muted); font-size: 0.74rem; margin-top: 2px; overflow-wrap: anywhere; }
+    .notif-item .ni-new { font-size: 0.6rem; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-left: 6px; }
     .icon-btn.acc-pending { border-color: #f59e0b; color: #b45309; background: color-mix(in srgb, #f59e0b 12%, var(--card)); }
     .tabs2 { display: flex; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 12px; }
     .tabs2 button { flex: 1; border: none; background: transparent; border-radius: 9px; padding: 9px; font-weight: 800; font-size: 0.84rem; color: var(--muted); }
@@ -1395,6 +1403,7 @@
       <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></symbol>
       <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
       <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></symbol>
+      <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
       <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
       <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
       <symbol id="i-torch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 6l2 5v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-9z"/><path d="M6 2h12v4H6zM12 13v3"/></symbol>
@@ -1426,6 +1435,7 @@
       </div>
     </div>
     <div class="header-actions">
+      <button class="icon-btn" id="notifBtn" type="button" aria-label="Novità dal team" title="Novità dal team" hidden><svg><use href="#i-bell"/></svg></button>
       <button class="icon-btn" id="settingsBtn" type="button" aria-label="Impostazioni" title="Impostazioni"><svg><use href="#i-gear"/></svg></button>
       <button class="icon-btn" id="contactBtn" type="button" aria-label="Contatti" title="Contatti"><svg><use href="#i-mail"/></svg></button>
       <button class="icon-btn" id="adminLoginBtn" type="button" aria-label="Account">
@@ -3622,6 +3632,7 @@
     /* ---------- Collegamento eventi nuove funzioni ---------- */
     function bindExtraEvents() {
       $('settingsBtn').addEventListener('click', openSettings);
+      $('notifBtn').addEventListener('click', openNotif);
       $('contactBtn').addEventListener('click', openContact);
       $('installBtn').addEventListener('click', doInstall);
       $('installClose').addEventListener('click', () => { $('installCard').hidden = true; lsSet(INSTALL_DISMISS_KEY, '1'); });
@@ -3916,6 +3927,79 @@
       enqueuePosBatches(toSend);
     }
 
+    /* ---------- Notifiche agli amministratori: contenuti aggiunti dal team ---------- */
+    const ACT_KEY = 'fiber_tools_activity';
+    let actBusy = false, actToasted = false;
+    function getAct() { try { const v = JSON.parse(lsGet(ACT_KEY, 'null')); return v && v.acc === (account && account.email) ? v : null; } catch (e) { return null; } }
+    function setAct(v) { try { localStorage.setItem(ACT_KEY, JSON.stringify(v)); } catch (e) {} }
+    const actUnread = v => v ? v.items.filter(it => it.r > v.seen).length : 0;
+    function updateNotifUI() {
+      const btn = $('notifBtn'); if (!btn) return;
+      btn.hidden = !isAdminRole();
+      const n = isAdminRole() ? actUnread(getAct()) : 0;
+      let dot = btn.querySelector('.acc-dot');
+      if (n > 0) { if (!dot) { dot = document.createElement('span'); dot.className = 'acc-dot'; btn.appendChild(dot); } dot.textContent = n > 99 ? '99+' : String(n); }
+      else if (dot) dot.remove();
+      btn.setAttribute('aria-label', n ? `Novità dal team: ${n} da leggere` : 'Novità dal team');
+    }
+    async function fetchActivity() {
+      if (actBusy || !isAdminRole() || !navigator.onLine) return;
+      actBusy = true;
+      try {
+        const old = getAct();
+        const r = await sheetsPost({ action: 'activity', since: old ? old.last : 0 });
+        const d = r.data; if (!d || d.status !== 'success') return;
+        const items = old ? [...d.items, ...old.items.filter(o => !d.items.some(n => n.r === o.r))] : d.items;
+        items.sort((a, b) => b.r - a.r);
+        const v = { acc: account.email, last: d.last, seen: old ? old.seen : d.last, items: items.slice(0, 120) };
+        setAct(v); updateNotifUI();
+        const n = actUnread(v);
+        if (n && !actToasted) { actToasted = true; toast(`${n} ${n === 1 ? 'novità' : 'novità'} dal team: tocca la campanella per vederle.`, 'info', 5000); }
+      } catch (e) { /* offline o script vecchio */ }
+      finally { actBusy = false; }
+    }
+    const ACT_STYLE = {
+      'Creata': ['#16a34a', 'i-plus', 'Nuova ribattitura'], 'Modificata': ['#2563eb', 'i-edit', 'Ribattitura modificata'], 'Eliminata': ['#dc2626', 'i-trash', 'Ribattitura eliminata'],
+      'Posizione salvata': ['#0d9488', 'i-pin', 'Nuova posizione'], 'Posizione modificata': ['#7c3aed', 'i-pin', 'Posizione modificata'], 'Posizione eliminata': ['#dc2626', 'i-trash', 'Posizione eliminata'],
+      'Importazione posizioni': ['#ea580c', 'i-map', 'Importazione posizioni']
+    };
+    async function openNotif() {
+      const v = getAct() || { items: [], seen: 0, last: 0 };
+      const seen = v.seen;
+      const nice = s => (s || '').split(' ')[0].split('/').slice(0, 2).join('/') + ' ' + ((s || '').split(' ')[1] || '');
+      const html = v.items.length ? `<div class="notif-list">${v.items.slice(0, 80).map(it => {
+        const [c, ico, label] = ACT_STYLE[it.azione] || ['#64748b', 'i-info', it.azione];
+        const where = it.azione === 'Importazione posizioni' ? '' : `${it.pfs}${it.splitter ? ' · SP_' + String(it.splitter).padStart(2, '0') : ''}`;
+        return `<button type="button" class="notif-item ${it.r > seen ? 'new' : ''}" data-act-r="${it.r}">
+          <span class="ni-ico" style="background:${c}"><svg><use href="#${ico}"/></svg></span>
+          <span style="min-width:0"><b>${escapeHtml(label)}${where ? ' · ' + escapeHtml(where) : ''}${it.r > seen ? '<span class="ni-new">nuovo</span>' : ''}</b>
+          <small>${escapeHtml(it.tecnico)} · ${escapeHtml(nice(it.data))}${it.dettaglio ? ' · ' + escapeHtml(it.dettaglio) : ''}</small></span></button>`;
+      }).join('')}</div>` : '<div class="empty-state">Nessun contenuto aggiunto dagli altri utenti per ora.</div>';
+      // aperto l'elenco, le novità risultano lette
+      if (v.last) { v.seen = v.last; setAct(v); updateNotifUI(); }
+      const p = openModal({ title: 'Novità dal team', bodyHtml: `<p class="small" style="color:var(--muted);margin-bottom:6px">Ribattiture e posizioni aggiunte o modificate dagli altri utenti. Tocca una voce per aprirla.</p><button type="button" class="link-btn" id="notifRefresh" style="margin-bottom:8px">Aggiorna adesso</button>${html}`, okText: 'Chiudi', cancelText: 'Chiudi',
+        onOpen: () => {
+          $('modalCancel').hidden = true;
+          $('notifRefresh').addEventListener('click', () => closeModal('refresh'));
+          $('modalBody').querySelectorAll('[data-act-r]').forEach(b => b.addEventListener('click', () => { const it = v.items.find(x => String(x.r) === b.dataset.actR); closeModal(it ? { open: it } : true); }));
+          $('modalOk').focus();
+        } });
+      const res = await p;
+      $('modalCancel').hidden = false;
+      if (res === 'refresh') { await fetchActivity(); openNotif(); return; }
+      if (res && res.open) openActItem(res.open);
+    }
+    function openActItem(it) {
+      if (/^Posizione/.test(it.azione) || it.azione === 'Importazione posizioni') {
+        const pos = getPositions()[it.pfs];
+        if (it.azione === 'Importazione posizioni' || !pos) { openPfsPos(); return; }
+        openPosKind(posKindOf(pos)); $('posSearch').value = pos.pfs; renderPositions();
+        return;
+      }
+      const btn = document.querySelector('[data-open="ribattituraScreen"]'); if (btn) btn.click();
+      setTimeout(() => { const f = $('archiveSearch'); if (!f) return; f.value = it.pfs; f.dispatchEvent(new Event('input', { bubbles: true })); f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 250);
+    }
+
     /* ---------- Sincronizzazione leggera ---------- */
     const SYNC_REV_KEY = 'fiber_tools_sync_rev';
     const SYNC_FULL_MS = 6 * 3600 * 1000;   // ogni 6 ore riscarica comunque tutto (copre le modifiche fatte a mano sul foglio)
@@ -3961,6 +4045,7 @@
           const gotPos = json.positions && typeof json.positions === 'object';
           if (gotPos) mergeRemotePos(json.positions);
           saveSyncRevs(json, gotRib, gotPos);
+          if (isAdminRole()) fetchActivity();
           if (!silent) toast('Archivio aggiornato da Google Sheets.');
         } else if (!silent) {
           toast('Google Sheets non ha restituito dati validi.', 'error');
@@ -5363,6 +5448,7 @@
       } else if (dot) dot.remove();
       document.body.classList.toggle('data-locked', !canRead());
       updateQueueUI();
+      updateNotifUI();
     }
 
     function accountCardHtml() {
@@ -6556,7 +6642,7 @@
     }
 
     /* ================= SCHEMA DI GIUNZIONE (più cavi N− / N+) ================= */
-    const SJ_CAPS = [12, 24, 48, 96, 120, 144, 192, 288, 396, 432];
+    const SJ_CAPS = [12, 24, 48, 72, 96, 120, 144, 192, 288, 396, 432];
     const SJ_NETS = {
       fibercop:  { label: 'FiberCop / TIM – ST 908', seq: STD },
       openfiber: { label: 'Open Fiber – ST 1701', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","GRIGIO","ARANCIO","ROSA","BIANCO","NERO","TURCHESE"] },
@@ -6567,8 +6653,8 @@
     const SJ_PAL = ['#0d9488', '#7c3aed', '#ea580c', '#db2777', '#2563eb', '#ca8a04', '#16a34a', '#9333ea', '#0891b2', '#dc2626'];
     const RING_TXT = ['', 'anellato'];
 
-    /** Fibre per tubetto: 12 fino ai cavi da 48, 24 dai cavi da 96 in su. */
-    function sjTubeSize(cap) { return cap <= 48 ? 12 : 24; }
+    /** Fibre per tubetto: 12 fino ai cavi da 72 (6 tubetti da 12), 24 dai cavi da 96 in su. */
+    function sjTubeSize(cap) { return cap <= 72 ? 12 : 24; }
 
     /** Fibra n di un cavo: tubetto, colore e anellatura (fibre 13–24 del tubetto). Negli anellati il nero diventa trasparente. */
     function sjFiber(net, cap, n) {
@@ -6757,24 +6843,116 @@
       toast('File Excel scaricato.');
     }
 
+    /* ---------- PDF scaricabile (senza librerie: Helvetica, A4) ---------- */
+    const PDF_W = 595.28, PDF_H = 841.89;
+    const PDF_CP = { '€': 128, '‚': 130, '„': 132, '…': 133, '‘': 145, '’': 146, '“': 147, '”': 148, '•': 149, '–': 150, '—': 151, '−': 45, '→': 187 };
+    function pdfStr(t) {
+      let out = '';
+      for (const ch of String(t)) {
+        let c = PDF_CP[ch] !== undefined ? PDF_CP[ch] : ch.codePointAt(0);
+        if (c > 255) c = 63;   // carattere non disponibile → «?»
+        const k = String.fromCharCode(c);
+        out += k === '(' || k === ')' || k === '\\' ? '\\' + k : k;
+      }
+      return '(' + out + ')';
+    }
+    const pdfNum = n => (Math.round(n * 100) / 100).toString();
+    function pdfRgb(hex) { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '') || [0, 'ff', 'ff', 'ff']; return [1, 2, 3].map(i => pdfNum(parseInt(m[i], 16) / 255)).join(' '); }
+    /** Larghezza approssimata di un testo in Helvetica (per andare a capo e troncare). */
+    const pdfTextW = (t, size, bold) => String(t).length * size * (bold ? 0.56 : 0.51);
+    function makePdfDoc() {
+      const pages = []; let cur = null;
+      const doc = {
+        addPage() { cur = []; pages.push(cur); return doc; },
+        text(x, y, t, { size = 10, bold = false, color = '#000000' } = {}) { cur.push(`BT ${pdfRgb(color)} rg /${bold ? 'F2' : 'F1'} ${size} Tf ${pdfNum(x)} ${pdfNum(PDF_H - y)} Td ${pdfStr(t)} Tj ET`); return doc; },
+        rect(x, y, w, h, fill, stroke) {
+          cur.push(`${fill ? pdfRgb(fill) + ' rg ' : ''}${stroke ? pdfRgb(stroke) + ' RG 0.6 w ' : ''}${pdfNum(x)} ${pdfNum(PDF_H - y - h)} ${pdfNum(w)} ${pdfNum(h)} re ${fill && stroke ? 'B' : fill ? 'f' : 'S'}`); return doc; },
+        circle(cx, cy, r, fill, stroke) {
+          const k = 0.5523 * r, X = cx, Y = PDF_H - cy, n = pdfNum;
+          cur.push(`${pdfRgb(fill)} rg ${stroke ? pdfRgb(stroke) + ' RG 0.6 w ' : ''}${n(X + r)} ${n(Y)} m ${n(X + r)} ${n(Y + k)} ${n(X + k)} ${n(Y + r)} ${n(X)} ${n(Y + r)} c ${n(X - k)} ${n(Y + r)} ${n(X - r)} ${n(Y + k)} ${n(X - r)} ${n(Y)} c ${n(X - r)} ${n(Y - k)} ${n(X - k)} ${n(Y - r)} ${n(X)} ${n(Y - r)} c ${n(X + k)} ${n(Y - r)} ${n(X + r)} ${n(Y - k)} ${n(X + r)} ${n(Y)} c ${stroke ? 'B' : 'f'}`); return doc; },
+        line(x1, y1, x2, y2, color = '#cbd5e1', w = 0.6) { cur.push(`${pdfRgb(color)} RG ${w} w ${pdfNum(x1)} ${pdfNum(PDF_H - y1)} m ${pdfNum(x2)} ${pdfNum(PDF_H - y2)} l S`); return doc; },
+        get pageCount() { return pages.length; },
+        /** Esegue fn(doc, numero, totale) su ogni pagina (per intestazioni e piè di pagina). */
+        eachPage(fn) { const keep = cur; pages.forEach((p, i) => { cur = p; fn(doc, i + 1, pages.length); }); cur = keep; return doc; },
+        toBlob(title) {
+          const objs = [];
+          const add = s => { objs.push(s); return objs.length; };
+          const cat = add(''), pagesId = add(''), f1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'), f2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+          const info = add(`<< /Title ${pdfStr(title || 'Fiber Tools')} /Producer (Fiber Tools) >>`);
+          const kids = pages.map(ops => {
+            const body = ops.join('\n');
+            const cs = add(`<< /Length ${body.length} >>\nstream\n${body}\nendstream`);
+            return add(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${PDF_W} ${PDF_H}] /Resources << /Font << /F1 ${f1} 0 R /F2 ${f2} 0 R >> >> /Contents ${cs} 0 R >>`);
+          });
+          objs[cat - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+          objs[pagesId - 1] = `<< /Type /Pages /Kids [${kids.map(k => k + ' 0 R').join(' ')}] /Count ${kids.length} >>`;
+          let out = '%PDF-1.4\n%\xe2\xe3\xcf\xd3\n'; const offs = [];
+          objs.forEach((o, i) => { offs.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+          const xref = out.length;
+          out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+          out += `trailer\n<< /Size ${objs.length + 1} /Root ${cat} 0 R /Info ${info} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+          const bytes = new Uint8Array(out.length);
+          for (let i = 0; i < out.length; i++) bytes[i] = out.charCodeAt(i) & 255;
+          return new Blob([bytes], { type: 'application/pdf' });
+        }
+      };
+      return doc.addPage();
+    }
+
     function sjPdf() {
       if (!requireReader('Lo schema di giunzione è riservato agli account approvati.')) return;
       if (!sjLast || !sjLast.cables.length) return;
-      const dot = f => `<span style="background:${f.color === 'TRASPARENTE' ? '#fff' : HEX[f.color]}"></span>`;
-      const area = $('printArea');
-      area.innerHTML = `<h1>Schema di giunzione${sj.pfs.trim() ? ' – ' + escapeHtml(sj.pfs.trim()) : ''}</h1>
-        <div class="meta">${escapeHtml(SJ_NETS[sj.net].label)} • ${sj.ins.map((c, i) => `N− ${escapeHtml(sjInName(i))} ${c.cap} fo`).join(' • ')} • ${escapeHtml(new Date().toLocaleString('it-IT'))}${getTecnico() ? ' • ' + escapeHtml(getTecnico()) : ''}</div>
-        ${sjLast.cables.map(c => `<section><h2>${escapeHtml(sjInName(c.src))} → ${escapeHtml(sjOutName(c.i))}</h2>
-          <div class="sub">N− ${sj.ins[c.src].cap} fo → N+ ${c.o.cap} fo • ${c.rows.length} fibre</div>
-          <table class="sjp"><thead><tr><th>TUB</th><th>FO</th><th>N−</th><th>N+</th><th>FO</th><th>TUB</th></tr></thead><tbody>
-          ${c.rows.map(([l, r]) => `<tr><td>${l.tube}</td><td>${l.n}</td><td class="dot">${dot(l)}${escapeHtml(l.name)}</td><td class="dot">${dot(r)}${escapeHtml(r.name)}</td><td>${r.n}</td><td>${r.tube}</td></tr>`).join('')}
-          </tbody></table></section>`).join('')}
-        <div class="foot">Fiber Tools • verificare sempre con le specifiche del gestore</div>`;
-      const oldTitle = document.title;
-      document.title = safeName(sjBaseName());
-      const restore = () => { document.title = oldTitle; area.innerHTML = ''; window.removeEventListener('afterprint', restore); };
-      window.addEventListener('afterprint', restore);
-      setTimeout(() => window.print(), 50);
+      const doc = makePdfDoc(), M = 40, BOTTOM = PDF_H - 50, RH = 16;
+      const fit = (t, w, size, bold) => { t = String(t); while (t.length > 1 && pdfTextW(t, size, bold) > w) t = t.slice(0, -1); return t; };
+      const cols = [{ t: 'TUB', w: 42 }, { t: 'FO', w: 42 }, { t: 'N−', w: 173 }, { t: 'N+', w: 173 }, { t: 'FO', w: 42 }, { t: 'TUB', w: 43 }];
+      const W = cols.reduce((s, c) => s + c.w, 0);
+      let y = M;
+      // intestazione
+      const title = 'Schema di giunzione' + (sj.pfs.trim() ? ' – ' + sj.pfs.trim() : '');
+      doc.text(M, y + 16, title, { size: 18, bold: true, color: '#0f172a' }); y += 26;
+      const meta = [SJ_NETS[sj.net].label, ...sj.ins.map((c, i) => `N− ${sjInName(i)} ${c.cap} fo`), new Date().toLocaleString('it-IT'), getTecnico()].filter(Boolean).join('  •  ');
+      let line = '';
+      meta.split(' ').forEach(w => { const t = line ? line + ' ' + w : w; if (pdfTextW(t, 9) > PDF_W - 2 * M) { doc.text(M, y + 9, line, { size: 9, color: '#475569' }); y += 12; line = w; } else line = t; });
+      if (line) { doc.text(M, y + 9, line, { size: 9, color: '#475569' }); y += 12; }
+      y += 8;
+      const tableHead = () => {
+        doc.rect(M, y, W, RH, '#e2e8f0');
+        let x = M; cols.forEach(c => { doc.text(x + 6, y + 11, c.t, { size: 8.5, bold: true, color: '#334155' }); x += c.w; });
+        y += RH;
+      };
+      const fiberCell = (x, f, w) => {
+        const fill = f.color === 'TRASPARENTE' ? '#ffffff' : (HEX[f.color] || '#ffffff');
+        doc.circle(x + 11, y + RH / 2, 4.2, fill, '#64748b');
+        doc.text(x + 20, y + 11.2, fit(f.name, w - 24, 9), { size: 9 });
+      };
+      sjLast.cables.forEach(c => {
+        if (y + 34 + RH * 3 > BOTTOM) { doc.addPage(); y = M; }
+        doc.rect(M, y, W, 20, '#e0f2fe'); doc.rect(M, y, 3.5, 20, '#0284c7');
+        doc.text(M + 10, y + 14, fit(`${sjInName(c.src)}  →  ${sjOutName(c.i)}`, W - 20, 12, true), { size: 12, bold: true, color: '#0c4a6e' }); y += 24;
+        doc.text(M, y + 9, `N− ${sj.ins[c.src].cap} fo → N+ ${c.o.cap} fo  •  ${c.rows.length} fibre`, { size: 8.5, color: '#475569' }); y += 14;
+        tableHead();
+        c.rows.forEach(([l, r], i) => {
+          if (y + RH > BOTTOM) { doc.addPage(); y = M; doc.text(M, y + 10, `${sjInName(c.src)} → ${sjOutName(c.i)} (segue)`, { size: 9, bold: true, color: '#0c4a6e' }); y += 16; tableHead(); }
+          if (i % 2) doc.rect(M, y, W, RH, '#f8fafc');
+          let x = M;
+          doc.text(x + 6, y + 11.2, String(l.tube), { size: 9 }); x += cols[0].w;
+          doc.text(x + 6, y + 11.2, String(l.n), { size: 9, bold: true }); x += cols[1].w;
+          fiberCell(x, l, cols[2].w); x += cols[2].w;
+          fiberCell(x, r, cols[3].w); x += cols[3].w;
+          doc.text(x + 6, y + 11.2, String(r.n), { size: 9, bold: true }); x += cols[4].w;
+          doc.text(x + 6, y + 11.2, String(r.tube), { size: 9 });
+          doc.line(M, y + RH, M + W, y + RH, '#e2e8f0', 0.5);
+          y += RH;
+        });
+        y += 16;
+      });
+      doc.eachPage((d, n, tot) => {
+        d.line(M, PDF_H - 36, PDF_W - M, PDF_H - 36, '#cbd5e1', 0.5);
+        d.text(M, PDF_H - 24, 'Fiber Tools  •  verificare sempre con le specifiche del gestore', { size: 8, color: '#64748b' });
+        d.text(PDF_W - M - 60, PDF_H - 24, `Pagina ${n} di ${tot}`, { size: 8, color: '#64748b' });
+      });
+      downloadBlob(doc.toBlob(title), `${safeName(sjBaseName())}.pdf`);
+      toast('PDF scaricato.');
     }
 
     function sjOnEdit(e) {
@@ -6846,7 +7024,7 @@
       { c: '#7c3aed', i: 'i-folder', t: 'Elenco per provincia e Lombardia', d: 'Arrivate 2.841 posizioni di Bergamo e Brescia. L’elenco ora è diviso per provincia (Napoli, Bergamo, Brescia…): scegli la tua zona con i pulsanti sopra l’elenco e l’app la ricorda. In cima trovi gli anelli e i PFS aperti di recente, e la ricerca apre subito la cartella giusta.' },
       { c: '#0d9488', i: 'i-nav', t: 'PFS, PFP, POP e PD', d: 'La voce 07 ora si apre e ti fa scegliere tra quattro archivi: PFS, PFP (armadi primari), POP (oltre 80 centrali Open Fiber in tutta Italia) e PD (punti di distribuzione, raggruppati per PFS). Ognuno con ricerca, “Vicino a me”, mappa e Naviga.' },
       { c: '#2563eb', i: 'i-pin', t: 'Nuove zone in archivio', d: 'Pisa (PI_01) con 192 PFS e Benevento (BN_01) con 26 PFP e 302 PD. Tocca “Aggiorna da Google Sheets” per vederli.' },
-      { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 48 fo e da 24 dai 96 fo. Esporta in PDF ed Excel. Riservato agli account approvati.' },
+      { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 72 fo e da 24 dai 96 fo. Esporta in PDF ed Excel. Riservato agli account approvati.' },
       { c: '#0891b2', i: 'i-file', t: 'Note nella ribattitura', d: 'Sotto i 16 ottici c’è il nuovo campo Note per indirizzi, fibre tolte o staccate e cessazioni: compare nell’archivio, nella ricerca, nel testo condiviso e in PDF/Excel. Nel campo ID resta solo il codice.' },
       { c: '#db2777', i: 'i-mail', t: 'Contatti', d: 'Nuovo pulsante con la busta in alto, accanto all’ingranaggio: scrivi direttamente per segnalare problemi, proporre idee o mandare PFS da aggiungere.' },
       { c: '#16a34a', i: 'i-check', t: 'Archivio più affidabile', d: 'Corretto un problema che in alcuni casi trasformava le coordinate in orari. Se una posizione ti sembrava sbagliata, tocca “Aggiorna da Google Sheets”: ora è corretta.' }

@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 13;
+const SCRIPT_VERSION = 14;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -526,6 +526,25 @@ function history_(pfs, splitter) {
   return out;
 }
 
+/* ------------------------------------------------------------------ notifiche agli amministratori */
+const CONTENT_ACTIONS = ['Creata', 'Modificata', 'Eliminata', 'Posizione salvata', 'Posizione modificata', 'Posizione eliminata', 'Importazione posizioni'];
+/** Contenuti aggiunti o modificati dagli altri utenti dopo la riga «since» dello Storico (le più recenti per prime). */
+function activity_(ad, since) {
+  const sh = logSheet_(), last = sh.getLastRow();
+  const me = norm_(ad.user.row[U.NOME]);
+  const from = Math.max(2, since > 0 ? Math.max(since + 1, last - 1500) : last - 300);
+  const out = { status: 'success', last: last, items: [], count: 0 };
+  if (last < from) return out;
+  const values = sh.getRange(from, 1, last - from + 1, 6).getValues();
+  for (let i = values.length - 1; i >= 0; i--) {
+    const row = values[i];
+    if (CONTENT_ACTIONS.indexOf(String(row[1])) < 0 || norm_(row[4]) === me) continue;
+    out.count++;
+    if (out.items.length < (since > 0 ? 80 : 30)) out.items.push({ r: from + i, data: String(row[0]), azione: String(row[1]), pfs: String(row[2]), splitter: String(row[3]), tecnico: String(row[4]), dettaglio: String(row[5]).slice(0, 160) });
+  }
+  return out;
+}
+
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (!teamOk_(p.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
@@ -742,9 +761,10 @@ function backupInfo_() {
 
 /** Letture: servono un account approvato (qualsiasi ruolo). Non bloccano gli altri utenti. */
 function readAction_(b) {
-  if (b.action === 'stats' || b.action === 'backupInfo' || b.action === 'backupNow') {
+  if (b.action === 'stats' || b.action === 'backupInfo' || b.action === 'backupNow' || b.action === 'activity') {
     const ad = authUser_(b.token, 2);
     if (ad.error) return ad.error;
+    if (b.action === 'activity') return activity_(ad, Number(b.since) || 0);
     if (b.action === 'stats') return stats_(ad.users);
     if (b.action === 'backupInfo') return backupInfo_();
     try { return { status: 'success', info: backupNow_(String(ad.user.row[U.NOME] || '')) }; }
@@ -778,7 +798,7 @@ function doPost(e) {
   try { b = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
   catch (err) { return json_({ status: 'error', message: 'Richiesta non valida' }); }
   if (!teamOk_(b.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
-  if (['data', 'history', 'stats', 'backupInfo', 'backupNow'].includes(b.action)) {
+  if (['data', 'history', 'stats', 'backupInfo', 'backupNow', 'activity'].includes(b.action)) {
     try { return json_(readAction_(b)); } catch (err) { return json_({ status: 'error', message: String(err) }); }
   }
   const lock = LockService.getScriptLock();

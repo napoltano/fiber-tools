@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 14;
+const SCRIPT_VERSION = 15;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -80,7 +80,31 @@ function ribSheet_() {
   }
   return sh;
 }
-const posSheet_ = () => sheet_(SH_POS, ['ANELLO', 'PFS', 'LAT', 'LNG', 'NOTE', 'TECNICO', 'DATA', 'FOTO', 'MAPPA']);
+const posSheet_ = () => sheet_(SH_POS, ['ANELLO', 'PFS', 'LAT', 'LNG', 'NOTE', 'TECNICO', 'DATA', 'FOTO', 'MAPPA', 'REV']);
+const POS_REV_COL = 10;   // revisione della riga: serve ai telefoni per scaricare solo i PFS cambiati
+/** Indice codice PFS → riga del foglio, leggendo solo la colonna B (veloce anche con 100.000 righe). */
+function posIndex_(sh) {
+  const last = sh.getLastRow(), idx = {};
+  if (last < 2) return { idx: idx, last: last };
+  const col = sh.getRange(2, 2, last - 1, 1).getValues();
+  for (let i = 0; i < col.length; i++) { const k = norm_(col[i][0]); if (k && idx[k] === undefined) idx[k] = i + 2; }
+  return { idx: idx, last: last };
+}
+function ensureRevHeader_(sh) { if (sh.getLastColumn() < POS_REV_COL || String(sh.getRange(1, POS_REV_COL).getValue()) !== 'REV') sh.getRange(1, POS_REV_COL).setValue('REV'); }
+/** La prossima revisione per le posizioni (uguale per tutte le righe scritte in questa richiesta). */
+function nextPosRev_() { const p = props_(); return Math.max(Date.now(), Number(p.getProperty('REV_POS') || 0) + 1); }
+function posRow_(anello, pfs, lat, lng, note, tecnico, ts, fotoId, rev) {
+  return [anello, pfs, lat.toFixed(6), lng.toFixed(6), String(note || ''), norm_(tecnico), String(ts || nowIt_()), fotoId || '',
+    'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lng.toFixed(6), String(rev)];
+}
+/** Registra le eliminazioni (per la sincronizzazione leggera): ultime 3000. */
+function logPosDeleted_(pfs, rev) {
+  const p = props_();
+  let list = []; try { list = JSON.parse(p.getProperty('POS_DEL') || '[]'); } catch (e) {}
+  list.push([pfs, rev]);
+  if (list.length > 3000) { const cut = list.splice(0, list.length - 3000); p.setProperty('POS_DEL_MIN', String(cut[cut.length - 1][1])); }
+  p.setProperty('POS_DEL', JSON.stringify(list));
+}
 const logSheet_ = () => sheet_(SH_LOG, ['DATA', 'AZIONE', 'PFS', 'SPLITTER', 'TECNICO', 'DETTAGLIO']);
 
 /**
@@ -629,16 +653,15 @@ function savePos_(b) {
   if (!pfs || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return { status: 'error', message: 'PFS o coordinate non validi' };
   const anello = norm_(b.anello) || (/^([A-Z]+_\d+)/.exec(pfs) || [, pfs.split('/')[0]])[1];
   const sh = posSheet_();
-  const values = sh.getDataRange().getValues();
-  const rowNum = findRow_(values, row => norm_(row[1]) === pfs);
-  const oldRow = rowNum > 0 ? values[rowNum - 1] : null;
+  ensureRevHeader_(sh);
+  const ix = posIndex_(sh), rowNum = ix.idx[pfs] || -1;
+  const oldRow = rowNum > 0 ? sh.getRange(rowNum, 1, 1, POS_REV_COL).getValues()[0] : null;
 
   let fotoId = oldRow ? String(oldRow[7] || '') : '';
   if (b.photo) fotoId = saveFoto_(b.photo, fotoName_(pfs, 'PFS')) || fotoId;
   else if (b.fotoId !== undefined) fotoId = String(b.fotoId || '');
 
-  const row = [anello, pfs, lat.toFixed(6), lng.toFixed(6), String(b.note || ''), norm_(b.tecnico), String(b.timestamp || nowIt_()), fotoId,
-    'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lng.toFixed(6)];
+  const row = posRow_(anello, pfs, lat, lng, b.note, b.tecnico, b.timestamp, fotoId, nextPosRev_());
   if (rowNum > 0) {
     const moved = distM_({ lat: Number(oldRow[2]), lng: Number(oldRow[3]) }, { lat: lat, lng: lng });
     const ch = [];
@@ -659,32 +682,36 @@ function savePos_(b) {
 function savePosBatch_(b) {
   const items = Array.isArray(b.items) ? b.items : [];
   const sh = posSheet_();
-  const values = sh.getDataRange().getValues();
-  const body = values.slice(1).map(r => { const row = r.slice(0, 9); while (row.length < 9) row.push(''); return row; });
-  const index = {};
-  body.forEach((r, i) => { const k = norm_(r[1]); if (k) index[k] = i; });
-  let added = 0, updated = 0, skipped = 0;
+  ensureRevHeader_(sh);
+  const ix = posIndex_(sh), rev = nextPosRev_();
+  const skipExisting = b.onlyNew === true;   // importazione: i PFS già presenti non si toccano
+  let added = 0, updated = 0, skipped = 0, existing = 0;
+  const newRows = [], seen = {};
   items.forEach(it => {
     const pfs = norm_(it.pfs), lat = Number(it.lat), lng = Number(it.lng);
-    if (!pfs || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) { skipped++; return; }
+    if (!pfs || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || seen[pfs]) { skipped++; return; }
+    seen[pfs] = true;
     const anello = norm_(it.anello) || (/^([A-Z]+_\d+)/.exec(pfs) || [, pfs.split('/')[0]])[1];
-    const i = index[pfs];
-    const fotoId = i !== undefined ? String(body[i][7] || '') : '';
-    const row = [anello, pfs, lat.toFixed(6), lng.toFixed(6), String(it.note || ''), norm_(it.tecnico), String(it.timestamp || nowIt_()), fotoId,
-      'https://www.google.com/maps/search/?api=1&query=' + lat.toFixed(6) + ',' + lng.toFixed(6)];
-    if (i !== undefined) { if (it.note === undefined || it.note === '') row[4] = body[i][4]; body[i] = row; updated++; }
-    else { index[pfs] = body.length; body.push(row); added++; }
+    const r = ix.idx[pfs];
+    if (r) {
+      if (skipExisting) { existing++; return; }
+      const old = sh.getRange(r, 1, 1, POS_REV_COL).getValues()[0];
+      const row = posRow_(anello, pfs, lat, lng, (it.note === undefined || it.note === '') ? old[4] : it.note, it.tecnico, it.timestamp, String(old[7] || ''), rev);
+      writeRows_(sh, r, [row]); updated++;
+    } else {
+      newRows.push(posRow_(anello, pfs, lat, lng, it.note, it.tecnico, it.timestamp, '', rev)); added++;
+    }
   });
-  if (body.length) writeRows_(sh, 2, body);
-  if (added || updated) log_('Importazione posizioni', 'IMPORTAZIONE', '', b.tecnico, added + ' nuove, ' + updated + ' aggiornate' + (skipped ? ', ' + skipped + ' scartate' : ''));
-  return { status: 'success', added: added, updated: updated, skipped: skipped };
+  if (newRows.length) writeRows_(sh, ix.last + 1, newRows);   // in coda, in un colpo solo
+  if (added || updated) log_('Importazione posizioni', 'IMPORTAZIONE', '', b.tecnico, added + ' nuove, ' + updated + ' aggiornate' + (existing ? ', ' + existing + ' già presenti' : '') + (skipped ? ', ' + skipped + ' scartate' : ''));
+  return { status: 'success', added: added, updated: updated, existing: existing, skipped: skipped, unchanged: !(added || updated) };
 }
 
 function deletePos_(b) {
   const pfs = norm_(b.pfs);
   const sh = posSheet_();
-  const rowNum = findRow_(sh.getDataRange().getValues(), row => norm_(row[1]) === pfs);
-  if (rowNum > 0) { sh.deleteRow(rowNum); log_('Posizione eliminata', pfs, '', b.tecnico, ''); }
+  const rowNum = posIndex_(sh).idx[pfs] || -1;
+  if (rowNum > 0) { sh.deleteRow(rowNum); logPosDeleted_(pfs, nextPosRev_()); log_('Posizione eliminata', pfs, '', b.tecnico, ''); }
   return { status: 'success', deleted: rowNum > 0 };
 }
 
@@ -775,10 +802,39 @@ function readAction_(b) {
   if (b.action === 'data') touch_(a, b.device);
   if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
   // sincronizzazione leggera: se il telefono ha già l'ultima versione di una parte, quella parte non viene rimandata
+  if (!Number(props_().getProperty('REV_POS') || 0)) bumpRev_('pos');
   const rr = revToken_('rib'), rp = revToken_('pos');
   const out = { status: 'success', version: SCRIPT_VERSION, revRib: rr, revPos: rp };
   if (b.revRib && b.revRib === rr) out.ribUnchanged = true; else out.data = readRib_();
-  if (b.revPos && b.revPos === rp) out.posUnchanged = true; else out.positions = readPos_();
+  if (b.revPos && b.revPos === rp) out.posUnchanged = true;
+  else if (Number(b.posFmt) === 2) Object.assign(out, readPosCompact_(b));
+  else out.positions = readPos_();
+  return out;
+}
+
+/**
+ * Posizioni in formato compatto: una tabella di testi ripetuti (anello, note, tecnico, data) e righe
+ * [pfs, lat, lng, iAnello, iNote, iTecnico, iData, fotoId]. Se il telefono indica l'ultima revisione che ha,
+ * manda solo le righe cambiate dopo e i PFS eliminati (sincronizzazione leggera).
+ */
+function readPosCompact_(b) {
+  const p = props_(), epoch = p.getProperty('POS_EPOCH') || '1';
+  const cur = Number(p.getProperty('REV_POS') || 0);
+  const since = Number(b.posSince) || 0;
+  const delta = since > 0 && String(b.posEpoch || '') === epoch && since >= Number(p.getProperty('POS_DEL_MIN') || 0);
+  const values = posSheet_().getDataRange().getValues();
+  const strs = [], sidx = {}, rows = [];
+  const S = v => { v = String(v || ''); let i = sidx[v]; if (i === undefined) { i = sidx[v] = strs.length; strs.push(v); } return i; };
+  for (let r = 1; r < values.length; r++) {
+    const row = values[r];
+    if (delta && !(Number(row[POS_REV_COL - 1]) > since)) continue;
+    const pfs = norm_(row[1]);
+    const lat = Number(String(row[2]).replace(',', '.')), lng = Number(String(row[3]).replace(',', '.'));
+    if (!pfs || !isFinite(lat) || !isFinite(lng)) continue;
+    rows.push([pfs, Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6, S(norm_(row[0])), S(row[4]), S(row[5]), S(row[6]), String(row[7] || '')]);
+  }
+  const out = { posC: { s: strs, r: rows }, posRev: cur, posEpoch: epoch, posDelta: delta };
+  if (delta) { let list = []; try { list = JSON.parse(p.getProperty('POS_DEL') || '[]'); } catch (e) {} out.posDeleted = list.filter(x => x[1] > since).map(x => x[0]); }
   return out;
 }
 
@@ -791,7 +847,7 @@ function revToken_(k) {
 }
 function bumpRev_(k) { const p = props_(), old = Number(p.getProperty(REV_PROP[k]) || 0); p.setProperty(REV_PROP[k], String(Math.max(Date.now(), old + 1))); }
 /** Da eseguire dall'editor dopo aver modificato il foglio a mano: i telefoni riscaricano tutto alla prossima apertura. */
-function segnaFoglioModificato() { bumpRev_('rib'); bumpRev_('pos'); Logger.log('Fatto: i telefoni riscaricheranno ribattiture e posizioni.'); }
+function segnaFoglioModificato() { bumpRev_('rib'); bumpRev_('pos'); props_().setProperty('POS_EPOCH', String(Date.now())); Logger.log('Fatto: i telefoni riscaricheranno ribattiture e posizioni.'); }
 
 function doPost(e) {
   let b;
@@ -819,7 +875,7 @@ function doPost(e) {
     const WRITE = { save: [saveRib_, 1], savePos: [savePos_, 1], savePosBatch: [savePosBatch_, 1], delete: [deleteRib_, 2], deletePos: [deletePos_, 2] };
     const w = WRITE[action];
     if (!w) return json_({ status: 'error', message: 'Azione sconosciuta: ' + action });
-    const a = authUser_(b.token, w[1]);
+    const a = authUser_(b.token, action === 'savePosBatch' && b.onlyNew === true ? 2 : w[1]);   // importazione elenco: solo amministratori
     if (a.error) return json_(a.error);
     b.tecnico = String(a.user.row[U.NOME] || normEmail_(a.user.row[U.EMAIL]));   // il nome lo decide l'account, non il telefono
     const res = w[0](b);

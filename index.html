@@ -1036,6 +1036,8 @@
 
     /* PFS Qui */
     .pos-tools { display: flex; gap: 8px; align-items: center; }
+    .imp-progress { height: 10px; border-radius: 6px; background: var(--border, #ddd); overflow: hidden; margin: 6px 0 10px; }
+    .imp-progress > div { height: 100%; background: var(--primary, #2563eb); transition: width .3s; }
     .pos-tools .custom-input { flex: 1; padding: 10px 12px; font-size: 15px; }
     .chip.active { color: #fff; background: var(--success); border-color: var(--success); }
     .pos-item {
@@ -2100,6 +2102,7 @@
         <div class="chip-row">
           <button type="button" class="chip" id="posImportBtn"><svg><use href="#i-download"/></svg>Importa posizioni</button>
           <button type="button" class="chip" id="posExportBtn"><svg><use href="#i-share"/></svg>Condividi posizioni</button>
+          <input type="file" id="posListFile" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden>
           <input type="file" id="posImportFile" accept=".kml,.kmz,.txt,.xml,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz,text/plain,text/xml,application/xml" hidden>
         </div>
         <div class="pfs-mode-selector" data-seg="pos">
@@ -2873,7 +2876,7 @@
       const openNow = new Set([...container.querySelectorAll('.pfs-folder.open')].map(f => f.dataset.pfs));
       if (openPfs) openNow.add(openPfs);
 
-      const pfsKeys = Object.keys(db).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      const pfsKeys = Object.keys(db).sort((a, b) => IT_NUM.compare(a, b));
       $('archiveCountBadge').textContent = `${pfsKeys.length} Cartell${pfsKeys.length === 1 ? 'a' : 'e'}`;
 
       if (pfsKeys.length === 0) {
@@ -3283,7 +3286,7 @@
     /** Elenco di { pfs, spl, item } dall'archivio (spls = null -> tutta la cartella). */
     function entriesFor(pfs, spls) {
       const db = getRibattitureData();
-      const names = spls || Object.keys(db[pfs] || {}).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      const names = spls || Object.keys(db[pfs] || {}).sort((a, b) => IT_NUM.compare(a, b));
       return names.filter(s => db[pfs]?.[s]).map(s => ({ pfs, spl: s, item: db[pfs][s] }));
     }
 
@@ -3897,6 +3900,26 @@
       saveRibattitureData(local);
     }
 
+    /** Formato compatto dello script: tabella di testi + righe [pfs, lat, lng, iAnello, iNote, iTecnico, iData, fotoId]. */
+    function decodePosC(c) {
+      const S = c.s || [], out = {};
+      (c.r || []).forEach(x => { out[x[0]] = { pfs: x[0], lat: x[1], lng: x[2], anello: S[x[3]] || '', note: S[x[4]] || '', tecnico: S[x[5]] || '', updatedAt: S[x[6]] || '', fotoId: x[7] || '' }; });
+      return out;
+    }
+    /** Sincronizzazione leggera: aggiorna solo i PFS cambiati e toglie quelli eliminati sul foglio. */
+    function applyPosDelta(changedRaw, deleted) {
+      const changed = normalizePositions(changedRaw), local = getPositions(), pend = pendingPosSet();
+      Object.keys(changed).forEach(k => {
+        if (pend.has(k)) return;
+        const prev = local[k], next = { ...changed[k], synced: true };
+        if (prev && prev.thumb && prev.fotoId && prev.fotoId === next.fotoId) next.thumb = prev.thumb;
+        if (prev && prev.source) next.source = prev.source;
+        local[k] = next;
+      });
+      deleted.forEach(k => { const c = canonPfs(k); if (!pend.has(c) && local[c] && local[c].synced === true) delete local[c]; });
+      savePositions(local);
+    }
+
     function mergeRemotePos(remoteRaw) {
       const remote = normalizePositions(remoteRaw);
       const local = getPositions();
@@ -4004,7 +4027,8 @@
       if (!v || v.acc !== acc) return {};
       const out = {}, now = Date.now();
       if (v.rib && now - (v.fullRib || 0) < SYNC_FULL_MS && countSynced(getRibattitureData()) >= (v.nRib || 0) && v.nRib > 0) out.revRib = v.rib;
-      if (v.pos && now - (v.fullPos || 0) < SYNC_FULL_MS && countSynced(getPositions()) >= (v.nPos || 0) && v.nPos > 0) out.revPos = v.pos;
+      // posizioni: niente download completo periodico (sono tante); arrivano solo le righe cambiate
+      if (v.pos && v.nPos > 0 && countSynced(getPositions()) >= v.nPos) { out.revPos = v.pos; if (v.posSince) { out.posSince = v.posSince; out.posEpoch = v.posEpoch; } }
       return out;
     }
     function saveSyncRevs(json, gotRib, gotPos) {
@@ -4014,7 +4038,8 @@
       lsSet(SYNC_REV_KEY, JSON.stringify({
         acc, rib: json.revRib, pos: json.revPos,
         fullRib: gotRib ? now : (keep ? old.fullRib : 0), fullPos: gotPos ? now : (keep ? old.fullPos : 0),
-        nRib: gotRib ? countSynced(getRibattitureData()) : (keep ? old.nRib : 0), nPos: gotPos ? countSynced(getPositions()) : (keep ? old.nPos : 0)
+        nRib: gotRib ? countSynced(getRibattitureData()) : (keep ? old.nRib : 0), nPos: gotPos ? countSynced(getPositions()) : (keep ? old.nPos : 0),
+        posSince: json.posRev !== undefined ? json.posRev : (keep ? old.posSince : 0), posEpoch: json.posEpoch !== undefined ? json.posEpoch : (keep ? old.posEpoch : '')
       }));
     }
 
@@ -4027,7 +4052,7 @@
       try {
         await processQueue();
         // sincronizzazione leggera: chiede solo le parti cambiate (la sincronizzazione manuale scarica sempre tutto)
-        const req = { action: 'data', device: deviceLabel(), ...(silent ? syncRevs() : {}) };
+        const req = { action: 'data', device: deviceLabel(), posFmt: 2, ...(silent ? syncRevs() : {}) };
         const r = await sheetsPost(req);
         if (!r.confirmed) throw new NetError('Risposta non leggibile');
         const json = r.data;
@@ -4035,8 +4060,10 @@
         if (json && json.status === 'success' && (gotRib || json.ribUnchanged)) {
           setScriptVersion(Number(json.version) || 1);
           if (gotRib) mergeRemoteRib(json.data);
-          const gotPos = json.positions && typeof json.positions === 'object';
-          if (gotPos) mergeRemotePos(json.positions);
+          const gotPosC = json.posC && Array.isArray(json.posC.r);
+          const gotPos = gotPosC || (json.positions && typeof json.positions === 'object');
+          if (gotPosC) { const dec = decodePosC(json.posC); if (json.posDelta) applyPosDelta(dec, json.posDeleted || []); else mergeRemotePos(dec); }
+          else if (gotPos) mergeRemotePos(json.positions);
           saveSyncRevs(json, gotRib, gotPos);
           if (isAdminRole()) fetchActivity();
           if (!silent) toast('Archivio aggiornato da Google Sheets.');
@@ -4341,6 +4368,7 @@
       const pfs = canonPfs(m[1]);
       return pfs ? `PD ${pfs} PD_${m[2].padStart(3, '0')}` : '';
     }
+    const getPositionsCount = () => { let n = 0; for (const k in getPositions()) n++; return n; };
     function kindPositions() { const k = posKind; return Object.values(getPositions()).filter(it => posKindOf(it) === k); }
 
     function setPosKind(kind) {
@@ -4390,8 +4418,59 @@
       });
       return out;
     }
-    function getPositions() { try { return normalizePositions(JSON.parse(lsGet(POS_KEY, '{}'))); } catch (e) { return {}; } }
-    function savePositions(all) { try { localStorage.setItem(POS_KEY, JSON.stringify(all)); } catch (e) { toast('Memoria del telefono piena.', 'error'); } }
+    /* ---------- Archivio posizioni: in memoria + IndexedDB (localStorage non basta per decine di migliaia di PFS) ---------- */
+    const IDB_NAME = 'fiber_tools_db', IDB_STORE = 'kv';
+    let posCache = null, posSaveTimer = null, idbBroken = false;
+    function idbOpen() {
+      return new Promise((res, rej) => {
+        if (!window.indexedDB) return rej(new Error('IndexedDB non disponibile'));
+        const r = indexedDB.open(IDB_NAME, 1);
+        r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE);
+        r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+      });
+    }
+    async function idbReq(mode, fn) {
+      const db = await idbOpen();
+      return new Promise((res, rej) => {
+        const tx = db.transaction(IDB_STORE, mode), st = tx.objectStore(IDB_STORE), r = fn(st);
+        tx.oncomplete = () => { db.close(); res(r && r.result); }; tx.onerror = tx.onabort = () => { db.close(); rej(tx.error || new Error('IndexedDB')); };
+      });
+    }
+    const idbGet = k => idbReq('readonly', st => st.get(k));
+    const idbSet = (k, v) => idbReq('readwrite', st => st.put(v, k));
+    const idbDel = k => idbReq('readwrite', st => st.delete(k));
+    /** Da chiamare all'avvio, prima di tutto il resto: carica le posizioni e sposta quelle vecchie dal localStorage. */
+    async function initPosStore() {
+      let legacy = null;
+      try { const raw = localStorage.getItem(POS_KEY); if (raw) legacy = JSON.parse(raw); } catch (e) {}
+      try {
+        const stored = await idbGet('positions');
+        posCache = normalizePositions(stored || legacy || {});
+        if (legacy) { await idbSet('positions', posCache); try { localStorage.removeItem(POS_KEY); } catch (e) {} }
+      } catch (e) {
+        idbBroken = true;   // browser senza IndexedDB (es. alcune finestre private): resta il vecchio sistema
+        posCache = normalizePositions(legacy || {});
+      }
+    }
+    function getPositions() { if (!posCache) { try { posCache = normalizePositions(JSON.parse(lsGet(POS_KEY, '{}'))); } catch (e) { posCache = {}; } } return posCache; }
+    function flushPositions() {
+      clearTimeout(posSaveTimer); posSaveTimer = null;
+      const data = posCache || {};
+      if (idbBroken) { try { localStorage.setItem(POS_KEY, JSON.stringify(data)); } catch (e) { toast('Memoria del telefono piena.', 'error'); } return Promise.resolve(); }
+      return idbSet('positions', data).catch(() => toast('Memoria del telefono piena: posizioni non salvate.', 'error'));
+    }
+    function savePositions(all) {
+      posCache = all;
+      clearTimeout(posSaveTimer);
+      posSaveTimer = setTimeout(flushPositions, 250);
+    }
+    async function clearPositionsStore() {
+      posCache = {}; clearTimeout(posSaveTimer);
+      try { localStorage.removeItem(POS_KEY); } catch (e) {}
+      try { await idbDel('positions'); } catch (e) {}
+    }
+    window.addEventListener('pagehide', () => { if (posSaveTimer) flushPositions(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && posSaveTimer) flushPositions(); });
 
     function posPayload(it) {
       return { action: 'savePos', pfs: it.pfs, anello: it.anello, lat: it.lat, lng: it.lng, note: it.note || '', tecnico: it.tecnico || '', timestamp: it.updatedAt || nowStamp(), fotoId: it.fotoId || '' };
@@ -4475,6 +4554,7 @@
         </div>`;
     }
 
+    const IT_NUM = new Intl.Collator('it', { numeric: true });   // molto più veloce di localeCompare su decine di migliaia di voci
     function filteredPositions() {
       const q = ($('posSearch').value || '').trim().toUpperCase();
       const lq = looseKey(q);
@@ -4629,8 +4709,8 @@
       const openZones = new Set([...list.querySelectorAll('.zone-folder.open')].map(f => f.dataset.zone));
       const jump = posJump; posJump = null;
       if (jump) { openNow.add(jump.group); openZones.add(jump.zone); }
-      const byLabel = (a, b) => posLabel(a).localeCompare(posLabel(b), 'it', { numeric: true });
-      const cmpKey = (a, b) => a.localeCompare(b, 'it', { numeric: true });
+      const byLabel = (a, b) => IT_NUM.compare(posLabel(a), posLabel(b));
+      const cmpKey = IT_NUM.compare;
       const useZoneFolders = !q && !zoneActive && multiZone;
 
       if (posKind === 'pop') {
@@ -4882,6 +4962,34 @@
       return leafletPromise;
     }
 
+    let mapItems = [], mapFocusPfs = null;
+    const MAP_CELL = 9;   // px: con tanti punti ne disegna al massimo uno per cella (si vedono tutti avvicinando la mappa)
+    /** Disegna solo i punti nella zona inquadrata, diradati se sono troppi. */
+    function drawMapMarkers() {
+      if (!map || !window.L) return;
+      const L = window.L;
+      mapLayer.clearLayers();
+      const bounds = map.getBounds().pad(0.15);
+      const vis = mapItems.filter(it => bounds.contains([it.lat, it.lng]));
+      let shown = vis;
+      if (vis.length > 600) {
+        const cells = new Set(); shown = [];
+        vis.forEach(it => {
+          const pt = map.latLngToContainerPoint([it.lat, it.lng]), key = Math.floor(pt.x / MAP_CELL) + ':' + Math.floor(pt.y / MAP_CELL);
+          if (it.pfs === mapFocusPfs || !cells.has(key)) { cells.add(key); shown.push(it); }
+        });
+      }
+      const many = shown.length > 300;
+      shown.forEach(it => {
+        const m = L.circleMarker([it.lat, it.lng], { radius: many ? 5 : 9, weight: many ? 1.5 : 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 0.95 });
+        m.bindTooltip(posFullName(it), { direction: 'top', offset: [0, -8] });
+        m.bindPopup(() => `<div class="map-pop"><b>${escapeHtml(posFullName(it))}</b><br><small>${isPop(it) ? 'POP Open Fiber' : isPd(it) ? 'PD del PFS ' + escapeHtml(pdParent(it)) : isPfp(it) ? 'PFP • anello ' + escapeHtml(anelloFrom(posLabel(it))) : 'Anello ' + escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
+        m._pfs = it.pfs;
+        m.addTo(mapLayer);
+      });
+      const hidden = vis.length - shown.length;
+      $('posMapMsg').textContent = hidden > 0 ? `${vis.length.toLocaleString('it-IT')} punti in quest’area: avvicina la mappa per vederli tutti.` : '';
+    }
     async function renderMap(items) {
       let L;
       try { L = await loadLeaflet(); } catch (e) { $('posMapMsg').textContent = 'Impossibile caricare la mappa.'; return; }
@@ -4889,35 +4997,33 @@
         map = L.map('posMap', { zoomControl: true, attributionControl: true, preferCanvas: true }).setView([40.85, 14.27], 11);
         const tiles = L.tileLayer(TILE_URL, { maxZoom: 19, crossOrigin: true, attribution: '© OpenStreetMap' }).addTo(map);
         tiles.on('tileerror', () => { $('posMapMsg').textContent = navigator.onLine === false ? 'Senza rete vedi solo le zone della mappa già salvate: usa "Mappa offline" quando hai campo.' : ''; });
-        tiles.on('load', () => { $('posMapMsg').textContent = ''; });
         mapLayer = L.layerGroup().addTo(map);
+        map.on('moveend', drawMapMarkers);
       }
       setTimeout(() => map.invalidateSize(), 60);
-      mapLayer.clearLayers();
-      const pts = [];
-      items.forEach(it => {
-        const many = items.length > 300;
-        const m = L.circleMarker([it.lat, it.lng], { radius: many ? 5 : 9, weight: many ? 1.5 : 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 0.95 });
-        m.bindTooltip(posFullName(it), { direction: 'top', offset: [0, -8] });
-        m.bindPopup(`<div class="map-pop"><b>${escapeHtml(posFullName(it))}</b><br><small>${isPop(it) ? 'POP Open Fiber' : isPd(it) ? 'PD del PFS ' + escapeHtml(pdParent(it)) : isPfp(it) ? 'PFP • anello ' + escapeHtml(anelloFrom(posLabel(it))) : 'Anello ' + escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
-        m._pfs = it.pfs;
-        m.addTo(mapLayer); pts.push([it.lat, it.lng]);
-      });
+      mapItems = items;
       if (myPos) {
         if (myMarker) myMarker.remove();
         myMarker = L.circleMarker([myPos.lat, myPos.lng], { radius: 7, weight: 3, color: '#fff', fillColor: '#2563eb', fillOpacity: 1 }).bindTooltip('Tu sei qui').addTo(map);
-        pts.push([myPos.lat, myPos.lng]);
       }
       if (pendingFocus) {
         const target = items.find(i => i.pfs === pendingFocus); pendingFocus = null;
         if (target) {
+          mapFocusPfs = target.pfs;
           map.setView([target.lat, target.lng], 17);
+          drawMapMarkers();
           mapLayer.eachLayer(l => { if (l._pfs === target.pfs) l.openPopup(); });
           return;
         }
       }
-      if (pts.length === 1) map.setView(pts[0], 16);
-      else if (pts.length > 1) map.fitBounds(pts, { padding: [30, 30], maxZoom: 16 });
+      mapFocusPfs = null;
+      let s = 90, w = 180, n = -90, e = -180;
+      items.forEach(it => { if (it.lat < s) s = it.lat; if (it.lat > n) n = it.lat; if (it.lng < w) w = it.lng; if (it.lng > e) e = it.lng; });
+      if (myPos) { s = Math.min(s, myPos.lat); n = Math.max(n, myPos.lat); w = Math.min(w, myPos.lng); e = Math.max(e, myPos.lng); }
+      const cnt = items.length + (myPos ? 1 : 0);
+      if (cnt === 1) map.setView([n, e], 16);
+      else if (cnt > 1) map.fitBounds([[s, w], [n, e]], { padding: [30, 30], maxZoom: 16 });
+      drawMapMarkers();
     }
 
     function setPosView(v) {
@@ -4971,7 +5077,8 @@
       $('ribPhotoRemove').addEventListener('click', () => { clearRibPhoto(); });
 
       // PFS Qui
-      $('posSearch').addEventListener('input', renderPositions);
+      let posSearchT = null;
+      $('posSearch').addEventListener('input', () => { clearTimeout(posSearchT); posSearchT = setTimeout(renderPositions, getPositionsCount() > 3000 ? 250 : 0); });
       $('posZoneRow').addEventListener('click', e => {
         const c = e.target.closest('[data-zone]'); if (!c) return;
         setPosZoneSel(c.dataset.zone);
@@ -5232,10 +5339,16 @@
             <h4>Da link Google My Maps</h4>
             <input id="impUrl" class="custom-input" autocomplete="off" placeholder="https://www.google.com/maps/d/viewer?mid=…" value="${escapeHtml(saved)}">
           </div>
-          <label class="check-row"><input type="checkbox" id="impOverwrite"> Sostituisci anche le posizioni inserite a mano più recenti</label>`,
+          <label class="check-row"><input type="checkbox" id="impOverwrite"> Sostituisci anche le posizioni inserite a mano più recenti</label>
+          ${isAdminRole() ? `<div class="imp-section">
+            <h4>Elenco PFS (Excel o CSV) · amministratori</h4>
+            <span class="small" style="color:var(--muted)">Aggiunge all'archivio di tutti solo i PFS che mancano. Colonne: Nome, Stato, Latitudine, Longitudine. Gli «Abbandonato» vengono saltati.</span>
+            <button type="button" class="btn-secondary" id="impListLink"><svg><use href="#i-file"/></svg> Scegli l'elenco</button>
+          </div>` : ''}`,
         okText: 'Importa dal link', cancelText: 'Annulla',
         onOpen: () => {
           $('impFileLink').addEventListener('click', () => { importOverwrite = $('impOverwrite').checked; wantsFile = true; closeModal(false); });
+          if ($('impListLink')) $('impListLink').addEventListener('click', () => { closeModal(false); $('posListFile').click(); });
         }
       });
       if (wantsFile) { $('posImportFile').click(); return; }
@@ -5255,6 +5368,224 @@
       importOverwrite = false;
     }
 
+
+    /* =====================================================================
+       IMPORTAZIONE ELENCO PFS (Excel/CSV) — solo amministratori
+       Legge il file nel telefono/PC, scarta Abbandonati, doppioni e PFS già in archivio,
+       poi invia i nuovi allo script a blocchi di 1000 (si può riprendere: i già presenti si saltano).
+       ===================================================================== */
+    /** Legge un file .xlsx (primo foglio) senza librerie: zip + XML. Restituisce righe di testo. */
+    async function readXlsxRows(buf) {
+      const u8 = new Uint8Array(buf), dv = new DataView(buf);
+      let eocd = -1;
+      for (let i = u8.length - 22; i >= Math.max(0, u8.length - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+      if (eocd < 0) throw new Error('Il file non è un Excel valido.');
+      const n = dv.getUint16(eocd + 10, true); let off = dv.getUint32(eocd + 16, true);
+      const files = {};
+      for (let k = 0; k < n; k++) {
+        const method = dv.getUint16(off + 10, true), csize = dv.getUint32(off + 20, true);
+        const nl = dv.getUint16(off + 28, true), el = dv.getUint16(off + 30, true), cl = dv.getUint16(off + 32, true), lho = dv.getUint32(off + 42, true);
+        const name = new TextDecoder().decode(u8.subarray(off + 46, off + 46 + nl));
+        files[name] = { method, csize, lho };
+        off += 46 + nl + el + cl;
+      }
+      const read = async name => {
+        const f = files[name]; if (!f) return '';
+        const start = f.lho + 30 + dv.getUint16(f.lho + 26, true) + dv.getUint16(f.lho + 28, true);
+        const data = u8.subarray(start, start + f.csize);
+        if (f.method === 0) return new TextDecoder().decode(data);
+        if (typeof DecompressionStream === 'undefined') throw new Error('Questo browser non sa leggere i file Excel: salva l’elenco come CSV.');
+        const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        return await new Response(stream).text();
+      };
+      const unxml = t => t.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (_, d) => String.fromCharCode(+d)).replace(/&amp;/g, '&');
+      const shared = [];
+      const ss = await read('xl/sharedStrings.xml');
+      for (const m of ss.matchAll(/<si>([\s\S]*?)<\/si>/g)) shared.push(unxml([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x => x[1]).join('')));
+      const sheetName = Object.keys(files).filter(f => /^xl\/worksheets\/sheet\d+\.xml$/.test(f)).sort((a, b) => IT_NUM.compare(a, b))[0];
+      if (!sheetName) throw new Error('Nel file Excel non c’è nessun foglio.');
+      const xml = await read(sheetName);
+      const colIdx = ref => { let c = 0; for (const ch of ref) { const v = ch.charCodeAt(0); if (v < 65 || v > 90) break; c = c * 26 + v - 64; } return c - 1; };
+      const rows = [];
+      for (const rm of xml.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/g)) {
+        const row = [];
+        for (const cm of rm[1].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+          const attrs = cm[1], body = cm[2] || '';
+          const r = /\br="([A-Z]+)\d*"/.exec(attrs), t = (/\bt="(\w+)"/.exec(attrs) || [])[1];
+          const ci = r ? colIdx(r[1]) : row.length;
+          let v = '';
+          if (t === 'inlineStr') v = unxml([...body.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map(x => x[1]).join(''));
+          else { const vm = /<v>([\s\S]*?)<\/v>/.exec(body); v = vm ? unxml(vm[1]) : ''; if (t === 's') v = shared[+v] || ''; }
+          row[ci] = v;
+        }
+        rows.push(Array.from(row, x => x == null ? '' : String(x)));
+      }
+      return rows;
+    }
+    function readCsvRows(text) {
+      text = text.replace(/^﻿/, '');
+      const first = text.split(/\r?\n/, 1)[0];
+      const sep = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : (first.includes('\t') ? '\t' : ',');
+      const rows = []; let row = [], cur = '', q = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+        else if (ch === '"') q = true;
+        else if (ch === sep) { row.push(cur); cur = ''; }
+        else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+        else cur += ch;
+      }
+      if (cur || row.length) { row.push(cur); rows.push(row); }
+      return rows;
+    }
+    let comuniPromise = null;
+    function loadComuni() {
+      if (!comuniPromise) comuniPromise = new Promise((res, rej) => {
+        const done = () => { const m = {}; String(window.COMUNI_BELFIORE || '').split(';').forEach(x => { const [c, n, p] = x.split('|'); if (c) m[c] = { nome: n, prov: p }; }); res(m); };
+        if (window.COMUNI_BELFIORE) return done();
+        const sc = document.createElement('script'); sc.src = 'vendor/comuni.js';
+        sc.onload = done; sc.onerror = () => { comuniPromise = null; rej(new Error('Elenco dei comuni non disponibile: serve la rete.')); };
+        document.head.appendChild(sc);
+      });
+      return comuniPromise;
+    }
+    const RING_PFS_RE = /^([A-Z]{2,3})_\d+[\s\/-]+\d+[EW]\d+/;
+    const CAD_PFS_RE = /^([A-Z]\d{3})_+[A-Z0-9]/;
+
+    /** Prepara l'importazione: cosa aggiungere e cosa scartare (con i motivi). */
+    function planPfsImport(rows, comuni) {
+      const norm = h => String(h || '').trim().toLowerCase();
+      let hi = rows.findIndex(r => r.some(c => /^(nome|pfs|codice)$/.test(norm(c))) && r.some(c => /^lat/.test(norm(c))));
+      if (hi < 0) throw new Error('Non trovo le colonne: servono almeno Nome, Latitudine e Longitudine.');
+      const H = rows[hi].map(norm);
+      const col = re => H.findIndex(h => re.test(h));
+      const cN = col(/^(nome|pfs|codice)$/), cS = col(/^stato/), cLa = col(/^lat/), cLo = col(/^(lon|lng)/), cSp = col(/^spec/);
+      if (cN < 0 || cLa < 0 || cLo < 0) throw new Error('Non trovo le colonne: servono almeno Nome, Latitudine e Longitudine.');
+      const num = v => Number(String(v || '').trim().replace(',', '.'));
+      const local = getPositions();
+      const st = { total: 0, abbandonati: 0, altriTipi: 0, nonValidi: [], doppioni: 0, presenti: 0, spostati: [], perZona: {}, senzaComune: 0 };
+      const add = [], seen = new Set(), noComune = [];
+      for (let i = hi + 1; i < rows.length; i++) {
+        const r = rows[i], name = String(r[cN] || '').trim();
+        if (!name) continue;
+        st.total++;
+        const stato = cS >= 0 ? String(r[cS] || '').trim() : '';
+        if (/abbandon/i.test(stato)) { st.abbandonati++; continue; }
+        if (cSp >= 0 && r[cSp] && !/^pfs$/i.test(String(r[cSp]).trim())) { st.altriTipi++; continue; }
+        const lat = num(r[cLa]), lng = num(r[cLo]);
+        const code = canonPfs(name.replace(/\s+/g, ''));
+        const ring = RING_PFS_RE.exec(code), cad = !ring && CAD_PFS_RE.exec(code);
+        if (!isFinite(lat) || !isFinite(lng) || lat < 35 || lat > 48 || lng < 6 || lng > 19.5 || (!ring && !cad)) { st.nonValidi.push(name); continue; }
+        if (seen.has(code)) { st.doppioni++; continue; }
+        seen.add(code);
+        const old = local[code];
+        if (old) {
+          st.presenti++;
+          if (distanceM(old, { lat, lng }) > 50) st.spostati.push({ pfs: code, m: Math.round(distanceM(old, { lat, lng })) });
+          continue;
+        }
+        const it = { pfs: code, lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6, stato };
+        if (ring) it.anello = anelloFrom(code);
+        else {
+          const c = comuni[cad[1]];
+          if (c) { it.anello = `${c.nome.toUpperCase()} (${c.prov})`; it.comune = `${c.nome} (${c.prov})`; }
+          else { it.belfiore = cad[1]; noComune.push(it); }
+        }
+        add.push(it);
+      }
+      // codici di comuni soppressi/fusi: provincia dal PFS conosciuto più vicino
+      if (noComune.length) {
+        const known = add.filter(x => x.comune).concat(Object.values(local).filter(x => /Comune:[^·\n]*\([A-Z]{2}\)/.test(x.note || '')).map(x => ({ lat: x.lat, lng: x.lng, comune: /Comune:\s*([^·\n]*\([A-Z]{2}\))/.exec(x.note)[1] })));
+        noComune.forEach(it => {
+          let best = null, bd = Infinity;
+          known.forEach(k => { const d = (k.lat - it.lat) ** 2 + ((k.lng - it.lng) * 0.75) ** 2; if (d < bd) { bd = d; best = k; } });
+          const prov = best ? /\(([A-Z]{2})\)\s*$/.exec(best.comune)[1] : '';
+          it.anello = prov ? `${it.belfiore} (${prov})` : it.belfiore;
+          it.comune = prov ? `codice ${it.belfiore} (${prov})` : '';
+          st.senzaComune++;
+        });
+      }
+      add.forEach(it => {
+        it.note = [it.comune ? 'Comune: ' + it.comune : '', it.stato ? 'Stato: ' + it.stato : '', 'Fonte: elenco PFS'].filter(Boolean).join(' · ');
+        const z = posZone(it, it.anello); st.perZona[z] = (st.perZona[z] || 0) + 1;
+        delete it.comune; delete it.belfiore; delete it.stato;
+      });
+      return { add, st };
+    }
+
+    let pfsImportStop = false, pfsImportRunning = false;
+    async function importPfsList(file) {
+      if (!file) return;
+      if (!isAdminRole()) { toast('Solo gli amministratori possono importare un elenco.', 'error'); return; }
+      toast('Leggo l’elenco…', 'info', 2500);
+      let plan;
+      try {
+        const buf = await file.arrayBuffer();
+        const head = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+        const rows = head[0] === 0x50 && head[1] === 0x4b ? await readXlsxRows(buf) : readCsvRows(new TextDecoder().decode(buf));
+        plan = planPfsImport(rows, await loadComuni());
+      } catch (e) { toast(e.message || 'Impossibile leggere il file.', 'error', 6000); return; }
+      const { add, st } = plan, f = n => Number(n).toLocaleString('it-IT');
+      const zones = Object.entries(st.perZona).sort((a, b) => b[1] - a[1]);
+      const zoneTxt = zones.slice(0, 12).map(([z, n]) => `${escapeHtml(zoneName(z))} ${f(n)}`).join(' · ') + (zones.length > 12 ? ` · altre ${zones.length - 12} province` : '');
+      const li = (n, t) => n ? `<li>${t}</li>` : '';
+      const ok = await openModal({
+        title: add.length ? `Aggiungere ${f(add.length)} PFS?` : 'Niente da aggiungere',
+        bodyHtml: `<p style="margin-top:0">Nell’elenco ci sono <b>${f(st.total)}</b> PFS.</p>
+          <ul class="small" style="padding-left:18px;line-height:1.55">
+            <li><b>${f(add.length)} nuovi</b> da aggiungere${zones.length ? `: ${zoneTxt}` : ''}</li>
+            ${li(st.presenti, `${f(st.presenti)} già in archivio: non li tocco${st.spostati.length ? ` (${f(st.spostati.length)} hanno coordinate diverse di oltre 50 m, es. ${st.spostati.slice(0, 3).map(x => `${escapeHtml(x.pfs)} ${f(x.m)} m`).join(', ')})` : ''}`)}
+            ${li(st.abbandonati, `${f(st.abbandonati)} «Abbandonato» saltati`)}
+            ${li(st.doppioni, `${f(st.doppioni)} ripetuti nell’elenco: tenuto il primo`)}
+            ${li(st.altriTipi, `${f(st.altriTipi)} non PFS saltati`)}
+            ${li(st.nonValidi.length, `${f(st.nonValidi.length)} con codice o coordinate non validi: ${st.nonValidi.slice(0, 5).map(escapeHtml).join(', ')}`)}
+            ${li(st.senzaComune, `${f(st.senzaComune)} di comuni non più esistenti: messi sotto il codice catastale, con la provincia del PFS più vicino`)}
+          </ul>
+          ${add.length ? `<p class="small" style="color:var(--muted)">L’invio va a blocchi e richiede qualche minuto: tieni l’app aperta. Se si interrompe, rifai l’importazione con lo stesso file: riparte da dove era arrivata.</p>` : ''}`,
+        okText: add.length ? `Aggiungi ${f(add.length)}` : 'OK', cancelText: add.length ? 'Annulla' : 'Chiudi'
+      });
+      if (!ok || !add.length) return;
+      await sendPfsImport(add);
+    }
+
+    async function sendPfsImport(add) {
+      const BATCH = 1000, f = n => Number(n).toLocaleString('it-IT');
+      let sent = 0, added = 0, existing = 0, failed = null;
+      pfsImportStop = false; pfsImportRunning = true;
+      openModal({
+        title: 'Importazione in corso',
+        bodyHtml: `<div class="imp-progress"><div id="impBar" style="width:0%"></div></div><p class="small" id="impTxt" style="margin-bottom:0">Invio 0 di ${f(add.length)}…</p>`,
+        okText: 'Nascondi', cancelText: 'Interrompi',
+        onOpen: () => $('modalOk').focus()
+      }).then(r => { if (r === false) pfsImportStop = true; });
+      const upd = () => { if ($('impBar')) { $('impBar').style.width = Math.round(sent / add.length * 100) + '%'; $('impTxt').textContent = `Inviati ${f(sent)} di ${f(add.length)}…`; } };
+      const tecnico = getTecnico();
+      for (let i = 0; i < add.length && !pfsImportStop; i += BATCH) {
+        const chunk = add.slice(i, i + BATCH);
+        let tries = 0, r = null;
+        while (!r && !pfsImportStop) {
+          try { r = await sheetsPost({ action: 'savePosBatch', onlyNew: true, tecnico, items: chunk.map(it => ({ ...it, tecnico, timestamp: nowStamp() })) }); }
+          catch (e) {
+            if (e instanceof AuthError || e.server || ++tries >= 4) { failed = e.message || 'errore'; break; }
+            await new Promise(res => setTimeout(res, 3000 * tries));
+          }
+        }
+        if (failed || !r) break;
+        if (r.data) { added += r.data.added || 0; existing += r.data.existing || 0; }
+        const all = getPositions();
+        chunk.forEach(it => { all[it.pfs] = { ...it, tecnico, updatedAt: nowStamp(), synced: true }; });
+        savePositions(all);
+        sent += chunk.length; upd();
+      }
+      if (!$('modal').hidden && $('impBar')) closeModal(true);
+      pfsImportRunning = false;
+      flushPositions();
+      renderPositions();
+      if (failed) toast(`Importazione fermata dopo ${f(sent)} PFS: ${failed}. Rifai l’importazione con lo stesso file per continuare.`, 'error', 9000);
+      else if (pfsImportStop) toast(`Importazione interrotta: inviati ${f(sent)} PFS. Rifai l’importazione per continuare.`, 'info', 7000);
+      else toast(`Fatto: ${f(added || sent)} PFS aggiunti all’archivio di tutti${existing ? ` (${f(existing)} erano già presenti)` : ''}.`, 'success', 7000);
+    }
+
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
     const kmlEsc = v => String(v ?? '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
     function kmlColor(css) {   // "#rrggbb" -> "ffbbggrr" (formato colore KML)
@@ -5265,14 +5596,14 @@
     function buildPositionsKml(items, title) {
       const groups = {};
       items.forEach(it => (groups[it.anello] = groups[it.anello] || []).push(it));
-      const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      const keys = Object.keys(groups).sort((a, b) => IT_NUM.compare(a, b));
       const styleId = an => 'a-' + an.replace(/[^\w-]/g, '_');
       const data = (k, v) => `<Data name="${k}"><value>${kmlEsc(v)}</value></Data>`;
       const styles = keys.map(an => `
     <Style id="${styleId(an)}"><IconStyle><color>${kmlColor(anelloColor(an))}</color><scale>1</scale><Icon><href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href></Icon></IconStyle></Style>`).join('');
       const folders = keys.map(an => `
     <Folder>
-      <name>${kmlEsc(an)}</name>${groups[an].sort((a, b) => a.pfs.localeCompare(b.pfs, 'it', { numeric: true })).map(it => `
+      <name>${kmlEsc(an)}</name>${groups[an].sort((a, b) => IT_NUM.compare(a.pfs, b.pfs)).map(it => `
       <Placemark>
         <name>${kmlEsc(it.pfs)}</name>
         <styleUrl>#${styleId(an)}</styleUrl>${it.note ? `
@@ -5325,7 +5656,7 @@
       if (!requireReader('Le posizioni dei PFS sono visibili solo agli account approvati.')) return;
       const all = Object.values(getPositions());
       if (!all.length) { toast('Non ci sono ancora PFS da condividere.', 'info'); return; }
-      const anelli = [...new Set(all.map(i => i.anello))].sort((a, b) => a.localeCompare(b, 'it', { numeric: true }));
+      const anelli = [...new Set(all.map(i => i.anello))].sort((a, b) => IT_NUM.compare(a, b));
       const q = ($('posSearch').value || '').trim();
       const qItems = q ? filteredPositions() : [];
       const isManual = it => !(it.source === 'mymaps' || it.tecnico === MAP_SOURCE);
@@ -5397,6 +5728,8 @@
     function purgeData() {
       let had = false;
       [STORAGE_KEY, POS_KEY].forEach(k => { try { if (localStorage.getItem(k)) had = true; localStorage.removeItem(k); } catch (e) {} });
+      if (posCache && Object.keys(posCache).length) had = true;
+      clearPositionsStore();
       try { localStorage.removeItem(SYNC_REV_KEY); } catch (e) {}
       try { if (localStorage.getItem(SJ_KEY)) { localStorage.removeItem(SJ_KEY); if (sj) { sj = sjDefault(); $('sjNet').value = sj.net; $('sjPfs').value = ''; sjForms(); sjDraw(); localStorage.removeItem(SJ_KEY); } } } catch (e) {}
       if (had) {
@@ -5846,6 +6179,7 @@
       if (hm) setTimeout(() => { openPfsPos(); setTimeout(() => openImport(decodeURIComponent(hm[1])), 350); }, 300);
       $('posImportBtn').addEventListener('click', () => openImport());
       $('posImportFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; importFromFile(f); });
+      $('posListFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; importPfsList(f); });
       updateQueueUI();
       watchForUpdates();
       setTimeout(() => processQueue(), 1500);
@@ -7012,9 +7346,10 @@
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-15b';
+    const NEWS_ID = '2026-11-17';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#0f766e', i: 'i-pin', t: 'PFS di tutta Italia', d: 'L’archivio si allarga a tutta Italia: oltre 80.000 PFS, divisi per provincia e per anello o comune. Scegli la tua zona con i pulsanti sopra l’elenco. La mappa disegna i punti della zona che stai guardando (avvicinati per vederli tutti) e l’aggiornamento scarica solo i PFS cambiati, così resta veloce.' },
       { c: '#7c3aed', i: 'i-folder', t: 'Elenco per provincia e Lombardia', d: 'Arrivate 2.841 posizioni di Bergamo e Brescia. L’elenco ora è diviso per provincia (Napoli, Bergamo, Brescia…): scegli la tua zona con i pulsanti sopra l’elenco e l’app la ricorda. In cima trovi gli anelli e i PFS aperti di recente, e la ricerca apre subito la cartella giusta.' },
       { c: '#0d9488', i: 'i-nav', t: 'PFS, PFP, POP e PD', d: 'La voce 07 ora si apre e ti fa scegliere tra quattro archivi: PFS, PFP (armadi primari), POP (oltre 80 centrali Open Fiber in tutta Italia) e PD (punti di distribuzione, raggruppati per PFS). Ognuno con ricerca, “Vicino a me”, mappa e Naviga.' },
       { c: '#2563eb', i: 'i-pin', t: 'Nuove zone in archivio', d: 'Pisa (PI_01) con 192 PFS e Benevento (BN_01) con 26 PFP e 302 PD. Tocca “Aggiorna da Google Sheets” per vederli.' },
@@ -7137,7 +7472,8 @@
       } catch (e) { /* offline o script vecchio: resta l'ultimo valore noto */ }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initPosStore();
       initTheme();
       renderHeroColors();
       bindEvents();

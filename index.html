@@ -5517,9 +5517,10 @@
     async function importPfsList(file) {
       if (!file) return;
       if (!isAdminRole()) { toast('Solo gli amministratori possono importare un elenco.', 'error'); return; }
-      toast('Leggo l’elenco…', 'info', 2500);
+      toast('Allineo l’archivio e leggo l’elenco…', 'info', 4000);
       let plan;
       try {
+        await syncFromGoogleSheets(false);   // confronto con il foglio vero, non con una copia vecchia del telefono
         const buf = await file.arrayBuffer();
         const head = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
         const rows = head[0] === 0x50 && head[1] === 0x4b ? await readXlsxRows(buf) : readCsvRows(new TextDecoder().decode(buf));
@@ -5549,7 +5550,7 @@
     }
 
     async function sendPfsImport(add) {
-      const BATCH = 1000, f = n => Number(n).toLocaleString('it-IT');
+      const BATCH = 500, f = n => Number(n).toLocaleString('it-IT');
       let sent = 0, added = 0, existing = 0, failed = null;
       pfsImportStop = false; pfsImportRunning = true;
       openModal({
@@ -5564,14 +5565,19 @@
         const chunk = add.slice(i, i + BATCH);
         let tries = 0, r = null;
         while (!r && !pfsImportStop) {
-          try { r = await sheetsPost({ action: 'savePosBatch', onlyNew: true, tecnico, items: chunk.map(it => ({ ...it, tecnico, timestamp: nowStamp() })) }); }
-          catch (e) {
-            if (e instanceof AuthError || e.server || ++tries >= 4) { failed = e.message || 'errore'; break; }
-            await new Promise(res => setTimeout(res, 3000 * tries));
+          try {
+            const x = await sheetsPost({ action: 'savePosBatch', onlyNew: true, tecnico, items: chunk.map(it => ({ ...it, tecnico, timestamp: nowStamp() })) });
+            // solo una risposta leggibile conferma il salvataggio: altrimenti si riprova (i già salvati vengono saltati)
+            if (!x.confirmed || !x.data || x.data.status !== 'success') throw new NetError('Risposta non confermata');
+            r = x;
+          } catch (e) {
+            if (e instanceof AuthError || (e.server && e.code !== 'busy') || ++tries >= 8) { failed = e.message || 'errore'; break; }
+            if ($('impTxt')) $('impTxt').textContent = `Inviati ${f(sent)} di ${f(add.length)}… (riprovo, tentativo ${tries + 1})`;
+            await new Promise(res => setTimeout(res, Math.min(30000, 4000 * tries)));
           }
         }
         if (failed || !r) break;
-        if (r.data) { added += r.data.added || 0; existing += r.data.existing || 0; }
+        added += r.data.added || 0; existing += r.data.existing || 0;
         const all = getPositions();
         chunk.forEach(it => { all[it.pfs] = { ...it, tecnico, updatedAt: nowStamp(), synced: true }; });
         savePositions(all);

@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 15;
+const SCRIPT_VERSION = 16;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -858,7 +858,7 @@ function doPost(e) {
     try { return json_(readAction_(b)); } catch (err) { return json_({ status: 'error', message: String(err) }); }
   }
   const lock = LockService.getScriptLock();
-  lock.waitLock(25000);
+  if (!lock.tryLock(25000)) return json_({ status: 'error', code: 'busy', message: 'Archivio occupato, riprova tra poco' });
   try {
     const action = b.action || 'save';
     // account

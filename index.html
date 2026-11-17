@@ -673,13 +673,13 @@
     .pfs-folder-title svg { width: 18px; height: 18px; flex-shrink: 0; }
     .folder-meta { font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
     .folder-meta svg { width: 14px; height: 14px; transition: transform 0.3s var(--ease); }
-    .pfs-folder.open .folder-meta svg { transform: rotate(180deg); }
+    .pfs-folder.open > .pfs-folder-header .folder-meta svg { transform: rotate(180deg); }
 
     .pfs-folder-content {
       display: grid; grid-template-rows: 0fr;
       transition: grid-template-rows 0.35s var(--ease);
     }
-    .pfs-folder.open .pfs-folder-content { grid-template-rows: 1fr; }
+    .pfs-folder.open > .pfs-folder-content { grid-template-rows: 1fr; }   /* solo la cartella aperta, non quelle dentro */
     .pfs-folder-inner { overflow: hidden; }
     .pfs-folder-inner > div { padding: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
 

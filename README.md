@@ -26,6 +26,7 @@ Creato e realizzato da **Marigliano Massimiliano**.
 - **Controlli duplicati**: avviso se lo stesso ID compare in due ottici, se una permuta è ripetuta, o se l'ID è già usato in un altro splitter dell'archivio.
 - **Riepilogo cartella**: per ogni PFS quanti ottici hanno l'ID, quanti sono NO IDR e quanti vuoti.
 - **Note**: campo libero sotto i 16 ottici per indirizzi, fibre tolte o staccate, cessazioni (es. «O7: Via Roma 20», «Tolta P186 ID 2218»). Si vede nell'archivio, si trova con la ricerca ed esce nel testo condiviso e in PDF/Excel; sul foglio va nella colonna **NOTE** (script v9).
+- **Schema di giunzione, Open Fiber 288 e Enel**: i cavi Open Fiber da 288 fo sono 8 tubetti da 36 (fibre 13–24 anellate, 25–36 con 2 anelli); aggiunta la colorazione Enel (stessa sequenza del Codice colori).
 - **Ribattitura senza PDF/Excel**: dalla schermata Ribattitura sono stati tolti i pulsanti PDF/Excel (modulo, singolo splitter e cartella); restano Copia testo e Condividi.
 - **Novità dal team** (script v14): gli amministratori hanno una campanella in alto con il numero di ribattiture e posizioni aggiunte, modificate o eliminate dagli altri utenti dall'ultima volta che l'hanno aperta (dallo Storico, senza le proprie). Toccando una voce si apre la ribattitura o la posizione.
 - **Schema di giunzione**: aggiunto il cavo da 72 fo (6 tubetti da 12); il pulsante PDF scarica direttamente un file PDF (A4, con i colori delle fibre e i numeri di pagina) invece di aprire la stampa.

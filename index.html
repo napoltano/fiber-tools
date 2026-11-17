@@ -1313,6 +1313,7 @@
     .sj-fb.used { background: var(--fc); border-color: transparent; }
     .sj-fb.used span { color: #fff; }
     .sj-fb.ring::after { content: ''; position: absolute; left: 3px; right: 3px; top: 3px; height: 2px; background: rgba(0,0,0,.45); border-radius: 2px; }
+    .sj-fb.ring2::after { top: 2px; box-shadow: 0 3px 0 rgba(0,0,0,.45); }
     .sj-fb.clash { outline: 2.5px solid #dc2626; outline-offset: 1px; }
     .sj-fb:active { transform: scale(.9); }
     .sj-card { margin-top: 12px; border-top: 4px solid var(--cc); }
@@ -1739,6 +1740,7 @@
             <select id="sjNet" class="custom-select">
               <option value="fibercop" selected>FiberCop / TIM</option>
               <option value="openfiber">Open Fiber</option>
+              <option value="enel">Enel</option>
               <option value="bul">BUL Infratel</option>
               <option value="tia">TIA-598-C</option>
             </select>
@@ -6637,24 +6639,25 @@
     const SJ_NETS = {
       fibercop:  { label: 'FiberCop / TIM – ST 908', seq: STD },
       openfiber: { label: 'Open Fiber – ST 1701', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","GRIGIO","ARANCIO","ROSA","BIANCO","NERO","TURCHESE"] },
+      enel:      { label: 'Enel', seq: baseColors.enel.map(c => c.name) },
       bul:       { label: 'BUL Infratel', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","BIANCO","ROSA","NERO","ARANCIO","GRIGIO","TURCHESE"] },
       tia:       { label: 'TIA-598-C', seq: baseColors.tia.map(c => c.name) }
     };
     const SJ_KEY = 'fiber_tools_splice';
     const SJ_PAL = ['#0d9488', '#7c3aed', '#ea580c', '#db2777', '#2563eb', '#ca8a04', '#16a34a', '#9333ea', '#0891b2', '#dc2626'];
-    const RING_TXT = ['', 'anellato'];
+    const RING_TXT = ['', 'anellato', '2 anelli'];
 
-    /** Fibre per tubetto: 12 fino ai cavi da 72 (6 tubetti da 12), 24 dai cavi da 96 in su. */
-    function sjTubeSize(cap) { return cap <= 72 ? 12 : 24; }
+    /** Fibre per tubetto: 12 fino ai cavi da 72 (6 tubetti da 12), 24 dai cavi da 96 in su; Open Fiber 288 fo = 8 tubetti da 36. */
+    function sjTubeSize(cap, net = sj && sj.net) { if (net === 'openfiber' && cap === 288) return 36; return cap <= 72 ? 12 : 24; }
 
     /** Fibra n di un cavo: tubetto, colore e anellatura (fibre 13–24 del tubetto). Negli anellati il nero diventa trasparente. */
     function sjFiber(net, cap, n) {
-      const ts = sjTubeSize(cap);
+      const ts = sjTubeSize(cap, net);
       const tube = Math.ceil(n / ts), pos = ((n - 1) % ts) + 1;
       const ring = Math.floor((pos - 1) / 12);
       let color = SJ_NETS[net].seq[(pos - 1) % 12];
       if (ring > 0 && color === 'NERO') color = 'TRASPARENTE';
-      return { n, tube, pos, ring, color, name: color + (ring ? ' ANELLATO' : '') };
+      return { n, tube, pos, ring, color, name: color + (ring === 1 ? ' ANELLATO' : ring === 2 ? ' 2 ANELLI' : '') };
     }
 
     function sjDefault() {
@@ -6764,7 +6767,7 @@
             const f = sjFiber(sj.net, I.cap, n), o = own[s][n];
             const who = o.length ? o.map(sjOutName).join(' + ') : 'libera';
             const bg = o.length ? sjColor(o[0]) : (f.color === 'TRASPARENTE' ? '#f8fafc' : HEX[f.color]);
-            h += `<button type="button" class="sj-fb${o.length ? ' used' : ''}${o.length > 1 ? ' clash' : ''}${f.ring && !o.length ? ' ring' : ''}" data-s="${s}" data-n="${n}" style="--fc:${bg}" title="Fibra ${n} · ${escapeHtml(f.name)} · ${escapeHtml(who)}" aria-label="Fibra ${n}, ${escapeHtml(f.name)}, ${escapeHtml(who)}"><span>${n}</span></button>`;
+            h += `<button type="button" class="sj-fb${o.length ? ' used' : ''}${o.length > 1 ? ' clash' : ''}${f.ring && !o.length ? ' ring' + (f.ring > 1 ? ' ring2' : '') : ''}" data-s="${s}" data-n="${n}" style="--fc:${bg}" title="Fibra ${n} · ${escapeHtml(f.name)} · ${escapeHtml(who)}" aria-label="Fibra ${n}, ${escapeHtml(f.name)}, ${escapeHtml(who)}"><span>${n}</span></button>`;
           }
           h += `</div></div>`;
         }
@@ -6800,7 +6803,7 @@
     function sjDot(f) {
       const hex = f.color === 'TRASPARENTE' ? '#f8fafc' : HEX[f.color];
       const ring = (f.color === 'NERO' || f.color === 'BLU' || f.color === 'VIOLA' || f.color === 'MARRONE') ? '#ffffff' : '#111827';
-      return `<span class="sj-dot${f.ring ? ' r1' : ''}${f.color === 'TRASPARENTE' ? ' trasp' : ''}" style="--c:${hex};--ring:${ring}" title="${escapeHtml(f.name)}"></span>`;
+      return `<span class="sj-dot${f.ring ? ' r' + Math.min(f.ring, 2) : ''}${f.color === 'TRASPARENTE' ? ' trasp' : ''}" style="--c:${hex};--ring:${ring}" title="${escapeHtml(f.name)}"></span>`;
     }
     function sjFibHtml(f, right) {
       return `<div class="sj-fib${right ? ' right' : ''}">${sjDot(f)}<div class="sj-fib-txt"><span class="sj-fib-name${f.color.length > 9 ? ' xlong' : f.color.length > 6 ? ' long' : ''}">${escapeHtml(f.color)}</span>${f.ring ? `<span class="sj-fib-ring">${RING_TXT[f.ring]}</span>` : ''}</div></div>`;
@@ -6964,7 +6967,7 @@
       sj = sjLoad();
       $('sjNet').value = sj.net; $('sjPfs').value = sj.pfs;
       sjForms(); sjDraw();
-      $('sjNet').addEventListener('change', () => { sj.net = $('sjNet').value; sjDraw(); });
+      $('sjNet').addEventListener('change', () => { sj.net = $('sjNet').value; sjForms(); sjDraw(); });
       $('sjPfs').addEventListener('input', () => { sj.pfs = $('sjPfs').value.toUpperCase(); sjDraw(); });
       ['sjIns', 'sjOuts'].forEach(id => { $(id).addEventListener('input', sjOnEdit); $(id).addEventListener('change', sjOnEdit); });
       $('sjOuts').addEventListener('focusin', e => { const b = e.target.closest('.sj-cab'); if (b) sjSetAct(+b.dataset.i); });
@@ -7015,7 +7018,7 @@
       { c: '#7c3aed', i: 'i-folder', t: 'Elenco per provincia e Lombardia', d: 'Arrivate 2.841 posizioni di Bergamo e Brescia. L’elenco ora è diviso per provincia (Napoli, Bergamo, Brescia…): scegli la tua zona con i pulsanti sopra l’elenco e l’app la ricorda. In cima trovi gli anelli e i PFS aperti di recente, e la ricerca apre subito la cartella giusta.' },
       { c: '#0d9488', i: 'i-nav', t: 'PFS, PFP, POP e PD', d: 'La voce 07 ora si apre e ti fa scegliere tra quattro archivi: PFS, PFP (armadi primari), POP (oltre 80 centrali Open Fiber in tutta Italia) e PD (punti di distribuzione, raggruppati per PFS). Ognuno con ricerca, “Vicino a me”, mappa e Naviga.' },
       { c: '#2563eb', i: 'i-pin', t: 'Nuove zone in archivio', d: 'Pisa (PI_01) con 192 PFS e Benevento (BN_01) con 26 PFP e 302 PD. Tocca “Aggiorna da Google Sheets” per vederli.' },
-      { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 72 fo e da 24 dai 96 fo. Esporta in PDF ed Excel. Riservato agli account approvati.' },
+      { c: '#ea580c', i: 'i-table', t: 'Schema di giunzione completo', d: 'Più cavi in ingresso (N−) e in uscita (N+), ognuno con il suo nome, mappa delle fibre da toccare per scegliere la partenza, tubetti da 12 fino ai 72 fo e da 24 dai 96 fo (Open Fiber 288 fo: 8 tubetti da 36). Colorazioni FiberCop, Open Fiber, Enel, BUL e TIA. Esporta in PDF ed Excel. Riservato agli account approvati.' },
       { c: '#0891b2', i: 'i-file', t: 'Note nella ribattitura', d: 'Sotto i 16 ottici c’è il nuovo campo Note per indirizzi, fibre tolte o staccate e cessazioni: compare nell’archivio, nella ricerca e nel testo condiviso. Nel campo ID resta solo il codice.' },
       { c: '#db2777', i: 'i-mail', t: 'Contatti', d: 'Nuovo pulsante con la busta in alto, accanto all’ingranaggio: scrivi direttamente per segnalare problemi, proporre idee o mandare PFS da aggiungere.' },
       { c: '#16a34a', i: 'i-check', t: 'Archivio più affidabile', d: 'Corretto un problema che in alcuni casi trasformava le coordinate in orari. Se una posizione ti sembrava sbagliata, tocca “Aggiorna da Google Sheets”: ora è corretta.' }

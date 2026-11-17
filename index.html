@@ -2010,6 +2010,7 @@
         <div class="section-title"><span>Account della squadra</span><span class="count-pill" id="usersCount">—</span></div>
         <p class="small" style="color:var(--muted);font-weight:600" id="usersHint"></p>
         <div class="users-sum" id="usersSum"></div>
+        <input type="search" id="usersSearch" class="custom-input" placeholder="Cerca per nome, email, società o telefono..." autocomplete="off" style="margin-bottom:10px">
         <label class="users-sort">Ordina <select id="usersSort" class="custom-select"><option value="seen">Per ultimo accesso</option><option value="name">Per nome</option><option value="soc">Per società</option></select></label>
         <button type="button" class="btn-secondary" id="usersReload" style="margin:0"><svg><use href="#i-sync"/></svg> Aggiorna elenco</button>
       </div>
@@ -4381,6 +4382,7 @@
       $('posPfs').placeholder = pop ? 'es. NA_06' : pd ? 'es. BN_01/01E12 PD_001' : pfp ? 'es. BN_01/01E1' : 'es. NA_05 08E22';
       $('posAnelloGroup').hidden = special;
       $('posImportBtn').hidden = special;
+      $('posExportBtn').hidden = !isAdminRole();
       $('posListModeBtn').textContent = pop ? 'Elenco' : pd ? 'Elenco per PFS' : 'Elenco per anello';
       if (changed) { $('posSearch').value = ''; if (!posEditing) resetPosForm(); else { resetPosForm(); } $('posForm').open = false; }
     }
@@ -5648,6 +5650,7 @@
     }
 
     async function sharePositionsFile(items, label) {
+      if (!isAdminRole()) { toast('Solo gli amministratori possono scaricare i file delle mappe.', 'info'); return; }
       if (!items.length) { toast('Nessun PFS da condividere.', 'error'); return; }
       const d = new Date();
       const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -5659,6 +5662,7 @@
     }
 
     async function openExport() {
+      if (!isAdminRole()) { toast('Solo gli amministratori possono scaricare i file delle mappe.', 'info'); return; }
       if (!requireReader('Le posizioni dei PFS sono visibili solo agli account approvati.')) return;
       const all = Object.values(getPositions());
       if (!all.length) { toast('Non ci sono ancora PFS da condividere.', 'info'); return; }
@@ -5700,6 +5704,7 @@
 
     /** Condivisione di un singolo PFS: messaggio con link oppure file per l'app. */
     async function chooseSharePosition(it) {
+      if (!isAdminRole()) { sharePosition(it); return; }   // i tecnici condividono solo il messaggio con il link, non il file
       let choice = null;
       $('modalOk').hidden = true;
       const done = openModal({
@@ -5768,6 +5773,7 @@
     }
 
     function updateAccountUI() {
+      if ($('posExportBtn')) $('posExportBtn').hidden = !isAdminRole();
       const btn = $('adminLoginBtn');
       btn.classList.toggle('admin-active', canWrite());
       $('adminIcon').innerHTML = `<use href="#${account ? 'i-user' : 'i-lock'}"/>`;
@@ -6108,11 +6114,16 @@
       const other = usersCache.filter(u => u.stato !== 'attivo' && u.stato !== 'in attesa');
       accountPending = pending.length; updateAccountUI();
       $('usersCount').textContent = `${usersCache.length} account${pending.length ? ` • ${pending.length} da approvare` : ''}`;
+      const q = ($('usersSearch').value || '').trim().toLowerCase();
+      const words = q.split(/\s+/).filter(Boolean);
+      const hay = u => [u.nome, u.email, u.societa, u.dispositivo, ROLE_LABEL[u.ruolo] || u.ruolo, u.stato].join(' ').toLowerCase();
+      const match = u => words.every(w => hay(u).includes(w));
       const act = usersCache.filter(u => u.stato === 'attivo').map(u => seenInfo(u.ultimoAccesso));
       $('usersSum').innerHTML = `<span>🟢 Oggi ${act.filter(x => x.days === 0).length}</span><span>🗓️ Ultimi 7 giorni ${act.filter(x => x.days != null && x.days < 7).length}</span><span>💤 Da più di 7 giorni ${act.filter(x => x.days != null && x.days >= 7).length}</span>${act.some(x => x.days == null) ? `<span>⚪ Mai entrati ${act.filter(x => x.days == null).length}</span>` : ''}`;
       const sort = $('usersSort').value, ms = u => { const d = parseItDate(u.ultimoAccesso); return d ? +d : 0; };
       const sorter = sort === 'name' ? (a, b) => a.nome.localeCompare(b.nome) : sort === 'soc' ? (a, b) => (!a.societa - !b.societa) || (a.societa || '').localeCompare(b.societa || '') || a.nome.localeCompare(b.nome) : (a, b) => ms(b) - ms(a) || a.nome.localeCompare(b.nome);
       [pending, active, other].forEach(arr => arr.sort(sorter));
+      if (words.length) [pending, active, other].forEach(arr => { const keep = arr.filter(match); arr.length = 0; arr.push(...keep); });
       const canManage = u => u.email !== me && u.ruolo !== 'proprietario' && (owner || u.ruolo === 'tecnico');
       const item = (u, i) => {
         const badge = u.stato === 'in attesa' ? '<span class="role-badge attesa">In attesa</span>'
@@ -6137,7 +6148,9 @@
         </div>`;
       };
       const group = (title, arr) => arr.length ? `<div class="user-group-title">${title} <span class="count-pill">${arr.length}</span></div>` + arr.map(item).join('') : '';
-      $('usersList').innerHTML = (group('Da approvare', pending) + group('Attivi', active) + group('Bloccati e rifiutati', other)) || '<div class="empty-state">Nessun account.</div>';
+      const found = pending.length + active.length + other.length;
+      $('usersList').innerHTML = (words.length ? `<div class="more-note">${found} di ${usersCache.length} account trovati</div>` : '') +
+        ((group('Da approvare', pending) + group('Attivi', active) + group('Bloccati e rifiutati', other)) || `<div class="empty-state">${words.length ? 'Nessun account corrisponde alla ricerca.' : 'Nessun account.'}</div>`);
     }
 
     async function manageUser(email, op, ruolo) {
@@ -6171,6 +6184,7 @@
       document.addEventListener('click', e => { if (e.target.closest('[data-open-account]')) openAccount(); });
       $('usersReload').addEventListener('click', loadUsers);
       $('usersSort').addEventListener('change', () => { if (usersCache.length) renderUsers(); });
+      $('usersSearch').addEventListener('input', renderUsers);
       $('usersList').addEventListener('click', e => {
         const b = e.target.closest('button[data-op]'); if (!b) return;
         manageUser(b.closest('[data-email]').dataset.email, b.dataset.op);

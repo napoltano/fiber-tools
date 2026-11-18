@@ -1812,17 +1812,10 @@
           <div class="field-group">
             <label class="field-label" for="pfsOperatorSelect">Codice Colore</label>
             <select id="pfsOperatorSelect" class="custom-select">
-              <option value="openfiber">OPEN FIBER</option>
+              <option value="c16">DA 16 COLORI</option>
               <option value="enel">ENEL</option>
               <option value="bull_infratel">BULL / INFRATEL</option>
               <option value="tia">TIA-598-C</option>
-            </select>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="pfsCardTypeSelect">Tipo Cartolina</label>
-            <select id="pfsCardTypeSelect" class="custom-select">
-              <option value="12">12 Permute</option>
-              <option value="24">24 Permute</option>
             </select>
           </div>
         </div>
@@ -2284,6 +2277,14 @@
       return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
+    /** Sequenza "Da 16 colori" (sezione PFS): 12 lisce + 4 tacchettate, continua da una cartolina da 12 all'altra. */
+    const SEQ16 = [["ROSSO"],["VERDE"],["BLU"],["ARANCIO"],["GIALLO"],["BIANCO"],["MARRONE"],["GRIGIO"],["NERO"],["TURCHESE"],["ROSA"],["VIOLA"],
+      ["GIALLO",1],["BIANCO",1],["TURCHESE",1],["ROSA",1]];
+    /** Permuta 1.. -> { color, striped, k } con la sequenza da 16 (k = colore 1..16). */
+    function fiber16(n) { const k = (n - 1) % 16, [name, st] = SEQ16[k]; return { color: { name, class: C[name] }, striped: !!st, k: k + 1 }; }
+    const isC16 = () => $('pfsOperatorSelect').value === 'c16';
+    const PFS_CARD = 12;   // sezione PFS: cartoline sempre da 12 permute
+
     /** Posizione 1..24 -> { color, striped } */
     function fiberAt(palette, pos) {
       const striped = pos > 12;
@@ -2576,19 +2577,21 @@
     }
 
     function renderPfsColors() {
+      const c16 = isC16();
       const palette = baseColors[$('pfsOperatorSelect').value];
-      const cardType = parseInt($('pfsCardTypeSelect').value, 10);
+      const cardType = PFS_CARD;
+      const card16 = Math.max(1, intVal('pfsCardInput') || 1);
       if (selectedPfsPos !== null && selectedPfsPos > cardType) selectedPfsPos = null;
       const grid = $('pfsColorGrid');
       let html = '';
       for (let pos = 1; pos <= cardType; pos++) {
-        const { color, striped } = fiberAt(palette, pos);
+        const { color, striped } = c16 ? fiber16((card16 - 1) * 12 + pos) : fiberAt(palette, pos);
         html += `
           <button type="button" class="color-grid-btn ${selectedPfsPos === pos ? 'active' : ''}" data-pos="${pos}" style="--i:${pos - 1}" aria-pressed="${selectedPfsPos === pos}">
             <span class="check"><svg><use href="#i-check"/></svg></span>
             <span class="pos-badge">${pos}</span>
             <div class="swatch">${swatchHtml(color, striped)}</div>
-            <span class="color-name-sub">${color.name}</span>
+            <span class="color-name-sub">${color.name}${c16 && striped ? ' TACCH.' : ''}</span>
           </button>`;
       }
       grid.innerHTML = html;
@@ -2596,8 +2599,10 @@
 
     function updatePFS() {
       const op = $('pfsOperatorSelect').value;
-      const cardType = parseInt($('pfsCardTypeSelect').value, 10);
+      const cardType = PFS_CARD;
       const palette = baseColors[op];
+      const c16 = op === 'c16';
+      $('pfsResTag').textContent = c16 ? 'TACCHETTATO' : 'RIGA BIANCA';
 
       if (pfsSearchMode === 'permuta') {
         const permuta = intVal('pfsInput');
@@ -2609,12 +2614,13 @@
         setInvalid('pfsInput', '', 'pfsHint');
 
         const { group: cardNum, pos } = split(permuta, cardType);
-        const { color, striped } = fiberAt(palette, pos);
+        const f16 = c16 ? fiber16(permuta) : null;
+        const { color, striped } = f16 || fiberAt(palette, pos);
 
         $('pfsResTitle').textContent = `Permuta N° ${permuta}`;
         $('pfsResName').textContent = color.name;
         setTag('pfsResTag', striped);
-        $('pfsResSubtext').textContent = `Cartolina N° ${cardNum} • Posizione ${pos} su ${cardType}`;
+        $('pfsResSubtext').textContent = `Cartolina N° ${cardNum} • Posizione ${pos} su ${cardType}` + (f16 ? ` • Colore ${f16.k} su 16` : '');
         setBadge('pfsResBadge', color, striped);
         showResult('pfsResultCard', { m: 'p', op, cardType, permuta, hex: HEX[color.name] });
       } else {
@@ -2623,8 +2629,9 @@
         if (!(cardNum > 0) || selectedPfsPos === null) { $('pfsCardHint').textContent = ''; hideResult('pfsResultCard'); return; }
 
         const pos = selectedPfsPos;
-        const { color, striped } = fiberAt(palette, pos);
         const permuta = (cardNum - 1) * cardType + pos;
+        const f16 = c16 ? fiber16(permuta) : null;
+        const { color, striped } = f16 || fiberAt(palette, pos);
 
         if (permuta > 256) {
           $('pfsCardHint').textContent = `Permuta ${permuta} oltre il limite di 256: controlla il numero di cartolina.`;
@@ -2632,10 +2639,10 @@
           $('pfsCardHint').textContent = '';
         }
 
-        $('pfsResTitle').textContent = `Cartolina ${cardNum} • ${color.name}${striped ? ' (riga bianca)' : ''}`;
+        $('pfsResTitle').textContent = `Cartolina ${cardNum} • ${color.name}${striped ? (c16 ? ' tacchettato' : ' (riga bianca)') : ''}`;
         $('pfsResName').textContent = `PERMUTA N° ${permuta}`;
         setTag('pfsResTag', striped);
-        $('pfsResSubtext').textContent = `Posizione in cartolina: ${pos} su ${cardType}`;
+        $('pfsResSubtext').textContent = `Posizione in cartolina: ${pos} su ${cardType}` + (f16 ? ` • Colore ${f16.k} su 16` : '');
         setBadge('pfsResBadge', color, striped);
         showResult('pfsResultCard', { m: 'c', op, cardType, cardNum, pos, hex: HEX[color.name] });
       }
@@ -6313,8 +6320,9 @@
 
       // PFS
       document.querySelectorAll('[data-seg="pfs"] .pfs-mode-btn').forEach(b => b.addEventListener('click', () => setPfsSearchMode(b.dataset.mode)));
-      ['pfsOperatorSelect', 'pfsCardTypeSelect'].forEach(id => $(id).addEventListener('change', () => { renderPfsColors(); updatePFS(); }));
-      ['pfsInput', 'pfsCardInput'].forEach(id => $(id).addEventListener('input', updatePFS));
+      $('pfsOperatorSelect').addEventListener('change', () => { renderPfsColors(); updatePFS(); });
+      $('pfsInput').addEventListener('input', updatePFS);
+      $('pfsCardInput').addEventListener('input', () => { if (isC16()) renderPfsColors(); updatePFS(); });   // con 16 colori ogni cartolina ha colori diversi
       $('pfsColorGrid').addEventListener('click', e => {
         const b = e.target.closest('.color-grid-btn'); if (!b) return;
         selectedPfsPos = Number(b.dataset.pos);

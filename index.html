@@ -1702,8 +1702,8 @@
         <div id="fcGroupQuartina" class="mode-panel">
           <div class="row-fields">
             <div class="field-group">
-              <label class="field-label" for="fcQuartinaInput">N° Quartina (1 – 48)</label>
-              <input type="number" inputmode="numeric" id="fcQuartinaInput" class="custom-input" placeholder="es. 3" min="1" max="48">
+              <label class="field-label" for="fcQuartinaInput">N° Quartina (1 – 96)</label>
+              <input type="number" inputmode="numeric" id="fcQuartinaInput" class="custom-input" placeholder="es. 3" min="1" max="96">
             </div>
             <div class="field-group">
               <label class="field-label" for="fcPostoInput">Posizione (1 – 4)</label>
@@ -2720,11 +2720,11 @@
 
       if (fcSearchMode === 'quartina') {
         const q = intVal('fcQuartinaInput'), p = intVal('fcPostoInput');
-        const qBad = q !== null && !(q >= 1 && q <= 48);
+        const qBad = q !== null && !(q >= 1 && q <= 96);
         const pBad = p !== null && !(p >= 1 && p <= 4);
         setInvalid('fcQuartinaInput', qBad ? 'x' : '');
         setInvalid('fcPostoInput', pBad ? 'x' : '');
-        $('fcQuartinaHint').textContent = qBad ? 'La quartina va da 1 a 48.' : pBad ? 'La posizione va da 1 a 4.' : '';
+        $('fcQuartinaHint').textContent = qBad ? 'La quartina va da 1 a 96.' : pBad ? 'La posizione va da 1 a 4.' : '';
         if (q === null || p === null || qBad || pBad) { hideResult('fcResultCard'); return; }
 
         fiberNum = (q - 1) * 4 + p;

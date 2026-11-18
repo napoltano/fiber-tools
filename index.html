@@ -972,6 +972,8 @@
 
     /* ---------- V3 ---------- */
     .t-teal   { --tile-bg: color-mix(in srgb, #14b8a6 15%, transparent); --tile-fg: #0d9488; }
+    .fc-note { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 4px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, #0284c7 10%, transparent); color: var(--text); font-size: .8rem; line-height: 1.4; }
+    .fc-note svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: #0284c7; }
     .t-cen    { --tile-bg: color-mix(in srgb, #0284c7 15%, transparent); --tile-fg: #0369a1; }
     .t-pink   { --tile-bg: color-mix(in srgb, #ec4899 15%, transparent); --tile-fg: #db2777; }
     @keyframes gcPulse { 50% { opacity: .25; } }
@@ -1695,6 +1697,8 @@
           <button id="fcModeFiberBtn" type="button" class="pfs-mode-btn" data-mode="fiber">Da N° Fibra</button>
         </div>
 
+        <div class="fc-note" role="note"><svg><use href="#i-info"/></svg><span><b>Lato rastrelliera</b> · i colori si ripetono ogni 8 fibre: ogni cartolina (2 quartine) riparte da ROSSO e finisce con ROSA.</span></div>
+
         <div id="fcGroupQuartina" class="mode-panel">
           <div class="row-fields">
             <div class="field-group">
@@ -1714,7 +1718,7 @@
             <label class="field-label" for="fcCardInput">Numero Cartolina (8 fibre / cad.)</label>
             <input type="number" inputmode="numeric" id="fcCardInput" class="custom-input" placeholder="es. 2" min="1">
           </div>
-          <label class="field-label">Seleziona la posizione nella cartolina (1 – 8): i colori seguono la sequenza da 12</label>
+          <label class="field-label">Seleziona la posizione nella cartolina (1 – 8)</label>
           <div id="fcColorGrid" class="color-grid"></div>
         </div>
 
@@ -2694,7 +2698,9 @@
 
     /* FiberCop: i colori seguono la sequenza da 12 senza interruzioni; le cartoline da 8 la "tagliano".
        Fibra 1–8 = rosso…rosa, fibra 9–16 = arancio…marrone, fibra 17–24 = blu…grigio, poi si ricomincia. */
-    const fcColorOf = fiberNum => baseColors.fibercop[(fiberNum - 1) % 12];
+    // Lato rastrelliera: i colori si ripetono ogni 8 fibre (1 cartolina = 2 quartine)
+    const FC_CYCLE = 8;
+    const fcColorOf = fiberNum => baseColors.fibercop[(fiberNum - 1) % FC_CYCLE];
     const fcCardColors = cardNum => Array.from({ length: 8 }, (_, i) => fcColorOf((cardNum - 1) * 8 + i + 1));
 
     function renderFcColors() {
@@ -2723,11 +2729,10 @@
 
         fiberNum = (q - 1) * 4 + p;
         const card = split(fiberNum, 8);
-        // Da quartina i colori si ripetono ogni 8 fibre (2 quartine): Q2 posto 4 = Q4 posto 4 = ROSA
-        const color = baseColors.fibercop[(fiberNum - 1) % 8];
+        const color = fcColorOf(fiberNum);
         title = `Quartina ${q} • Posto ${p}`;
         name = `FIBRA N° ${fiberNum} (${color.name})`;
-        sub = `Cartolina N° ${card.group} • Posizione ${card.pos} su 8 • Colore ${((fiberNum - 1) % 8) + 1} su 8`;
+        sub = `Cartolina N° ${card.group} • Posizione ${card.pos} su 8 • Colore ${((fiberNum - 1) % FC_CYCLE) + 1} su 8`;
         finishFc(color, title, name, sub, { m: 'q', q, p });
 
       } else if (fcSearchMode === 'cartolina') {
@@ -2740,7 +2745,7 @@
         const color = fcColorOf(fiberNum);
         title = `Cartolina ${cardNum} • Posizione ${selectedFcCardPos}`;
         name = `FIBRA N° ${fiberNum} (${color.name})`;
-        sub = `Quartina N° ${quart.group} • Posto N° ${quart.pos}`;
+        sub = `Quartina N° ${quart.group} • Posto N° ${quart.pos} • Colore ${selectedFcCardPos} su 8`;
         finishFc(color, title, name, sub, { m: 'c', cardNum, p: selectedFcCardPos });
 
       } else {
@@ -2752,7 +2757,7 @@
         const color = fcColorOf(f);
         title = `Fibra N° ${f}`;
         name = `COLORE: ${color.name}`;
-        sub = `Quartina ${quart.group} (posto ${quart.pos}) • Cartolina ${card.group} (pos. ${card.pos})`;
+        sub = `Quartina ${quart.group} (posto ${quart.pos}) • Cartolina ${card.group} (pos. ${card.pos}) • Colore ${((f - 1) % FC_CYCLE) + 1} su 8`;
         finishFc(color, title, name, sub, { m: 'f', f });
       }
     }

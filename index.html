@@ -2723,10 +2723,11 @@
 
         fiberNum = (q - 1) * 4 + p;
         const card = split(fiberNum, 8);
-        const color = fcColorOf(fiberNum);
+        // Da quartina i colori si ripetono ogni 8 fibre (2 quartine): Q2 posto 4 = Q4 posto 4 = ROSA
+        const color = baseColors.fibercop[(fiberNum - 1) % 8];
         title = `Quartina ${q} • Posto ${p}`;
         name = `FIBRA N° ${fiberNum} (${color.name})`;
-        sub = `Cartolina N° ${card.group} • Posizione ${card.pos} su 8 • Colore ${((fiberNum - 1) % 12) + 1} su 12`;
+        sub = `Cartolina N° ${card.group} • Posizione ${card.pos} su 8 • Colore ${((fiberNum - 1) % 8) + 1} su 8`;
         finishFc(color, title, name, sub, { m: 'q', q, p });
 
       } else if (fcSearchMode === 'cartolina') {

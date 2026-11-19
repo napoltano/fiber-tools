@@ -1793,7 +1793,7 @@
         </div>
         <button class="btn-secondary sj-reset" type="button" id="sjResetBtn"><svg><use href="#i-trash"/></svg> Nuovo schema</button>
       </div>
-      <p class="sj-note">Tubetti da 12 fibre fino ai cavi da 48, da 24 fibre dai cavi da 96 in su. Strumento di supporto: verifica sempre lo schema con le specifiche del gestore di rete.</p>
+      <p class="sj-note">Tubetti da 12 fibre fino ai cavi da 72, da 24 dai cavi da 96 in su; i cavi da 288 e 432 hanno tubetti da 36 (fibre 13–24 tacchettate, 25–36 doppio tacchettate). Strumento di supporto: verifica sempre lo schema con le specifiche del gestore di rete.</p>
       </div>
     </section>
 
@@ -7032,19 +7032,19 @@
     };
     const SJ_KEY = 'fiber_tools_splice';
     const SJ_PAL = ['#0d9488', '#7c3aed', '#ea580c', '#db2777', '#2563eb', '#ca8a04', '#16a34a', '#9333ea', '#0891b2', '#dc2626'];
-    const RING_TXT = ['', 'anellato', '2 anelli'];
+    const RING_TXT = ['', 'tacchettato', 'doppio tacchettato'];
 
-    /** Fibre per tubetto: 12 fino ai cavi da 72 (6 tubetti da 12), 24 dai cavi da 96 in su; Open Fiber 288 fo = 8 tubetti da 36. */
-    function sjTubeSize(cap, net = sj && sj.net) { if (net === 'openfiber' && cap === 288) return 36; return cap <= 72 ? 12 : 24; }
+    /** Fibre per tubetto: 12 fino ai cavi da 72, 24 dai 96 in su; i cavi da 288 e 432 hanno tubetti da 36 (8 e 12 tubetti). */
+    function sjTubeSize(cap) { if (cap === 288 || cap === 432) return 36; return cap <= 72 ? 12 : 24; }
 
-    /** Fibra n di un cavo: tubetto, colore e anellatura (fibre 13–24 del tubetto). Negli anellati il nero diventa trasparente. */
+    /** Fibra n di un cavo: tubetto e colore; nel tubetto le fibre 13–24 sono tacchettate e le 25–36 doppio tacchettate. Nelle tacchettate il nero diventa trasparente. */
     function sjFiber(net, cap, n) {
       const ts = sjTubeSize(cap, net);
       const tube = Math.ceil(n / ts), pos = ((n - 1) % ts) + 1;
       const ring = Math.floor((pos - 1) / 12);
       let color = SJ_NETS[net].seq[(pos - 1) % 12];
       if (ring > 0 && color === 'NERO') color = 'TRASPARENTE';
-      return { n, tube, pos, ring, color, name: color + (ring === 1 ? ' ANELLATO' : ring === 2 ? ' 2 ANELLI' : '') };
+      return { n, tube, pos, ring, color, name: color + (ring === 1 ? ' TACCHETTATO' : ring === 2 ? ' DOPPIO TACCHETTATO' : '') };
     }
 
     function sjDefault() {
@@ -7240,7 +7240,8 @@
     const pdfNum = n => (Math.round(n * 100) / 100).toString();
     function pdfRgb(hex) { const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '') || [0, 'ff', 'ff', 'ff']; return [1, 2, 3].map(i => pdfNum(parseInt(m[i], 16) / 255)).join(' '); }
     /** Larghezza approssimata di un testo in Helvetica (per andare a capo e troncare). */
-    const pdfTextW = (t, size, bold) => String(t).length * size * (bold ? 0.56 : 0.51);
+    /** Larghezza stimata in Helvetica: maiuscole più larghe delle minuscole, spazi stretti. */
+    const pdfTextW = (t, size, bold) => { let w = 0; for (const ch of String(t)) w += ch === ' ' ? 0.28 : /[MW]/.test(ch) ? 0.85 : /[A-Z]/.test(ch) ? 0.69 : /[0-9]/.test(ch) ? 0.56 : /[ilj.,:;'|!]/.test(ch) ? 0.25 : 0.52; return w * size * (bold ? 1.07 : 1); };
     function makePdfDoc() {
       const pages = []; let cur = null;
       const doc = {
@@ -7304,7 +7305,9 @@
       const fiberCell = (x, f, w) => {
         const fill = f.color === 'TRASPARENTE' ? '#ffffff' : (HEX[f.color] || '#ffffff');
         doc.circle(x + 11, y + RH / 2, 4.2, fill, '#64748b');
-        doc.text(x + 20, y + 11.2, fit(f.name, w - 24, 9), { size: 9 });
+        let fz = 9; const room = w - 28;   // i nomi lunghi (es. TRASPARENTE DOPPIO TACCHETTATO) si rimpiccioliscono invece di uscire dalla colonna
+        while (fz > 6 && pdfTextW(f.name, fz) > room) fz -= 0.5;
+        doc.text(x + 20, y + 11.2, fit(f.name, room, fz), { size: fz });
       };
       sjLast.cables.forEach(c => {
         if (y + 34 + RH * 3 > BOTTOM) { doc.addPage(); y = M; }

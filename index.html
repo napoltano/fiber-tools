@@ -7022,7 +7022,7 @@
     }
 
     /* ================= SCHEMA DI GIUNZIONE (più cavi N− / N+) ================= */
-    const SJ_CAPS = [12, 24, 48, 72, 96, 120, 144, 192, 288, 396, 432];
+    const SJ_CAPS = [12, 24, 48, 72, 96, 120, 144, 192, 288, 432];
     const SJ_NETS = {
       fibercop:  { label: 'FiberCop / TIM – ST 908', seq: STD },
       openfiber: { label: 'Open Fiber – ST 1701', seq: ["ROSSO","VERDE","GIALLO","MARRONE","BLU","VIOLA","GRIGIO","ARANCIO","ROSA","BIANCO","NERO","TURCHESE"] },
@@ -7065,6 +7065,8 @@
         return d;
       }
       if (!SJ_NETS[s.net]) s.net = 'fibercop';
+      // il cavo da 396 non esiste più: gli schemi salvati passano al 432 invece di perdere il cavo
+      [...(s.ins || []), ...(s.outs || [])].forEach(c => { if (c && +c.cap === 396) c.cap = 432; });
       s.ins = s.ins.filter(c => c && SJ_CAPS.includes(+c.cap)).map(c => ({ name: String(c.name || ''), cap: +c.cap }));
       if (!s.ins.length) s.ins = sjDefault().ins;
       s.outs = (s.outs || []).filter(Boolean).map(o => ({ name: String(o.name || ''), src: Math.min(Math.max(0, +o.src || 0), s.ins.length - 1),

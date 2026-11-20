@@ -41,9 +41,9 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 16;
+const SCRIPT_VERSION = 17;
 const N_OTTICI = 16;
-const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_LOG = 'Storico';
+const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_CEN = 'Centrali', SH_FIX = 'Correzioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
 const RIB_NOTE_COL = RIB_FOTO_COL + 1;        // colonna 38 (dalla v9)
 
@@ -80,8 +80,25 @@ function ribSheet_() {
   }
   return sh;
 }
-const posSheet_ = () => sheet_(SH_POS, ['ANELLO', 'PFS', 'LAT', 'LNG', 'NOTE', 'TECNICO', 'DATA', 'FOTO', 'MAPPA', 'REV']);
+const POS_HEADER = ['ANELLO', 'PFS', 'LAT', 'LNG', 'NOTE', 'TECNICO', 'DATA', 'FOTO', 'MAPPA', 'REV', 'VERIFICATA'];
 const POS_REV_COL = 10;   // revisione della riga: serve ai telefoni per scaricare solo i PFS cambiati
+const POS_VER_COL = 11;   // "20/11/2026 · MARIO ROSSI": posizione controllata sul campo con il GPS
+const posSheet_ = () => sheet_(SH_POS, POS_HEADER);
+/** Le centrali FiberCop stanno in un foglio a parte (archivio diviso per tipo). */
+const cenSheet_ = () => sheet_(SH_CEN, POS_HEADER);
+const isCenCode_ = (pfs, anello) => norm_(anello) === 'CEN' || /^CEN /.test(norm_(pfs));
+const posSheetFor_ = (pfs, anello) => isCenCode_(pfs, anello) ? cenSheet_() : posSheet_();
+const allPosSheets_ = () => [posSheet_(), cenSheet_()];
+/** Trova un codice in tutto l'archivio: { sh, row, vals } oppure null. */
+function findPosRow_(pfs) {
+  pfs = norm_(pfs);
+  const order = isCenCode_(pfs, '') ? [cenSheet_(), posSheet_()] : [posSheet_(), cenSheet_()];
+  for (const sh of order) {
+    const r = posIndex_(sh).idx[pfs];
+    if (r) return { sh: sh, row: r, vals: sh.getRange(r, 1, 1, POS_VER_COL).getValues()[0] };
+  }
+  return null;
+}
 /** Indice codice PFS → riga del foglio, leggendo solo la colonna B (veloce anche con 100.000 righe). */
 function posIndex_(sh) {
   const last = sh.getLastRow(), idx = {};
@@ -90,7 +107,10 @@ function posIndex_(sh) {
   for (let i = 0; i < col.length; i++) { const k = norm_(col[i][0]); if (k && idx[k] === undefined) idx[k] = i + 2; }
   return { idx: idx, last: last };
 }
-function ensureRevHeader_(sh) { if (sh.getLastColumn() < POS_REV_COL || String(sh.getRange(1, POS_REV_COL).getValue()) !== 'REV') sh.getRange(1, POS_REV_COL).setValue('REV'); }
+function ensureRevHeader_(sh) {
+  if (sh.getLastColumn() < POS_REV_COL || String(sh.getRange(1, POS_REV_COL).getValue()) !== 'REV') sh.getRange(1, POS_REV_COL).setValue('REV');
+  if (sh.getLastColumn() < POS_VER_COL || String(sh.getRange(1, POS_VER_COL).getValue()) !== 'VERIFICATA') sh.getRange(1, POS_VER_COL).setValue('VERIFICATA');
+}
 /** La prossima revisione per le posizioni (uguale per tutte le righe scritte in questa richiesta). */
 function nextPosRev_() { const p = props_(); return Math.max(Date.now(), Number(p.getProperty('REV_POS') || 0) + 1); }
 function posRow_(anello, pfs, lat, lng, note, tecnico, ts, fotoId, rev) {
@@ -158,15 +178,15 @@ function teamOk_(key) {
 
 /* ------------------------------------------------------------------ account */
 const SH_USERS = 'Utenti';
-const U = { EMAIL: 0, NOME: 1, STATO: 2, RUOLO: 3, HASH: 4, SALT: 5, NEW_HASH: 6, NEW_SALT: 7, REG: 8, LAST: 9, BY: 10, SOC: 11, DEV: 12 };
-const USER_COLS = 13;
+const U = { EMAIL: 0, NOME: 1, STATO: 2, RUOLO: 3, HASH: 4, SALT: 5, NEW_HASH: 6, NEW_SALT: 7, REG: 8, LAST: 9, BY: 10, SOC: 11, DEV: 12, DIDS: 13 };
+const USER_COLS = 14;
 const ROLE_LEVEL = { tecnico: 1, admin: 2, proprietario: 3 };
 const TOKEN_DAYS = 180;
-const USER_HEADER = ['EMAIL', 'NOME', 'STATO', 'RUOLO', 'HASH', 'SALT', 'NUOVA_PASSWORD_HASH', 'NUOVA_PASSWORD_SALT', 'REGISTRATO', 'ULTIMO_ACCESSO', 'APPROVATO_DA', 'SOCIETA', 'DISPOSITIVO'];
+const USER_HEADER = ['EMAIL', 'NOME', 'STATO', 'RUOLO', 'HASH', 'SALT', 'NUOVA_PASSWORD_HASH', 'NUOVA_PASSWORD_SALT', 'REGISTRATO', 'ULTIMO_ACCESSO', 'APPROVATO_DA', 'SOCIETA', 'DISPOSITIVO', 'ID_DISPOSITIVI'];
 function usersSheet_() {
   const sh = sheet_(SH_USERS, USER_HEADER);
   // fogli creati con versioni precedenti: aggiunge le intestazioni delle colonne nuove
-  [[U.SOC, 'SOCIETA'], [U.DEV, 'DISPOSITIVO']].forEach(([c, name]) => {
+  [[U.SOC, 'SOCIETA'], [U.DEV, 'DISPOSITIVO'], [U.DIDS, 'ID_DISPOSITIVI']].forEach(([c, name]) => {
     if (String(sh.getRange(1, c + 1).getValue()) !== name) {
       sh.getRange(1, c + 1).setValue(name).setFontWeight('bold').setBackground('#e0f2fe');
       sh.getRange(1, c + 1, sh.getMaxRows(), 1).setNumberFormat('@');
@@ -175,6 +195,56 @@ function usersSheet_() {
   return sh;
 }
 const normSoc_ = v => String(v == null ? '' : v).trim().replace(/\s+/g, ' ').toUpperCase();
+/* Società scritte in modi diversi (COGEPA, CO.GE.PA SPA…) diventano un nome solo. */
+const SOC_LEGAL_RE = /(^|[\s.,])(S\.?\s?R\.?\s?L\.?\s?S?|S\.?\s?P\.?\s?A|S\.?\s?N\.?\s?C|S\.?\s?A\.?\s?S|S\.?\s?O\.?\s?A)\.?(?=$|[\s.,])/g;
+const SOC_ALIAS = { CIRCETITALIA: 'CIRCET', TECNOTELSYSTEM: 'TECNOTEL', BTT: 'BTTFIBER', OPENFIBERNETWORKSOLUTIONS: 'OFNS', FIBERTEACH: 'FIBERTECH', FEDFIBERDRIVE: 'FIBERDRIVE',
+  LIBEROPROFESSIONISTA: 'ALTRO', ALTROLIBEROPROFESSIONISTA: 'ALTRO', AUTONOMO: 'ALTRO', PRIVATO: 'ALTRO', LIBERO: 'ALTRO' };
+const SOC_DISPLAY = { ALTRO: 'ALTRO / LIBERO PROFESSIONISTA', OFNS: 'OFNS', TECNOTEL: 'TECNOTEL SYSTEM', BTTFIBER: 'BTT FIBER', OPENFIBER: 'OPEN FIBER', DOCOTEL: 'DO.CO.TEL',
+  IRC: 'I.R.C.', FIBERDRIVE: 'FIBERDRIVE', FIBERTECH: 'FIBERTECH', COGEPA: 'COGEPA', CIRCET: 'CIRCET', SITE: 'SITE', SIETEL: 'SIETEL', MEDIASISTEM: 'MEDIASISTEM', PERFORDES: 'PERFORDES' };
+function socClean_(v) {
+  let s = normSoc_(v).replace(/_/g, ' ').replace(SOC_LEGAL_RE, '$1').replace(/\s+/g, ' ').replace(/[\s.,-]+$/, '').trim();
+  if (/^[A-Z0-9]{4,}SRLS?$/.test(s)) s = s.replace(/SRLS?$/, '');
+  return s;
+}
+function socKey_(v) { const k = socClean_(v).replace(/&/g, 'E').replace(/[^A-Z0-9]/g, ''); return SOC_ALIAS[k] || k; }
+/** Società presenti: chiave -> { name, n (account attivi) }. Il nome è quello scritto più spesso. */
+function companyIndex_(users) {
+  const idx = {};
+  users.rows.forEach(u => {
+    const k = socKey_(u.row[U.SOC]); if (!k) return;
+    const c = idx[k] = idx[k] || { n: 0, v: {} };
+    const cl = socClean_(u.row[U.SOC]); c.v[cl] = (c.v[cl] || 0) + 1;
+    if (stato_(u.row) === 'attivo') c.n++;
+  });
+  Object.keys(idx).forEach(k => { const v = idx[k].v; idx[k].name = SOC_DISPLAY[k] || Object.keys(v).sort((a, b) => v[b] - v[a] || a.length - b.length)[0]; });
+  return idx;
+}
+function socCanon_(v, idx) { const k = socKey_(v); if (!k) return normSoc_(v); return idx[k] ? idx[k].name : (SOC_DISPLAY[k] || socClean_(v)); }
+const SOC_KNOWN_MIN = 2;   // una società è "conosciuta" con almeno 2 account attivi
+const socKnown_ = (v, idx) => { const k = socKey_(v); return !!k && k !== 'ALTRO' && !!idx[k] && idx[k].n >= SOC_KNOWN_MIN; };
+/** Elenco pubblico delle società conosciute (per la scelta in registrazione). */
+function companies_() {
+  const c = CacheService.getScriptCache(), v = c.get('societa');
+  if (v) return JSON.parse(v);
+  const idx = companyIndex_(readUsers_());
+  const out = { status: 'success', societa: Object.keys(idx).filter(k => k !== 'ALTRO' && idx[k].n >= SOC_KNOWN_MIN).map(k => idx[k].name).sort() };
+  c.put('societa', JSON.stringify(out), 600);
+  return out;
+}
+/** Da eseguire dall'editor: riscrive le società degli account con il nome uniforme. */
+function pulisciSocieta() {
+  const users = readUsers_(), idx = companyIndex_(users);
+  let n = 0;
+  const col = users.sh.getRange(2, U.SOC + 1, users.sh.getLastRow() - 1, 1).getValues();
+  users.rows.forEach(u => {
+    const old = String(u.row[U.SOC] || ''), nu = socCanon_(old, idx);
+    if (nu && nu !== old) { col[u.rowNum - 2][0] = nu; n++; }
+  });
+  users.sh.getRange(2, U.SOC + 1, col.length, 1).setNumberFormat('@').setValues(col);
+  CacheService.getScriptCache().remove('societa');
+  log_('Società uniformate', 'ACCOUNT', '', 'SCRIPT', n + ' account aggiornati, ' + Object.keys(idx).length + ' società');
+  Logger.log(n + ' account aggiornati. Società: ' + Object.keys(idx).map(k => idx[k].name + ' (' + idx[k].n + ')').sort().join(', '));
+}
 const normEmail_ = v => String(v == null ? '' : v).trim().toLowerCase();
 const err_ = (code, message) => ({ status: 'error', code: code, message: message });
 
@@ -251,12 +321,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function register_(b) {
   const email = normEmail_(b.email), nome = String(b.nome || '').trim().replace(/\s+/g, ' ').toUpperCase(), pwd = String(b.password || '');
-  const societa = normSoc_(b.societa);
+  let societa = normSoc_(b.societa);
   if (!EMAIL_RE.test(email)) return err_('input', 'Email non valida');
   if (nome.length < 2 || nome.length > 60) return err_('input', 'Inserisci nome e cognome');
   if (societa.length < 2 || societa.length > 60) return err_('input', 'Indica la società per cui lavori');
   if (pwd.length < 8) return err_('input', 'La password deve avere almeno 8 caratteri');
   const users = readUsers_();
+  societa = socCanon_(societa, companyIndex_(users));
   const salt = newSalt_(), hash = hashPwd_(pwd, salt), now = nowIt_();
   const ex = findUser_(users, email);
   if (!users.rows.length) {
@@ -339,6 +410,13 @@ function verifyEmail_(b) {
   }
   cache.remove(ck);
   const now = nowIt_();
+  if (!socKnown_(u.row[U.SOC], companyIndex_(users))) {
+    // società nuova o "altro": l'email è verificata ma l'accesso ai dati lo decide un amministratore
+    u.row[U.STATO] = 'in attesa'; u.row[U.BY] = ''; u.row[U.DEV] = cleanDev_(b.device) || '';
+    writeUser_(users, u);
+    log_('Richiesta di accesso', 'ACCOUNT', email, u.row[U.NOME], String(u.row[U.SOC] || '') + ' · email verificata, società da approvare');
+    return { status: 'success', stato: 'in attesa', message: 'Email verificata. La tua società non è ancora tra quelle conosciute: un amministratore approverà l’accesso a breve.' };
+  }
   u.row[U.STATO] = 'attivo'; u.row[U.BY] = 'EMAIL VERIFICATA'; u.row[U.LAST] = now; u.row[U.DEV] = cleanDev_(b.device) || '';
   writeUser_(users, u);
   cache.remove('n_utenti');
@@ -393,23 +471,47 @@ function itMs_(v) {
   return m ? new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime() : 0;
 }
 /** Aggiorna ultimo accesso e dispositivo; scrive sul foglio al massimo ogni 10 minuti per utente. */
-function touch_(a, device) {
+const DEV_ALERT = 3, DL_ALERT = 5;   // avvisi agli amministratori: più di 3 dispositivi, più di 5 archivi completi in poche ore
+function touch_(a, device, did) {
   try {
-    const dev = cleanDev_(device), row = a.user.row;
-    const cache = CacheService.getScriptCache(), ck = 'seen_' + normEmail_(row[U.EMAIL]);
-    if (cache.get(ck) && (!dev || dev === String(row[U.DEV] || ''))) return;
+    const dev = cleanDev_(device), row = a.user.row, email = normEmail_(row[U.EMAIL]);
+    did = String(did || '').replace(/[^\w-]/g, '').slice(0, 24);
+    let dids = []; try { dids = JSON.parse(row[U.DIDS] || '[]'); } catch (e) {}
+    const newDid = did && !dids.some(x => x[0] === did);
+    const cache = CacheService.getScriptCache(), ck = 'seen_' + email;
+    if (cache.get(ck) && (!dev || dev === String(row[U.DEV] || '')) && !newDid) return;
+    const today = nowIt_().slice(0, 10);
+    if (did) { dids = dids.filter(x => x[0] !== did); dids.push([did, today]); dids = dids.slice(-12); row[U.DIDS] = JSON.stringify(dids); }
     row[U.LAST] = nowIt_(); if (dev) row[U.DEV] = dev;
     writeUser_(a.users, a.user);
     cache.put(ck, '1', 600);
+    // dispositivi usati negli ultimi 30 giorni
+    const recent = dids.filter(x => (Date.now() - itMs_(x[1])) < 30 * 864e5).length;
+    if (newDid && recent > DEV_ALERT && !cache.get('alert_dev_' + email)) {
+      cache.put('alert_dev_' + email, '1', 21600);
+      log_('Uso anomalo', 'ACCOUNT', email, row[U.NOME], 'Account usato da ' + recent + ' dispositivi diversi in 30 giorni');
+    }
   } catch (e) { /* l'ultimo accesso non deve mai bloccare l'app */ }
+}
+/** Conta gli archivi completi scaricati: un account che li scarica di continuo potrebbe copiare i dati. */
+function countFullDownload_(a) {
+  try {
+    const row = a.user.row, email = normEmail_(row[U.EMAIL]), cache = CacheService.getScriptCache(), k = 'dl_' + email;
+    const n = Number(cache.get(k) || 0) + 1;
+    cache.put(k, String(n), 21600);
+    if (n > DL_ALERT && !cache.get('alert_dl_' + email)) {
+      cache.put('alert_dl_' + email, '1', 21600);
+      log_('Uso anomalo', 'ACCOUNT', email, row[U.NOME], 'Archivio completo delle posizioni scaricato ' + n + ' volte in poche ore');
+    }
+  } catch (e) {}
 }
 
 function me_(b) {
   const a = authUser_(b.token, 1);
   if (a.error) return a.error;
-  touch_(a, b.device);
+  touch_(a, b.device, b.did);
   const res = { status: 'success', user: publicUser_(a.user.row) };
-  if (ROLE_LEVEL[res.user.ruolo] >= 2) res.pendingCount = pendingCount_(a.users);
+  if (ROLE_LEVEL[res.user.ruolo] >= 2) { res.pendingCount = pendingCount_(a.users); res.pendingFixes = pendingFixes_(); }
   return res;
 }
 
@@ -429,7 +531,7 @@ function changePassword_(b) {
 function setProfile_(b) {
   const a = authUser_(b.token, 1);
   if (a.error) return a.error;
-  const societa = normSoc_(b.societa);
+  const societa = socCanon_(b.societa, companyIndex_(a.users));
   if (societa.length < 2 || societa.length > 60) return err_('input', 'Indica la società per cui lavori');
   a.user.row[U.SOC] = societa; writeUser_(a.users, a.user);
   log_('Società indicata', 'ACCOUNT', normEmail_(a.user.row[U.EMAIL]), a.user.row[U.NOME], societa);
@@ -476,7 +578,7 @@ function manageUser_(b) {
     if (myRole !== 'proprietario') return err_('forbidden', 'Solo il proprietario può nominare gli amministratori');
     target.row[U.RUOLO] = r; detail = r === 'admin' ? 'Nominato amministratore' : 'Ruolo: tecnico';
   } else if (op === 'societa') {
-    const soc = normSoc_(b.societa);
+    const soc = socCanon_(b.societa, companyIndex_(a.users));
     if (soc.length < 2 || soc.length > 60) return err_('input', 'Società non valida');
     target.row[U.SOC] = soc; detail = 'Società: ' + soc;
   } else if (op === 'elimina') {
@@ -528,15 +630,17 @@ function readRib_() {
 }
 
 function readPos_() {
-  const values = posSheet_().getDataRange().getValues();
   const out = {};
+  allPosSheets_().forEach(sh => {
+  const values = sh.getDataRange().getValues();
   for (let r = 1; r < values.length; r++) {
     const row = values[r];
     const pfs = norm_(row[1]);
     const lat = Number(String(row[2]).replace(',', '.')), lng = Number(String(row[3]).replace(',', '.'));
     if (!pfs || !isFinite(lat) || !isFinite(lng)) continue;
-    out[pfs] = { anello: norm_(row[0]), pfs: pfs, lat: lat, lng: lng, note: String(row[4] || ''), tecnico: String(row[5] || ''), updatedAt: String(row[6] || ''), fotoId: String(row[7] || '') };
+    out[pfs] = { anello: norm_(row[0]), pfs: pfs, lat: lat, lng: lng, note: String(row[4] || ''), tecnico: String(row[5] || ''), updatedAt: String(row[6] || ''), fotoId: String(row[7] || ''), verificata: String(row[10] || '') };
   }
+  });
   return out;
 }
 
@@ -551,7 +655,7 @@ function history_(pfs, splitter) {
 }
 
 /* ------------------------------------------------------------------ notifiche agli amministratori */
-const CONTENT_ACTIONS = ['Creata', 'Modificata', 'Eliminata', 'Posizione salvata', 'Posizione modificata', 'Posizione eliminata', 'Importazione posizioni'];
+const CONTENT_ACTIONS = ['Creata', 'Modificata', 'Eliminata', 'Posizione salvata', 'Posizione modificata', 'Posizione eliminata', 'Importazione posizioni', 'Correzione proposta', 'Posizione verificata', 'Uso anomalo', 'Richiesta di accesso'];
 /** Contenuti aggiunti o modificati dagli altri utenti dopo la riga «since» dello Storico (le più recenti per prime). */
 function activity_(ad, since) {
   const sh = logSheet_(), last = sh.getLastRow();
@@ -652,7 +756,7 @@ function savePos_(b) {
   const lat = Number(b.lat), lng = Number(b.lng);
   if (!pfs || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return { status: 'error', message: 'PFS o coordinate non validi' };
   const anello = norm_(b.anello) || (/^([A-Z]+_\d+)/.exec(pfs) || [, pfs.split('/')[0]])[1];
-  const sh = posSheet_();
+  const sh = posSheetFor_(pfs, anello);
   ensureRevHeader_(sh);
   const ix = posIndex_(sh), rowNum = ix.idx[pfs] || -1;
   const oldRow = rowNum > 0 ? sh.getRange(rowNum, 1, 1, POS_REV_COL).getValues()[0] : null;
@@ -681,38 +785,115 @@ function savePos_(b) {
 /** Salvataggio di molte posizioni in una volta sola (importazione da Google My Maps). */
 function savePosBatch_(b) {
   const items = Array.isArray(b.items) ? b.items : [];
-  const sh = posSheet_();
-  ensureRevHeader_(sh);
-  const ix = posIndex_(sh), rev = nextPosRev_();
   const skipExisting = b.onlyNew === true;   // importazione: i PFS già presenti non si toccano
+  const rev = nextPosRev_();
   let added = 0, updated = 0, skipped = 0, existing = 0;
-  const newRows = [], seen = {};
+  const seen = {}, groups = { pos: [], cen: [] };
   items.forEach(it => {
     const pfs = norm_(it.pfs), lat = Number(it.lat), lng = Number(it.lng);
     if (!pfs || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || seen[pfs]) { skipped++; return; }
     seen[pfs] = true;
     const anello = norm_(it.anello) || (/^([A-Z]+_\d+)/.exec(pfs) || [, pfs.split('/')[0]])[1];
-    const r = ix.idx[pfs];
-    if (r) {
-      if (skipExisting) { existing++; return; }
-      const old = sh.getRange(r, 1, 1, POS_REV_COL).getValues()[0];
-      const row = posRow_(anello, pfs, lat, lng, (it.note === undefined || it.note === '') ? old[4] : it.note, it.tecnico, it.timestamp, String(old[7] || ''), rev);
-      writeRows_(sh, r, [row]); updated++;
-    } else {
-      newRows.push(posRow_(anello, pfs, lat, lng, it.note, it.tecnico, it.timestamp, '', rev)); added++;
-    }
+    groups[isCenCode_(pfs, anello) ? 'cen' : 'pos'].push({ it: it, pfs: pfs, lat: lat, lng: lng, anello: anello });
   });
-  if (newRows.length) writeRows_(sh, ix.last + 1, newRows);   // in coda, in un colpo solo
+  [['pos', posSheet_], ['cen', cenSheet_]].forEach(([g, getSh]) => {
+    if (!groups[g].length) return;
+    const sh = getSh();
+    ensureRevHeader_(sh);
+    const ix = posIndex_(sh), newRows = [];
+    groups[g].forEach(x => {
+      const r = ix.idx[x.pfs], it = x.it;
+      if (r) {
+        if (skipExisting) { existing++; return; }
+        const old = sh.getRange(r, 1, 1, POS_REV_COL).getValues()[0];
+        writeRows_(sh, r, [posRow_(x.anello, x.pfs, x.lat, x.lng, (it.note === undefined || it.note === '') ? old[4] : it.note, it.tecnico, it.timestamp, String(old[7] || ''), rev)]);
+        updated++;
+      } else {
+        newRows.push(posRow_(x.anello, x.pfs, x.lat, x.lng, it.note, it.tecnico, it.timestamp, '', rev)); added++;
+      }
+    });
+    if (newRows.length) writeRows_(sh, ix.last + 1, newRows);   // in coda, in un colpo solo
+  });
   if (added || updated) log_('Importazione posizioni', 'IMPORTAZIONE', '', b.tecnico, added + ' nuove, ' + updated + ' aggiornate' + (existing ? ', ' + existing + ' già presenti' : '') + (skipped ? ', ' + skipped + ' scartate' : ''));
   return { status: 'success', added: added, updated: updated, existing: existing, skipped: skipped, unchanged: !(added || updated) };
 }
 
 function deletePos_(b) {
   const pfs = norm_(b.pfs);
-  const sh = posSheet_();
-  const rowNum = posIndex_(sh).idx[pfs] || -1;
-  if (rowNum > 0) { sh.deleteRow(rowNum); logPosDeleted_(pfs, nextPosRev_()); log_('Posizione eliminata', pfs, '', b.tecnico, ''); }
-  return { status: 'success', deleted: rowNum > 0 };
+  const f = findPosRow_(pfs);
+  if (f) { f.sh.deleteRow(f.row); logPosDeleted_(pfs, nextPosRev_()); log_('Posizione eliminata', pfs, '', b.tecnico, ''); }
+  return { status: 'success', deleted: !!f };
+}
+
+/* ------------------------------------------------------------------ correzioni dal campo */
+const FIX_HEADER = ['ID', 'DATA', 'PFS', 'LAT', 'LNG', 'PRECISIONE_M', 'DISTANZA_M', 'TECNICO', 'EMAIL', 'SOCIETA', 'NOTA', 'STATO', 'DECISO_DA', 'DECISO_IL', 'LAT_PRIMA', 'LNG_PRIMA'];
+const F = { ID: 0, DATA: 1, PFS: 2, LAT: 3, LNG: 4, ACC: 5, DIST: 6, TEC: 7, EMAIL: 8, SOC: 9, NOTA: 10, STATO: 11, BY: 12, AT: 13, LAT0: 14, LNG0: 15 };
+const fixSheet_ = () => sheet_(SH_FIX, FIX_HEADER);
+const FIX_MAX_ACC = 60, FIX_MAX_DAY = 60;
+/** Sposta una posizione nel punto controllato sul campo e la segna come verificata. */
+function applyFix_(f, lat, lng, who, ts) {
+  const v = f.vals;
+  ensureRevHeader_(f.sh);
+  writeRows_(f.sh, f.row, [posRow_(norm_(v[0]), norm_(v[1]), lat, lng, v[4], who, ts, String(v[7] || ''), nextPosRev_()).concat([String(ts).slice(0, 10) + ' · ' + norm_(who)])]);
+}
+function proposeFix_(b) {
+  const me = b._me, pfs = norm_(b.pfs), lat = Number(b.lat), lng = Number(b.lng), acc = Math.round(Number(b.acc) || 0);
+  if (!pfs || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return err_('input', 'Posizione non valida');
+  if (!(acc > 0) || acc > FIX_MAX_ACC) return err_('input', 'Il GPS non è abbastanza preciso (' + (acc || '?') + ' m): spostati all’aperto e riprova');
+  const f = findPosRow_(pfs);
+  if (!f) return err_('input', 'Questo codice non è nell’archivio');
+  const email = normEmail_(me[U.EMAIL]), nome = String(me[U.NOME] || email), ts = nowIt_();
+  const old = { lat: Number(String(f.vals[2]).replace(',', '.')), lng: Number(String(f.vals[3]).replace(',', '.')) };
+  const dist = isFinite(old.lat) && isFinite(old.lng) ? Math.round(distM_(old, { lat: lat, lng: lng })) : '';
+  const sh = fixSheet_(), last = sh.getLastRow();
+  const rows = last > 1 ? sh.getRange(2, 1, last - 1, FIX_HEADER.length).getValues() : [];
+  const today = ts.slice(0, 10);
+  if (rows.filter(r => normEmail_(r[F.EMAIL]) === email && String(r[F.DATA]).slice(0, 10) === today).length >= FIX_MAX_DAY) return err_('limit', 'Hai già proposto molte correzioni oggi: riprova domani');
+  const admin = ROLE_LEVEL[ruolo_(me)] >= 2;
+  // una sola proposta in attesa per codice e persona: la nuova sostituisce la vecchia
+  const prev = rows.findIndex(r => norm_(r[F.PFS]) === pfs && normEmail_(r[F.EMAIL]) === email && String(r[F.STATO]) === 'in attesa');
+  const row = [Utilities.getUuid().slice(0, 8), ts, pfs, lat.toFixed(6), lng.toFixed(6), String(acc), String(dist), nome, email, String(me[U.SOC] || ''),
+    String(b.nota || '').slice(0, 200), admin ? 'approvata' : 'in attesa', admin ? nome : '', admin ? ts : '', String(f.vals[2]), String(f.vals[3])];
+  if (prev >= 0) writeRows_(sh, prev + 2, [row]); else appendText_(sh, row);
+  if (admin) {
+    applyFix_(f, lat, lng, nome, ts);
+    log_('Posizione verificata', pfs, '', nome, 'GPS ±' + acc + ' m' + (dist !== '' ? ', spostata di ' + dist + ' m' : ''));
+    return { status: 'success', applied: true, dist: dist };
+  }
+  log_('Correzione proposta', pfs, '', nome, (dist !== '' ? 'Spostamento di ' + dist + ' m' : 'Nuova posizione') + ' · GPS ±' + acc + ' m' + (b.nota ? ' · ' + String(b.nota).slice(0, 80) : ''));
+  return { status: 'success', applied: false, unchanged: true, dist: dist };
+}
+function listFixes_() {
+  const sh = fixSheet_(), last = sh.getLastRow();
+  const rows = last > 1 ? sh.getRange(2, 1, last - 1, FIX_HEADER.length).getValues() : [];
+  const out = [];
+  for (let i = rows.length - 1; i >= 0 && out.length < 300; i--) {
+    const r = rows[i];
+    if (String(r[F.STATO]) !== 'in attesa') continue;
+    out.push({ id: String(r[F.ID]), data: String(r[F.DATA]), pfs: String(r[F.PFS]), lat: Number(r[F.LAT]), lng: Number(r[F.LNG]), acc: Number(r[F.ACC]), dist: r[F.DIST] === '' ? null : Number(r[F.DIST]),
+      tecnico: String(r[F.TEC]), societa: String(r[F.SOC]), nota: String(r[F.NOTA]), lat0: Number(r[F.LAT0]), lng0: Number(r[F.LNG0]) });
+  }
+  return { status: 'success', fixes: out };
+}
+const pendingFixes_ = () => { const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SH_FIX); if (!sh || sh.getLastRow() < 2) return 0; return sh.getRange(2, F.STATO + 1, sh.getLastRow() - 1, 1).getValues().filter(r => String(r[0]) === 'in attesa').length; };
+function decideFix_(b) {
+  const me = b._me, who = String(me[U.NOME] || ''), ok = b.ok === true, id = String(b.id || '');
+  const sh = fixSheet_(), last = sh.getLastRow();
+  const ids = last > 1 ? sh.getRange(2, 1, last - 1, 1).getValues() : [];
+  const i = ids.findIndex(r => String(r[0]) === id);
+  if (i < 0) return err_('input', 'Correzione non trovata');
+  const row = sh.getRange(i + 2, 1, 1, FIX_HEADER.length).getValues()[0];
+  if (String(row[F.STATO]) !== 'in attesa') return err_('done', 'Questa correzione è già stata decisa da ' + (row[F.BY] || 'un altro amministratore'));
+  const ts = nowIt_();
+  if (ok) {
+    const f = findPosRow_(row[F.PFS]);
+    if (!f) return err_('input', 'Il codice non è più nell’archivio');
+    applyFix_(f, Number(row[F.LAT]), Number(row[F.LNG]), String(row[F.TEC]), ts);
+  }
+  row[F.STATO] = ok ? 'approvata' : 'rifiutata'; row[F.BY] = who; row[F.AT] = ts;
+  writeRows_(sh, i + 2, [row.map(String)]);
+  log_(ok ? 'Correzione approvata' : 'Correzione rifiutata', norm_(row[F.PFS]), '', who, 'Proposta da ' + row[F.TEC] + (ok && row[F.DIST] !== '' ? ', spostata di ' + row[F.DIST] + ' m' : ''));
+  return { status: 'success', applied: ok, unchanged: !ok };
 }
 
 /* ------------------------------------------------------------------ statistiche */
@@ -738,9 +919,29 @@ function stats_(users) {
   const ribBy = {}, posBy = {};
   const rib = ribSheet_().getDataRange().getValues();
   for (let r = 1; r < rib.length; r++) if (rib[r][0]) { const t = norm_(rib[r][3]) || '—'; ribBy[t] = (ribBy[t] || 0) + 1; }
-  const pos = posSheet_().getDataRange().getValues();
-  for (let r = 1; r < pos.length; r++) if (pos[r][1]) { const t = norm_(pos[r][5]) || '—'; posBy[t] = (posBy[t] || 0) + 1; }
-  return { status: 'success', rows: rows, societa: soc, archivio: { ribattiture: ribBy, posizioni: posBy } };
+  const tipi = { pfs: 0, pfp: 0, pop: 0, pd: 0, cen: 0, verificate: 0 };
+  allPosSheets_().forEach(sh => {
+    const pos = sh.getDataRange().getValues();
+    for (let r = 1; r < pos.length; r++) if (pos[r][1]) {
+      const t = norm_(pos[r][5]) || '—'; posBy[t] = (posBy[t] || 0) + 1;
+      const an = norm_(pos[r][0]); tipi[an === 'CEN' ? 'cen' : an === 'POP' ? 'pop' : an === 'PD' ? 'pd' : an === 'PFP' ? 'pfp' : 'pfs']++;
+      if (pos[r][10]) tipi.verificate++;
+    }
+  });
+  // iscritti: per giorno e per società
+  const perDay = {}, perSoc = {}, idx = companyIndex_(users);
+  let attivi = 0, attesa = 0;
+  users.rows.forEach(u => {
+    const st = stato_(u.row), d = dayOf_(u.row[U.REG]);
+    if (d) perDay[d] = (perDay[d] || 0) + 1;
+    if (st === 'attivo') { attivi++; const k = socKey_(u.row[U.SOC]), n = (idx[k] && idx[k].name) || 'Senza società'; perSoc[n] = (perSoc[n] || 0) + 1; }
+    if (st === 'in attesa' || st === 'da verificare') attesa++;
+  });
+  const cor = { attesa: 0, approvate: 0, rifiutate: 0 };
+  const fsh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SH_FIX);
+  if (fsh && fsh.getLastRow() > 1) fsh.getRange(2, F.STATO + 1, fsh.getLastRow() - 1, 1).getValues().forEach(r => { const v = String(r[0]); if (v === 'in attesa') cor.attesa++; else if (v === 'approvata') cor.approvate++; else if (v === 'rifiutata') cor.rifiutate++; });
+  return { status: 'success', rows: rows, societa: soc, archivio: { ribattiture: ribBy, posizioni: posBy, tipi: tipi },
+    iscritti: { perDay: perDay, perSoc: perSoc, attivi: attivi, attesa: attesa, totale: users.rows.length }, correzioni: cor };
 }
 
 /* ------------------------------------------------------------------ backup in Drive */
@@ -788,9 +989,11 @@ function backupInfo_() {
 
 /** Letture: servono un account approvato (qualsiasi ruolo). Non bloccano gli altri utenti. */
 function readAction_(b) {
-  if (b.action === 'stats' || b.action === 'backupInfo' || b.action === 'backupNow' || b.action === 'activity') {
+  if (b.action === 'companies') return companies_();
+  if (b.action === 'stats' || b.action === 'backupInfo' || b.action === 'backupNow' || b.action === 'activity' || b.action === 'fixes') {
     const ad = authUser_(b.token, 2);
     if (ad.error) return ad.error;
+    if (b.action === 'fixes') return listFixes_();
     if (b.action === 'activity') return activity_(ad, Number(b.since) || 0);
     if (b.action === 'stats') return stats_(ad.users);
     if (b.action === 'backupInfo') return backupInfo_();
@@ -799,22 +1002,23 @@ function readAction_(b) {
   }
   const a = authUser_(b.token, 1);
   if (a.error) return a.error;
-  if (b.action === 'data') touch_(a, b.device);
+  if (b.action === 'data') touch_(a, b.device, b.did);
   if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
   // sincronizzazione leggera: se il telefono ha già l'ultima versione di una parte, quella parte non viene rimandata
   if (!Number(props_().getProperty('REV_POS') || 0)) bumpRev_('pos');
+  allPosSheets_();   // crea i fogli che mancano prima di calcolare le revisioni
   const rr = revToken_('rib'), rp = revToken_('pos');
   const out = { status: 'success', version: SCRIPT_VERSION, revRib: rr, revPos: rp };
   if (b.revRib && b.revRib === rr) out.ribUnchanged = true; else out.data = readRib_();
   if (b.revPos && b.revPos === rp) out.posUnchanged = true;
-  else if (Number(b.posFmt) === 2) Object.assign(out, readPosCompact_(b));
-  else out.positions = readPos_();
+  else if (Number(b.posFmt) === 2) { Object.assign(out, readPosCompact_(b)); if (!out.posDelta) countFullDownload_(a); }
+  else { out.positions = readPos_(); countFullDownload_(a); }
   return out;
 }
 
 /**
  * Posizioni in formato compatto: una tabella di testi ripetuti (anello, note, tecnico, data) e righe
- * [pfs, lat, lng, iAnello, iNote, iTecnico, iData, fotoId]. Se il telefono indica l'ultima revisione che ha,
+ * [pfs, lat, lng, iAnello, iNote, iTecnico, iData, fotoId, iVerificata?]. Se il telefono indica l'ultima revisione che ha,
  * manda solo le righe cambiate dopo e i PFS eliminati (sincronizzazione leggera).
  */
 function readPosCompact_(b) {
@@ -822,17 +1026,21 @@ function readPosCompact_(b) {
   const cur = Number(p.getProperty('REV_POS') || 0);
   const since = Number(b.posSince) || 0;
   const delta = since > 0 && String(b.posEpoch || '') === epoch && since >= Number(p.getProperty('POS_DEL_MIN') || 0);
-  const values = posSheet_().getDataRange().getValues();
   const strs = [], sidx = {}, rows = [];
   const S = v => { v = String(v || ''); let i = sidx[v]; if (i === undefined) { i = sidx[v] = strs.length; strs.push(v); } return i; };
+  allPosSheets_().forEach(sh => {
+  const values = sh.getDataRange().getValues();
   for (let r = 1; r < values.length; r++) {
     const row = values[r];
     if (delta && !(Number(row[POS_REV_COL - 1]) > since)) continue;
     const pfs = norm_(row[1]);
     const lat = Number(String(row[2]).replace(',', '.')), lng = Number(String(row[3]).replace(',', '.'));
     if (!pfs || !isFinite(lat) || !isFinite(lng)) continue;
-    rows.push([pfs, Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6, S(norm_(row[0])), S(row[4]), S(row[5]), S(row[6]), String(row[7] || '')]);
+    const x = [pfs, Math.round(lat * 1e6) / 1e6, Math.round(lng * 1e6) / 1e6, S(norm_(row[0])), S(row[4]), S(row[5]), S(row[6]), String(row[7] || '')];
+    if (row[10]) x.push(S(row[10]));   // verificata sul campo
+    rows.push(x);
   }
+  });
   const out = { posC: { s: strs, r: rows }, posRev: cur, posEpoch: epoch, posDelta: delta };
   if (delta) { let list = []; try { list = JSON.parse(p.getProperty('POS_DEL') || '[]'); } catch (e) {} out.posDeleted = list.filter(x => x[1] > since).map(x => x[0]); }
   return out;
@@ -842,10 +1050,36 @@ function readPosCompact_(b) {
 const REV_PROP = { rib: 'REV_RIB', pos: 'REV_POS' };
 /** Identifica la versione di ribattiture o posizioni: cambia a ogni salvataggio dallo script e se cambia il numero di righe del foglio. */
 function revToken_(k) {
-  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(k === 'rib' ? SH_RIB : SH_POS);
-  return (props_().getProperty(REV_PROP[k]) || '0') + '.' + (sh ? sh.getLastRow() : 0);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const rows = (k === 'rib' ? [SH_RIB] : [SH_POS, SH_CEN]).reduce((n, name) => { const sh = ss.getSheetByName(name); return n + (sh ? sh.getLastRow() : 0); }, 0);
+  return (props_().getProperty(REV_PROP[k]) || '0') + '.' + rows;
 }
 function bumpRev_(k) { const p = props_(), old = Number(p.getProperty(REV_PROP[k]) || 0); p.setProperty(REV_PROP[k], String(Math.max(Date.now(), old + 1))); }
+/**
+ * Da eseguire una volta dall'editor: sposta le centrali FiberCop dal foglio PFS_Posizioni al foglio Centrali.
+ * Prima copia, poi riscrive i PFS senza le centrali: se si interrompe a metà non si perde nulla (al massimo righe doppie, rieseguibile).
+ */
+function separaCentrali() {
+  const lock = LockService.getScriptLock(); lock.waitLock(60000);
+  try {
+    const src = posSheet_(), cen = cenSheet_();
+    ensureRevHeader_(src); ensureRevHeader_(cen);
+    const n = src.getLastRow() - 1;
+    if (n < 1) { Logger.log('Niente da spostare'); return; }
+    const vals = src.getRange(2, 1, n, POS_VER_COL).getValues().map(r => r.map(v => v == null ? '' : String(v)));
+    const keep = [], move = [];
+    vals.forEach(r => (isCenCode_(r[1], r[0]) ? move : keep).push(r));
+    if (!move.length) { Logger.log('Nessuna centrale da spostare'); return; }
+    const ix = posIndex_(cen), add = move.filter(r => !ix.idx[norm_(r[1])]);
+    if (add.length) writeRows_(cen, ix.last + 1, add);
+    writeRows_(src, 2, keep);
+    if (n > keep.length) src.getRange(keep.length + 2, 1, n - keep.length, POS_VER_COL).clearContent();
+    bumpRev_('pos');
+    log_('Archivio diviso', 'ARCHIVIO', '', 'SCRIPT', move.length + ' centrali spostate nel foglio Centrali, ' + keep.length + ' posizioni restano in PFS_Posizioni');
+    Logger.log('Centrali spostate: ' + move.length + ' (nuove nel foglio Centrali: ' + add.length + '). Restano in PFS_Posizioni: ' + keep.length);
+  } finally { lock.releaseLock(); }
+}
+
 /** Da eseguire dall'editor dopo aver modificato il foglio a mano: i telefoni riscaricano tutto alla prossima apertura. */
 function segnaFoglioModificato() { bumpRev_('rib'); bumpRev_('pos'); props_().setProperty('POS_EPOCH', String(Date.now())); Logger.log('Fatto: i telefoni riscaricheranno ribattiture e posizioni.'); }
 
@@ -854,7 +1088,7 @@ function doPost(e) {
   try { b = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
   catch (err) { return json_({ status: 'error', message: 'Richiesta non valida' }); }
   if (!teamOk_(b.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
-  if (['data', 'history', 'stats', 'backupInfo', 'backupNow', 'activity'].includes(b.action)) {
+  if (['data', 'history', 'stats', 'backupInfo', 'backupNow', 'activity', 'companies', 'fixes'].includes(b.action)) {
     try { return json_(readAction_(b)); } catch (err) { return json_({ status: 'error', message: String(err) }); }
   }
   const lock = LockService.getScriptLock();
@@ -872,12 +1106,13 @@ function doPost(e) {
     if (action === 'users') return json_(listUsers_(b));
     if (action === 'manageUser') return json_(manageUser_(b));
     // archivio: salvare richiede un account approvato, eliminare un amministratore
-    const WRITE = { save: [saveRib_, 1], savePos: [savePos_, 1], savePosBatch: [savePosBatch_, 1], delete: [deleteRib_, 2], deletePos: [deletePos_, 2] };
+    const WRITE = { save: [saveRib_, 1], savePos: [savePos_, 1], savePosBatch: [savePosBatch_, 1], delete: [deleteRib_, 2], deletePos: [deletePos_, 2], proposeFix: [proposeFix_, 1], decideFix: [decideFix_, 2] };
     const w = WRITE[action];
     if (!w) return json_({ status: 'error', message: 'Azione sconosciuta: ' + action });
     const a = authUser_(b.token, action === 'savePosBatch' && b.onlyNew === true ? 2 : w[1]);   // importazione elenco: solo amministratori
     if (a.error) return json_(a.error);
     b.tecnico = String(a.user.row[U.NOME] || normEmail_(a.user.row[U.EMAIL]));   // il nome lo decide l'account, non il telefono
+    b._me = a.user.row;
     const res = w[0](b);
     if (res && res.status === 'success' && !res.unchanged && !res.stale) bumpRev_(action === 'save' || action === 'delete' ? 'rib' : 'pos');
     return json_(res);

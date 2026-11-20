@@ -972,6 +972,23 @@
 
     /* ---------- V3 ---------- */
     .t-teal   { --tile-bg: color-mix(in srgb, #14b8a6 15%, transparent); --tile-fg: #0d9488; }
+    .st-kpis-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .st-socs { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+    .st-soc { display: grid; grid-template-columns: minmax(90px, 40%) 1fr auto; align-items: center; gap: 8px; font-size: .78rem; }
+    .st-soc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .st-soc i { height: 8px; border-radius: 4px; background: #0284c7; }
+    .ver-badge { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: .66rem; font-weight: 700; vertical-align: middle; background: color-mix(in srgb, #16a34a 14%, transparent); color: #15803d; }
+    [data-theme="dark"] .ver-badge { color: #86efac; }
+    .ver-badge svg { width: 11px; height: 11px; }
+    .fix-gps { padding: 12px; border-radius: 12px; background: var(--input-bg, rgba(127,127,127,.08)); font-size: .85rem; line-height: 1.5; }
+    .fix-acc.ok b { color: #16a34a; } .fix-acc.mid b { color: #d97706; } .fix-acc.bad b, .fix-bad { color: #dc2626; }
+    .fix-wait { color: var(--muted); }
+    .fix-list { display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow: auto; }
+    .fix-item { padding: 12px; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
+    .fix-head { display: flex; justify-content: space-between; gap: 8px; } .fix-head small { color: var(--muted); white-space: nowrap; }
+    .fix-links { display: flex; gap: 14px; font-size: .8rem; } .fix-links a { color: var(--primary, #0284c7); font-weight: 600; }
+    .fix-btns { display: flex; gap: 8px; margin-top: 4px; }
+    .soc-hint { display: block; margin-top: 6px; font-size: .75rem; color: var(--muted); }
     .fc-note { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 4px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, #0284c7 10%, transparent); color: var(--text); font-size: .8rem; line-height: 1.4; }
     .fc-note svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: #0284c7; }
     .t-cen    { --tile-bg: color-mix(in srgb, #0284c7 15%, transparent); --tile-fg: #0369a1; }
@@ -3929,7 +3946,7 @@
     /** Formato compatto dello script: tabella di testi + righe [pfs, lat, lng, iAnello, iNote, iTecnico, iData, fotoId]. */
     function decodePosC(c) {
       const S = c.s || [], out = {};
-      (c.r || []).forEach(x => { out[x[0]] = { pfs: x[0], lat: x[1], lng: x[2], anello: S[x[3]] || '', note: S[x[4]] || '', tecnico: S[x[5]] || '', updatedAt: S[x[6]] || '', fotoId: x[7] || '' }; });
+      (c.r || []).forEach(x => { out[x[0]] = { pfs: x[0], lat: x[1], lng: x[2], anello: S[x[3]] || '', note: S[x[4]] || '', tecnico: S[x[5]] || '', updatedAt: S[x[6]] || '', fotoId: x[7] || '', ...(x[8] !== undefined ? { verificata: S[x[8]] || '' } : {}) }; });
       return out;
     }
     /** Sincronizzazione leggera: aggiorna solo i PFS cambiati e toglie quelli eliminati sul foglio. */
@@ -4003,15 +4020,18 @@
     const ACT_STYLE = {
       'Creata': ['#16a34a', 'i-plus', 'Nuova ribattitura'], 'Modificata': ['#2563eb', 'i-edit', 'Ribattitura modificata'], 'Eliminata': ['#dc2626', 'i-trash', 'Ribattitura eliminata'],
       'Posizione salvata': ['#0d9488', 'i-pin', 'Nuova posizione'], 'Posizione modificata': ['#7c3aed', 'i-pin', 'Posizione modificata'], 'Posizione eliminata': ['#dc2626', 'i-trash', 'Posizione eliminata'],
-      'Importazione posizioni': ['#ea580c', 'i-map', 'Importazione posizioni']
+      'Importazione posizioni': ['#ea580c', 'i-map', 'Importazione posizioni'],
+      'Correzione proposta': ['#0284c7', 'i-target', 'Correzione da approvare'], 'Posizione verificata': ['#16a34a', 'i-check', 'Posizione verificata sul campo'],
+      'Uso anomalo': ['#dc2626', 'i-alert', 'Uso anomalo'], 'Richiesta di accesso': ['#d97706', 'i-user', 'Richiesta di accesso']
     };
+    const ACCOUNT_ACTS = ['Uso anomalo', 'Richiesta di accesso'];
     async function openNotif() {
       const v = getAct() || { items: [], seen: 0, last: 0 };
       const seen = v.seen;
       const nice = s => (s || '').split(' ')[0].split('/').slice(0, 2).join('/') + ' ' + ((s || '').split(' ')[1] || '');
       const html = v.items.length ? `<div class="notif-list">${v.items.slice(0, 80).map(it => {
         const [c, ico, label] = ACT_STYLE[it.azione] || ['#64748b', 'i-info', it.azione];
-        const where = it.azione === 'Importazione posizioni' ? '' : `${it.pfs}${it.splitter ? ' · SP_' + String(it.splitter).padStart(2, '0') : ''}`;
+        const where = it.azione === 'Importazione posizioni' ? '' : ACCOUNT_ACTS.includes(it.azione) ? '' : `${it.pfs}${it.splitter ? ' · SP_' + String(it.splitter).padStart(2, '0') : ''}`;
         return `<button type="button" class="notif-item ${it.r > seen ? 'new' : ''}" data-act-r="${it.r}">
           <span class="ni-ico" style="background:${c}"><svg><use href="#${ico}"/></svg></span>
           <span style="min-width:0"><b>${escapeHtml(label)}${where ? ' · ' + escapeHtml(where) : ''}${it.r > seen ? '<span class="ni-new">nuovo</span>' : ''}</b>
@@ -4032,6 +4052,8 @@
       if (res && res.open) openActItem(res.open);
     }
     function openActItem(it) {
+      if (it.azione === 'Correzione proposta') { openFixes(); return; }
+      if (ACCOUNT_ACTS.includes(it.azione)) { openScreen('usersScreen', 'Gestione utenti', 'Approvazioni e ruoli'); setTimeout(() => { const f = $('usersSearch'); if (f && it.splitter) { f.value = it.splitter; f.dispatchEvent(new Event('input')); } }, 400); return; }
       if (/^Posizione/.test(it.azione) || it.azione === 'Importazione posizioni') {
         const pos = getPositions()[it.pfs];
         if (it.azione === 'Importazione posizioni' || !pos) { openPfsPos(); return; }
@@ -4057,6 +4079,12 @@
       if (v.pos && v.nPos > 0 && countSynced(getPositions()) >= v.nPos) { out.revPos = v.pos; if (v.posSince) { out.posSince = v.posSince; out.posEpoch = v.posEpoch; } }
       return out;
     }
+    /** Aggiornamento manuale: ribattiture complete, ma per le posizioni bastano le righe cambiate. */
+    function posDeltaRevs() {
+      const v = getSyncRevs(), acc = (account && account.email) || '';
+      if (!v || v.acc !== acc || !v.posSince || !(v.nPos > 0) || countSynced(getPositions()) < v.nPos) return {};
+      return { posSince: v.posSince, posEpoch: v.posEpoch };
+    }
     function saveSyncRevs(json, gotRib, gotPos) {
       if (!json.revRib || !json.revPos) { try { localStorage.removeItem(SYNC_REV_KEY); } catch (e) {} return; }   // script vecchio
       const old = getSyncRevs() || {}, now = Date.now(), acc = (account && account.email) || '';
@@ -4078,7 +4106,7 @@
       try {
         await processQueue();
         // sincronizzazione leggera: chiede solo le parti cambiate (la sincronizzazione manuale scarica sempre tutto)
-        const req = { action: 'data', device: deviceLabel(), posFmt: 2, ...(silent ? syncRevs() : {}) };
+        const req = { action: 'data', device: deviceLabel(), did: deviceId(), posFmt: 2, ...(silent ? syncRevs() : posDeltaRevs()) };
         const r = await sheetsPost(req);
         if (!r.confirmed) throw new NetError('Risposta non leggibile');
         const json = r.data;
@@ -4569,7 +4597,7 @@
           <div class="pos-main">
             ${ph ? `<button type="button" class="pos-thumb" data-pact="photo"><img src="${escapeHtml(ph)}" alt="" loading="lazy"></button>` : ''}
             <div class="pos-body">
-              <div class="pos-name">${isSpecial(it) ? `<span class="pos-kind-tag ${posKindOf(it)}">${KIND_TAG[posKindOf(it)]}</span>` : ''}${escapeHtml(posLabel(it))}</div>
+              <div class="pos-name">${isSpecial(it) ? `<span class="pos-kind-tag ${posKindOf(it)}">${KIND_TAG[posKindOf(it)]}</span>` : ''}${escapeHtml(posLabel(it))}${it.verificata ? `<span class="ver-badge" title="Verificata sul campo: ${escapeHtml(it.verificata)}"><svg><use href="#i-check"/></svg>verificata</span>` : ''}</div>
               ${it.note ? `<div class="pos-note">${escapeHtml(it.note)}</div>` : ''}
               <div class="pos-meta">${dist}<span>${escapeHtml(it.updatedAt || '')}</span>${it.tecnico ? `<span>${it.tecnico === 'GOOGLE MY MAPS' ? '🗺️ Da Google My Maps' : '👤 ' + escapeHtml(it.tecnico)}</span>` : ''}${pend}</div>
             </div>
@@ -4579,6 +4607,7 @@
             <button type="button" class="btn-xs" data-pact="map" aria-label="Mostra sulla mappa"><svg><use href="#i-map"/></svg></button>
             <button type="button" class="btn-xs" data-pact="share" aria-label="Condividi posizione"><svg><use href="#i-share"/></svg></button>
             <button type="button" class="btn-xs" data-pact="copy" aria-label="Copia coordinate"><svg><use href="#i-copy"/></svg></button>
+            <button type="button" class="btn-xs" data-pact="fix" aria-label="Sono qui: correggi la posizione" title="Sono qui: correggi la posizione"><svg><use href="#i-target"/></svg></button>
             <button type="button" class="btn-xs" data-pact="history" aria-label="Storico"><svg><use href="#i-clock"/></svg></button>
             <button type="button" class="btn-xs" data-pact="edit" aria-label="Modifica"><svg><use href="#i-edit"/></svg></button>
             <button type="button" class="btn-xs danger" data-pact="delete" aria-label="Elimina"><svg><use href="#i-x"/></svg></button>
@@ -4693,7 +4722,7 @@
       const pdPfs = posKind === 'pd' ? new Set(allArr.map(pdParent)).size : 0;
       const pfpSet = posKind === 'pfp' ? new Set(allArr.map(pfpGroup)) : new Set(), pfpRings = pfpSet.size;
       const grpWord = (set, n) => grpWordFor([...set], n);
-      $('posCount').textContent = posKind === 'cen' ? `${allArr.length} centrali • ${new Set(allArr.map(cenGroup)).size} comuni`
+      $('posCount').textContent = posKind === 'cen' ? (n => `${allArr.length} ${allArr.length === 1 ? 'centrale' : 'centrali'} • ${n} ${n === 1 ? 'comune' : 'comuni'}`)(new Set(allArr.map(cenGroup)).size)
         : posKind === 'pop' ? `${allArr.length} POP`
         : posKind === 'pfp' ? `${allArr.length} PFP • ${pfpRings} ${grpWord(pfpSet, pfpRings)}`
         : posKind === 'pd' ? `${allArr.length} PD • ${pdPfs} PFS`
@@ -5016,7 +5045,7 @@
       shown.forEach(it => {
         const m = L.circleMarker([it.lat, it.lng], { radius: many ? 5 : 9, weight: many ? 1.5 : 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 0.95 });
         m.bindTooltip(posFullName(it), { direction: 'top', offset: [0, -8] });
-        m.bindPopup(() => `<div class="map-pop"><b>${escapeHtml(posFullName(it))}</b><br><small>${isCen(it) ? 'Centrale FiberCop' : isPop(it) ? 'POP Open Fiber' : isPd(it) ? 'PD del PFS ' + escapeHtml(pdParent(it)) : isPfp(it) ? 'PFP • anello ' + escapeHtml(anelloFrom(posLabel(it))) : 'Anello ' + escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small><br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button></div>`);
+        m.bindPopup(() => `<div class="map-pop"><b>${escapeHtml(posFullName(it))}</b><br><small>${isCen(it) ? 'Centrale FiberCop' : isPop(it) ? 'POP Open Fiber' : isPd(it) ? 'PD del PFS ' + escapeHtml(pdParent(it)) : isPfp(it) ? 'PFP • anello ' + escapeHtml(anelloFrom(posLabel(it))) : 'Anello ' + escapeHtml(it.anello)}${it.note ? ' • ' + escapeHtml(it.note) : ''}</small>${it.verificata ? `<br><span class="ver-badge"><svg><use href="#i-check"/></svg>verificata ${escapeHtml(it.verificata.split(' · ')[0])}</span>` : ''}<br><button type="button" class="btn-nav" data-nav="${escapeHtml(it.pfs)}"><svg><use href="#i-nav"/></svg> Naviga</button> <button type="button" class="btn-xs" data-fixpos="${escapeHtml(it.pfs)}" title="Sono qui: correggi la posizione"><svg><use href="#i-target"/></svg></button></div>`);
         m._pfs = it.pfs;
         m.addTo(mapLayer);
       });
@@ -5192,6 +5221,7 @@
           case 'share': chooseSharePosition(it); break;
           case 'copy': copyText(fmtCoord(it.lat, it.lng)).then(ok => toast(ok ? 'Coordinate copiate.' : 'Copia non riuscita.', ok ? 'success' : 'error')); break;
           case 'history': showHistory(pfs, '', 'PFS'); break;
+          case 'fix': correctPosition(it); break;
           case 'edit': editPosition(pfs); break;
           case 'delete': deletePosition(pfs); break;
           case 'photo': viewPhoto(it, `Foto ${pfs}`); break;
@@ -5199,6 +5229,8 @@
       });
       // pulsante "Naviga" dentro i fumetti della mappa
       document.addEventListener('click', e => {
+        const f = e.target.closest('[data-fixpos]');
+        if (f) { const it = getPositions()[f.dataset.fixpos]; if (it) correctPosition(it); return; }
         const b = e.target.closest('[data-nav]'); if (!b) return;
         const it = getPositions()[b.dataset.nav]; if (it) navigateTo(it);
       });
@@ -5625,6 +5657,97 @@
       else toast(`Fatto: ${f(added || sent)} PFS aggiunti all’archivio di tutti${existing ? ` (${f(existing)} erano già presenti)` : ''}.`, 'success', 7000);
     }
 
+
+    /* =====================================================================
+       CORREZIONI DAL CAMPO: "Sono qui" con il GPS. I tecnici propongono, gli amministratori approvano.
+       ===================================================================== */
+    const FIX_GOOD = 25, FIX_MAX = 60;   // metri di precisione GPS: ottima / massima accettata
+    async function correctPosition(it) {
+      if (!canWrite()) { toast('Accedi con un account approvato per correggere le posizioni.', 'info'); return; }
+      if (!navigator.geolocation) { toast('Questo dispositivo non ha il GPS.', 'error'); return; }
+      const admin = isAdminRole();
+      let best = null, watch = null;
+      const render = () => {
+        const box = $('fixGps'); if (!box) return;
+        if (!best) { box.innerHTML = '<span class="fix-wait">Cerco la tua posizione… resta fermo accanto all’armadio.</span>'; return; }
+        const d = distanceM(it, best), acc = Math.round(best.acc), cls = acc <= FIX_GOOD ? 'ok' : acc <= FIX_MAX ? 'mid' : 'bad';
+        box.innerHTML = `<div class="fix-acc ${cls}">Precisione GPS: <b>±${acc} m</b> ${acc <= FIX_GOOD ? '✓' : acc <= FIX_MAX ? '(accettabile, se puoi aspetta qualche secondo)' : '(troppo bassa: spostati all’aperto)'}</div>
+          <div class="fix-dist">Sei a <b>${fmtDist(d)}</b> dalla posizione salvata.</div>`;
+        $('modalOk').disabled = acc > FIX_MAX;
+      };
+      const done = openModal({
+        title: `Sono qui: ${posFullName(it)}`,
+        bodyHtml: `<p class="small" style="margin-top:0">Mettiti accanto all’armadio o al pozzetto e aspetta che la precisione scenda.
+            ${admin ? 'Come amministratore la nuova posizione si salva subito e diventa <b>verificata</b>.' : 'La proposta arriva agli amministratori: quando la approvano la posizione diventa <b>verificata</b> per tutti.'}</p>
+          <div id="fixGps" class="fix-gps"></div>
+          <div class="field-group" style="margin-top:10px"><label class="field-label" for="fixNota">Nota (facoltativa)</label>
+            <input id="fixNota" class="custom-input" maxlength="200" placeholder="es. armadio dietro il cancello"></div>`,
+        okText: admin ? 'Salva qui' : 'Proponi correzione', cancelText: 'Annulla',
+        onOpen: () => { $('modalOk').disabled = true; render(); }
+      });
+      watch = navigator.geolocation.watchPosition(p => {
+        const c = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy || 999 };
+        if (!best || c.acc <= best.acc) best = c;
+        render();
+      }, err => { const box = $('fixGps'); if (box) box.innerHTML = `<span class="fix-bad">${err.code === 1 ? 'Permesso di posizione negato: attivalo nelle impostazioni del browser.' : 'GPS non disponibile: riprova all’aperto.'}</span>`; },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
+      const ok = await done;
+      navigator.geolocation.clearWatch(watch);
+      $('modalOk').disabled = false;
+      if (!ok || !best) return;
+      const nota = ($('fixNota') && $('fixNota').value || '').trim();
+      try {
+        const d = await accountCall({ action: 'proposeFix', token: account.token, pfs: it.pfs, lat: +best.lat.toFixed(6), lng: +best.lng.toFixed(6), acc: Math.round(best.acc), nota });
+        if (d.status !== 'success') { toast(d.message || 'Correzione non inviata.', 'error', 5000); return; }
+        if (d.applied) {
+          const all = getPositions(), p = all[it.pfs];
+          if (p) { Object.assign(p, { lat: +best.lat.toFixed(6), lng: +best.lng.toFixed(6), verificata: `${nowStamp().slice(0, 10)} · ${(account.nome || '').toUpperCase()}`, tecnico: account.nome || p.tecnico, updatedAt: nowStamp() }); savePositions(all); renderPositions(); }
+          toast(`Posizione salvata e verificata${d.dist !== '' && d.dist != null ? ` (spostata di ${fmtDist(d.dist)})` : ''}.`, 'success', 5000);
+        } else toast('Proposta inviata: un amministratore la controllerà. Grazie!', 'success', 5000);
+      } catch (e) { toast(e instanceof NetError ? 'Serve la connessione: riprova quando hai campo.' : accountError(e), 'error', 5000); }
+    }
+
+    async function openFixes() {
+      if (!isAdminRole()) return;
+      let list = [];
+      const itemHtml = f => `<div class="fix-item" data-fix="${escapeHtml(f.id)}">
+          <div class="fix-head"><b>${escapeHtml(posFullName(getPositions()[f.pfs] || { pfs: f.pfs, anello: '' }))}</b><small>${escapeHtml(f.data)}</small></div>
+          <div class="small">👤 ${escapeHtml(f.tecnico)}${f.societa ? ' · ' + escapeHtml(f.societa) : ''}</div>
+          <div class="small">${f.dist != null ? `Spostamento di <b>${fmtDist(f.dist)}</b> · ` : ''}GPS ±${f.acc} m${f.nota ? ' · “' + escapeHtml(f.nota) + '”' : ''}</div>
+          <div class="fix-links"><a href="https://www.google.com/maps/search/?api=1&query=${f.lat0},${f.lng0}" target="_blank" rel="noopener">Posizione attuale</a>
+            <a href="https://www.google.com/maps/search/?api=1&query=${f.lat},${f.lng}" target="_blank" rel="noopener">Posizione proposta</a></div>
+          <div class="fix-btns"><button type="button" class="btn-xs ok" data-fix-op="1">Approva</button><button type="button" class="btn-xs danger" data-fix-op="0">Rifiuta</button></div>
+        </div>`;
+      const paint = () => { $('fixList').innerHTML = list.length ? list.map(itemHtml).join('') : '<div class="empty-state">Nessuna correzione da approvare.</div>'; };
+      const done = openModal({
+        title: 'Correzioni dal campo',
+        bodyHtml: `<p class="small" style="margin-top:0">Posizioni proposte dai tecnici con il GPS. Approvando, la posizione si sposta e diventa <b>verificata</b> per tutti.</p><div id="fixList" class="fix-list"><div class="empty-state">Carico…</div></div>`,
+        okText: 'Chiudi', cancelText: '',
+        onOpen: () => {
+          $('modalCancel').hidden = true;
+          $('fixList').addEventListener('click', async e => {
+            const b = e.target.closest('[data-fix-op]'); if (!b) return;
+            const box = b.closest('[data-fix]'), id = box.dataset.fix, ok = b.dataset.fixOp === '1';
+            box.querySelectorAll('button').forEach(x => x.disabled = true);
+            try {
+              const d = await accountCall({ action: 'decideFix', token: account.token, id, ok });
+              if (d.status !== 'success' && d.code !== 'done') throw new Error(d.message);
+              list = list.filter(x => x.id !== id); fixesPending = list.length; paint(); updateAccountUI();
+              toast(ok ? 'Correzione approvata: posizione verificata.' : 'Correzione rifiutata.', ok ? 'success' : 'info');
+              if (ok) syncFromGoogleSheets(true);
+            } catch (err) { toast(accountError(err), 'error'); box.querySelectorAll('button').forEach(x => x.disabled = false); }
+          });
+        }
+      });
+      try {
+        const d = await accountCall({ action: 'fixes', token: account.token });
+        if (d.status !== 'success') throw new Error(d.message);
+        list = d.fixes || []; fixesPending = list.length; paint();
+      } catch (e) { if ($('fixList')) $('fixList').innerHTML = `<div class="empty-state">${escapeHtml(accountError(e))}</div>`; }
+      await done;
+      $('modalCancel').hidden = false;
+    }
+
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
     const kmlEsc = v => String(v ?? '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
     function kmlColor(css) {   // "#rrggbb" -> "ffbbggrr" (formato colore KML)
@@ -5757,7 +5880,7 @@
        ACCOUNT: registrazione, accesso, approvazione, ruoli
        ===================================================================== */
     const ACCOUNT_KEY = 'fiber_tools_account';
-    let account = null, accountPending = 0;
+    let account = null, accountPending = 0, fixesPending = 0;
     const ROLE_LABEL = { tecnico: 'Tecnico', admin: 'Amministratore', proprietario: 'Proprietario' };
     const canWrite = () => !!(account && account.token && account.stato === 'attivo');
     const isAdminRole = () => canWrite() && (account.ruolo === 'admin' || account.ruolo === 'proprietario');
@@ -5811,9 +5934,10 @@
       $('adminText').textContent = account ? (String(account.nome || '').split(' ')[0] || 'Account') : 'Accedi';
       btn.setAttribute('aria-label', account ? `Account di ${account.nome}` : 'Accedi o registrati');
       let dot = btn.querySelector('.acc-dot');
-      if (isAdminRole() && accountPending > 0) {
+      const todo = accountPending + fixesPending;   // richieste di accesso + correzioni da approvare
+      if (isAdminRole() && todo > 0) {
         if (!dot) { dot = document.createElement('span'); dot.className = 'acc-dot'; btn.appendChild(dot); }
-        dot.textContent = accountPending > 9 ? '9+' : String(accountPending);
+        dot.textContent = todo > 9 ? '9+' : String(todo);
       } else if (dot) dot.remove();
       document.body.classList.toggle('data-locked', !canRead());
       updateQueueUI();
@@ -5847,6 +5971,12 @@
 
     /** Aggiorna ruolo e stato dal foglio (un admin può averli cambiati). */
     /** Descrizione breve del dispositivo, es. "Android · Chrome · app" (si vede in Gestione utenti). */
+    /** Codice casuale di questo telefono/PC: serve solo a contare quanti dispositivi usa un account. */
+    function deviceId() {
+      let id = lsGet('fiber_tools_did', '');
+      if (!/^[\w-]{8,24}$/.test(id)) { id = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, '').slice(0, 16); lsSet('fiber_tools_did', id); }
+      return id;
+    }
     function deviceLabel() {
       const ua = navigator.userAgent || '';
       const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'iPad'
@@ -5882,9 +6012,9 @@
       if (!account || navigator.onLine === false) return;
       lastAccountRefresh = Date.now();
       try {
-        const d = await accountCall({ action: 'me', token: account.token, device: deviceLabel() });
+        const d = await accountCall({ action: 'me', token: account.token, device: deviceLabel(), did: deviceId() });
         if (d.status === 'success' && d.user) {
-          accountPending = Number(d.pendingCount || 0);
+          accountPending = Number(d.pendingCount || 0); fixesPending = Number(d.pendingFixes || 0);
           setAccount({ ...account, ...d.user });
           if (canWrite() && !account.societa) askSocieta();
         }
@@ -5926,6 +6056,7 @@
         $('accFields').innerHTML = mode === 'verify' ? verifyHtml() : fieldsHtml();
         $('accMsg').className = 'form-msg ' + (cls || ''); $('accMsg').hidden = !msg; $('accMsg').textContent = msg || '';
         $('modalOk').textContent = mode === 'login' ? 'Accedi' : mode === 'verify' ? 'Conferma' : 'Registrati';
+        if (mode === 'register') bindSocSelect('accSoc');
         if (mode === 'verify') {
           setTimeout(() => $('accCode') && $('accCode').focus(), 60);
           $('accResend').addEventListener('click', async () => {
@@ -5954,6 +6085,7 @@
               else showMsg(d.message || 'Codice non valido.', 'err');
               return;
             }
+            if (!d.token && d.stato === 'in attesa') { mode = 'login'; render(d.message || 'Email verificata: ora un amministratore deve approvare l’accesso.', 'ok'); $('accEmail').value = verifyEmail; return; }
             done = true; closeModal(true);
             setAccount({ token: d.token, ...d.user });
             toast(`Email verificata: benvenuto, ${d.user.nome}!`, 'success', 5000);
@@ -5980,7 +6112,7 @@
           } else {
             const nome = ($('accNome').value || '').trim();
             if (nome.length < 2) { showMsg('Inserisci nome e cognome.', 'err'); return; }
-            const societa = ($('accSoc').value || '').trim().toUpperCase();
+            const societa = socValue('accSoc');
             if (societa.length < 2) { showMsg('Indica la società per cui lavori.', 'err'); return; }
             lsSet(SOC_KEY, societa);
             if (pass.length < 8) { showMsg('La password deve avere almeno 8 caratteri.', 'err'); return; }
@@ -6031,10 +6163,45 @@
       return done;
     }
 
+    /* Società: si sceglie da un elenco (nomi uniformi); chi non la trova la scrive in "Altra società". */
+    const COMPANIES_KEY = 'fiber_tools_companies', SOC_ALTRO = 'ALTRO / LIBERO PROFESSIONISTA', SOC_OTHER = '__altra';
+    function knownCompanies() {
+      let list = []; try { list = JSON.parse(lsGet(COMPANIES_KEY, '[]')) || []; } catch (e) {}
+      if (!list.length) list = SOC_SUGGEST.filter(x => x !== SOC_ALTRO);
+      return list;
+    }
+    async function loadCompanies() {
+      try {
+        const d = await accountCall({ action: 'companies' });
+        if (d.status === 'success' && Array.isArray(d.societa) && d.societa.length) { lsSet(COMPANIES_KEY, JSON.stringify(d.societa)); return true; }
+      } catch (e) {}
+      return false;
+    }
+    function socOptionsHtml(id, v) {
+      const list = knownCompanies(), up = String(v || '').trim().toUpperCase();
+      const inList = up && (list.includes(up) || up === SOC_ALTRO);
+      return `<option value="">Scegli la società…</option>${list.map(x => `<option value="${escapeHtml(x)}"${x === up ? ' selected' : ''}>${escapeHtml(x)}</option>`).join('')}
+        <option value="${SOC_ALTRO}"${up === SOC_ALTRO ? ' selected' : ''}>${SOC_ALTRO}</option>
+        <option value="${SOC_OTHER}"${up && !inList ? ' selected' : ''}>Altra società (scrivila)…</option>`;
+    }
     function socInputHtml(id, value) {
       const v = value != null ? value : lsGet(SOC_KEY, '');
-      return `<input id="${id}" class="custom-input" data-upper autocapitalize="characters" autocomplete="organization" list="${id}List" placeholder="es. DO.CO.TEL" value="${escapeHtml(v || '')}">
-        <datalist id="${id}List">${SOC_SUGGEST.map(x => `<option value="${escapeHtml(x)}">`).join('')}</datalist>`;
+      const up = String(v || '').trim().toUpperCase(), list = knownCompanies();
+      const other = up && !list.includes(up) && up !== SOC_ALTRO;
+      return `<select id="${id}" class="custom-select" data-soc-select>${socOptionsHtml(id, v)}</select>
+        <input id="${id}Other" class="custom-input" data-upper autocapitalize="characters" autocomplete="organization" placeholder="Nome della società" value="${other ? escapeHtml(up) : ''}" style="margin-top:8px"${other ? '' : ' hidden'}>
+        <small class="soc-hint" id="${id}Hint"${other || up === SOC_ALTRO ? '' : ' hidden'}>Per le società non in elenco l’accesso ai dati lo approva un amministratore.</small>`;
+    }
+    /** Collega la tendina società (mostra il campo libero per "Altra società") e aggiorna l'elenco dal foglio. */
+    function bindSocSelect(id) {
+      const sel = $(id); if (!sel) return;
+      const sync = () => { const o = sel.value === SOC_OTHER; $(id + 'Other').hidden = !o; $(id + 'Hint').hidden = !(o || sel.value === SOC_ALTRO); if (o) $(id + 'Other').focus(); };
+      sel.addEventListener('change', sync);
+      loadCompanies().then(ok => { if (!ok || !$(id)) return; const cur = socValue(id); sel.innerHTML = socOptionsHtml(id, cur); $(id + 'Other').hidden = sel.value !== SOC_OTHER; });
+    }
+    function socValue(id) {
+      const sel = $(id); if (!sel) return '';
+      return (sel.value === SOC_OTHER ? ($(id + 'Other').value || '') : sel.value).trim().toUpperCase();
     }
 
     /** Chiede la società agli account che non l'hanno ancora indicata (creati prima di questa versione). */
@@ -6049,10 +6216,10 @@
           bodyHtml: `<p class="small" style="margin-bottom:10px">${force ? 'Aggiorna la società per cui lavori.' : 'Da questa versione ogni account indica la società per cui lavora. Lo chiediamo una volta sola: resta salvato nel tuo account.'}</p>
             <div class="field-group"><label class="field-label" for="socAsk">Società</label>${socInputHtml('socAsk', account.societa || lsGet(SOC_KEY, ''))}</div>`,
           okText: 'Salva', cancelText: force ? 'Annulla' : 'Più tardi',
-          onOpen: () => setTimeout(() => $('socAsk')?.focus(), 80)
+          onOpen: () => { bindSocSelect('socAsk'); setTimeout(() => $('socAsk')?.focus(), 80); }
         });
         if (!ok) return;
-        const societa = ($('socAsk').value || '').trim().toUpperCase();
+        const societa = socValue('socAsk');
         if (societa.length < 2) { toast('Indica la società per cui lavori.', 'error'); return; }
         const d = await accountCall({ action: 'setProfile', token: account.token, societa });
         if (d.status !== 'success') throw new Error(d.message);
@@ -6078,6 +6245,7 @@
         bodyHtml: `${accountCardHtml()}${statusLine}
           <div class="opt-list" style="margin-top:12px">
             ${admin ? `<button type="button" class="btn-secondary" data-choice="users"><svg><use href="#i-user"/></svg> Gestione utenti${accountPending ? ` <span class="count-pill" style="margin-left:auto">${accountPending} da approvare</span>` : ''}</button>` : ''}
+            ${admin ? `<button type="button" class="btn-secondary" data-choice="fixes"><svg><use href="#i-target"/></svg> Correzioni dal campo${fixesPending ? ` <span class="count-pill" style="margin-left:auto">${fixesPending} da approvare</span>` : ''}</button>` : ''}
             ${admin ? `<button type="button" class="btn-secondary" data-choice="stats"><svg><use href="#i-table"/></svg> Statistiche e backup</button>` : ''}
             ${account.stato === 'attivo' ? `<button type="button" class="btn-secondary" data-choice="soc"><svg><use href="#i-user"/></svg> ${account.societa ? 'Cambia società' : 'Indica la tua società'}</button>` : ''}
             <button type="button" class="btn-secondary" data-choice="pwd"><svg><use href="#i-lock"/></svg> Cambia password</button>
@@ -6090,6 +6258,7 @@
       $('modalOk').hidden = false;
       if (choice === 'users') openScreen('usersScreen', 'Gestione utenti', 'Approvazioni e ruoli');
       else if (choice === 'stats') openScreen('statsScreen', 'Statistiche', 'Attività per tecnico e società');
+      else if (choice === 'fixes') openFixes();
       else if (choice === 'pwd') changePassword();
       else if (choice === 'soc') askSocieta(true);
       else if (choice === 'logout') {
@@ -6189,9 +6358,9 @@
       const confirmText = { blocca: `Bloccare ${u.nome}? Non potrà più salvare finché non lo riattivi.`, elimina: `Eliminare l’account di ${u.nome}? Potrà registrarsi di nuovo.`, rifiuta: u.nuovaPassword ? `Rifiutare la nuova password di ${u.nome}? Resterà valida quella vecchia.` : `Rifiutare la richiesta di ${u.nome}?` }[op];
       let societa;
       if (op === 'societa') {
-        const ok = await openModal({ title: `Società di ${u.nome}`, bodyHtml: `<div class="field-group"><label class="field-label" for="socEdit">Società</label>${socInputHtml('socEdit', u.societa || '')}</div>`, okText: 'Salva', cancelText: 'Annulla' });
+        const ok = await openModal({ title: `Società di ${u.nome}`, bodyHtml: `<div class="field-group"><label class="field-label" for="socEdit">Società</label>${socInputHtml('socEdit', u.societa || '')}</div>`, okText: 'Salva', cancelText: 'Annulla', onOpen: () => bindSocSelect('socEdit') });
         if (!ok) return;
-        societa = ($('socEdit').value || '').trim().toUpperCase();
+        societa = socValue('socEdit');
         if (societa.length < 2) { toast('Società non valida.', 'error'); return; }
       }
       if (op === 'ruolo') {
@@ -6484,6 +6653,27 @@
         <div class="st-kpi"><b>${tot('ribMod')}</b><span>Ribattiture modificate</span></div>
         <div class="st-kpi"><b>${tot('posNew') + tot('posMod')}</b><span>Posizioni PFS salvate</span></div>
         <div class="st-kpi"><b>${tecs.size}</b><span>Tecnici attivi</span></div></div>`;
+      // iscritti, archivio per tipo e correzioni (dalla v17 dello script)
+      const isc = stData.iscritti, tp = (stData.archivio || {}).tipi, cor = stData.correzioni;
+      if (isc) {
+        const allDays = Object.keys(isc.perDay).sort(), endD = isoDay(new Date());
+        const startD = from || allDays[0] || endD, dd = [];
+        for (let d = new Date(startD + 'T00:00:00'); isoDay(d) <= (to || endD) && dd.length < 60; d.setDate(d.getDate() + 1)) dd.push(isoDay(d));
+        const inRange = dd.reduce((n, d) => n + (isc.perDay[d] || 0), 0), maxI = Math.max(1, ...dd.map(d => isc.perDay[d] || 0));
+        const socs = Object.entries(isc.perSoc).sort((a, b) => b[1] - a[1]), maxS = Math.max(1, ...socs.map(x => x[1]));
+        html += `<div class="controls-card"><div class="section-title"><span>Iscritti</span><span class="count-pill">${isc.attivi} attivi</span></div>
+          <div class="st-kpis st-kpis-3"><div class="st-kpi"><b>${isc.attivi}</b><span>Account attivi</span></div>
+            <div class="st-kpi"><b>${inRange}</b><span>Nuovi nel periodo</span></div>
+            <div class="st-kpi"><b>${isc.attesa}</b><span>In attesa</span></div></div>
+          ${dd.length > 1 ? `<div class="st-days">${dd.map(d => `<i class="${isc.perDay[d] ? '' : 'zero'}" style="height:${Math.round((isc.perDay[d] || 0) / maxI * 100)}%" title="${itDay(d)}: ${isc.perDay[d] || 0} iscritti"></i>`).join('')}</div>
+            <div class="st-axis"><span>${itDay(dd[0])}</span><span>${itDay(dd[dd.length - 1])}</span></div>` : ''}
+          <div class="st-socs">${socs.slice(0, 15).map(([n, v]) => `<div class="st-soc"><span>${escapeHtml(n)}</span><i style="width:${Math.max(4, v / maxS * 100)}%"></i><b>${v}</b></div>`).join('')}
+            ${socs.length > 15 ? `<small style="color:var(--muted)">e altre ${socs.length - 15} società</small>` : ''}</div></div>`;
+      }
+      if (tp) html += `<div class="controls-card"><div class="section-title"><span>Archivio posizioni</span><span class="count-pill">${(tp.pfs + tp.pfp + tp.pop + tp.pd + tp.cen).toLocaleString('it-IT')}</span></div>
+          <div class="st-kpis st-kpis-3"><div class="st-kpi"><b>${tp.pfs.toLocaleString('it-IT')}</b><span>PFS</span></div><div class="st-kpi"><b>${tp.cen.toLocaleString('it-IT')}</b><span>Centrali FiberCop</span></div>
+            <div class="st-kpi"><b>${(tp.pfp + tp.pop + tp.pd).toLocaleString('it-IT')}</b><span>PFP, POP e PD</span></div></div>
+          <p class="small" style="margin:8px 0 0">✓ <b>${tp.verificate.toLocaleString('it-IT')}</b> verificate sul campo${cor ? ` · correzioni: <b>${cor.attesa}</b> da approvare, ${cor.approvate} approvate, ${cor.rifiutate} rifiutate` : ''}</p></div>`;
       // attività giorno per giorno (al massimo gli ultimi 60 giorni del periodo)
       const days = [];
       const end = new Date(); let start = from ? new Date(from + 'T00:00:00') : new Date(Math.min(...rows.map(r => +new Date(r.day + 'T00:00:00')), +end));
@@ -7404,9 +7594,10 @@
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-17b';
+    const NEWS_ID = '2026-11-20';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#16a34a', i: 'i-target', t: 'Sono qui: correggi le posizioni', d: 'Davanti a un PFS o a una centrale con la posizione sbagliata tocca il mirino accanto a Naviga: il GPS propone il punto giusto e, quando un amministratore lo approva, la posizione diventa “verificata” per tutti. L’aggiornamento manuale ora scarica solo i PFS cambiati.' },
       { c: '#0369a1', i: 'i-building', t: 'Centrali FiberCop', d: 'Nuova voce nel menu con le posizioni di circa 10.800 centrali FiberCop in tutta Italia, divise per provincia e comune. Cerca per nome, comune, indirizzo o codici (ID BRE, GAT, SGU) e tocca Naviga per arrivarci. Foto GPS ora è accanto a Barcode.' },
       { c: '#0f766e', i: 'i-pin', t: 'PFS di tutta Italia', d: 'L’archivio si allarga a tutta Italia: oltre 80.000 PFS, divisi per provincia e per anello o comune. Scegli la tua zona con i pulsanti sopra l’elenco. La mappa disegna i punti della zona che stai guardando (avvicinati per vederli tutti) e l’aggiornamento scarica solo i PFS cambiati, così resta veloce.' },
       { c: '#7c3aed', i: 'i-folder', t: 'Elenco per provincia e Lombardia', d: 'Arrivate 2.841 posizioni di Bergamo e Brescia. L’elenco ora è diviso per provincia (Napoli, Bergamo, Brescia…): scegli la tua zona con i pulsanti sopra l’elenco e l’app la ricorda. In cima trovi gli anelli e i PFS aperti di recente, e la ricerca apre subito la cartella giusta.' },

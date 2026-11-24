@@ -1,6 +1,6 @@
 /* Service worker di Fiber Tools: rende l'app utilizzabile offline.
    Quando modifichi i file dell'app, aumenta VERSION per forzare l'aggiornamento. */
-const VERSION = 'fiber-tools-v49';
+const VERSION = 'fiber-tools-v50';
 // mappa offline: i tasselli OpenStreetMap restano tra un aggiornamento e l'altro
 const TILE_CACHE = 'fiber-tiles-v1';
 const TILE_MAX = 8000;
@@ -88,3 +88,55 @@ async function trimTiles(cache) {
   const keys = await cache.keys();
   if (keys.length > TILE_MAX) await Promise.all(keys.slice(0, keys.length - TILE_MAX).map(k => cache.delete(k)));
 }
+
+
+/* ---------- Notifiche sul telefono (anche ad app chiusa) ----------
+   Arriva solo un segnale: leggo dallo script i messaggi non letti dell'account. */
+function idbGetCfg() {
+  return new Promise(res => {
+    try {
+      const r = indexedDB.open('fiber_tools_db', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onerror = () => res(null);
+      r.onsuccess = () => {
+        try {
+          const db = r.result, q = db.transaction('kv', 'readonly').objectStore('kv').get('pushCfg');
+          q.onsuccess = () => { db.close(); res(q.result || null); }; q.onerror = () => { db.close(); res(null); };
+        } catch (e) { res(null); }
+      };
+    } catch (e) { res(null); }
+  });
+}
+const NOTIF_ICON = 'icons/icon-192.png';
+self.addEventListener('push', event => {
+  event.waitUntil((async () => {
+    let msgs = [];
+    const cfg = await idbGetCfg();
+    if (cfg && cfg.url && cfg.token) {
+      try {
+        const body = JSON.stringify({ action: 'pushInbox', token: cfg.token, ...(cfg.key ? { key: cfg.key } : {}) });
+        const r = await fetch(cfg.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
+        const d = await r.json();
+        msgs = (d && d.messages) || [];
+      } catch (e) {}
+    }
+    if (!msgs.length) msgs = [{ titolo: 'Fiber Tools', testo: 'Hai una novità: apri l’app.', link: '' }];
+    for (const m of msgs) {
+      await self.registration.showNotification(m.titolo || 'Fiber Tools', {
+        body: m.testo || '', icon: NOTIF_ICON, badge: NOTIF_ICON, tag: (m.link || 'ft') + '|' + (m.data || Date.now()), data: { link: m.link || '' }
+      });
+    }
+  })());
+});
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const scope = self.registration.scope, link = (event.notification.data && event.notification.data.link) || '';
+  const url = scope + (link ? link : '');
+  event.waitUntil((async () => {
+    const wins = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const w of wins) {
+      if (w.url.startsWith(scope)) { try { await w.focus(); if (link) w.postMessage({ type: 'deepLink', link }); return; } catch (e) {} }
+    }
+    await clients.openWindow(url);
+  })());
+});

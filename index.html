@@ -972,6 +972,13 @@
 
     /* ---------- V3 ---------- */
     .t-teal   { --tile-bg: color-mix(in srgb, #14b8a6 15%, transparent); --tile-fg: #0d9488; }
+    .ps-com-list { display: flex; flex-direction: column; gap: 8px; }
+    .ps-com { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); }
+    .ps-com.mine { background: color-mix(in srgb, var(--primary, #0284c7) 7%, transparent); }
+    .ps-com-h { display: flex; align-items: center; gap: 6px; font-size: .76rem; } .ps-com-h span { color: var(--muted); } .ps-com-h small { color: var(--muted); margin-left: auto; }
+    .ps-com-t { font-size: .86rem; margin-top: 3px; white-space: pre-wrap; word-break: break-word; }
+    .ps-com-del { border: 0; background: none; color: var(--muted); padding: 2px; cursor: pointer; } .ps-com-del svg { width: 14px; height: 14px; } .ps-com-del.armed { color: #dc2626; }
+    .ps-com-new { display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; } .ps-com-new textarea { font-family: inherit; flex: 1; min-height: 0; resize: vertical; font-size: .9rem; }
     .kb-toggle { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; margin-right: 8px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: .75rem; font-weight: 800; letter-spacing: .03em; cursor: pointer; }
     .kb-toggle svg { width: 13px; height: 13px; color: var(--primary, #0284c7); }
     .kb-toggle.alpha { background: color-mix(in srgb, var(--primary, #0284c7) 12%, transparent); }
@@ -3800,6 +3807,9 @@
     function initPwa() {
       if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
         navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker non registrato:', err));
+        navigator.serviceWorker.addEventListener('message', e => {
+          if (e.data && e.data.type === 'deepLink') { location.hash = e.data.link; }
+        });
       }
       window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; showInstallCard(); });
       window.addEventListener('appinstalled', () => { $('installCard').hidden = true; deferredInstall = null; toast('Fiber Tools installata!'); });
@@ -4273,6 +4283,7 @@
           else if (gotPos) mergeRemotePos(json.positions);
           saveSyncRevs(json, gotRib, gotPos);
           if (isAdminRole()) fetchActivity();
+          deepSynced = true; runDeepLink();
           if (!silent) toast('Archivio aggiornato da Google Sheets.');
         } else if (!silent) {
           toast('Google Sheets non ha restituito dati validi.', 'error');
@@ -4503,6 +4514,11 @@
             <button type="button" class="btn-secondary" id="setNews" style="margin-top:6px"><svg><use href="#i-check"/></svg> Novità dell’app</button>
             <button type="button" class="btn-secondary" id="setGuide" style="margin-top:6px"><svg><use href="#i-info"/></svg> Guida rapida</button>
           </div>
+          <hr>
+          <div class="field-group">
+            <span class="field-label">Notifiche sul telefono</span>
+            <div id="setPush"><small class="ps-none">…</small></div>
+          </div>
           ${BETA ? '' : '<!--'}<hr>
           <div class="field-group">
             <span class="field-label">Sul campo</span>
@@ -4538,6 +4554,7 @@
           $('setAccount').addEventListener('click', () => { closeModal(false); openAccount(); });
           $('setNews').addEventListener('click', () => { closeModal(false); setTimeout(openNews, 50); });
           $('setGuide').addEventListener('click', () => { closeModal(false); setTimeout(() => openOnboarding(true), 50); });
+          renderPushSettings();
           if (BETA) {
             $('setGlove').addEventListener('change', e => { lsSet(FIELD_KEY, e.target.checked ? '1' : '0'); applyFieldMode(); });
             $('setWake').addEventListener('change', e => { lsSet(WAKE_KEY, e.target.checked ? '1' : '0'); updateWakeLock(); });
@@ -6071,7 +6088,8 @@
           <div class="ps-actions">
             <button type="button" class="btn-nav" data-ps="nav"><svg><use href="#i-nav"/></svg> Naviga</button>
             <button type="button" class="btn-xs" data-ps="fix" title="Sono qui: correggi la posizione"><svg><use href="#i-target"/></svg> Sono qui</button>
-            <button type="button" class="btn-xs" data-ps="share"><svg><use href="#i-share"/></svg></button>
+            <button type="button" class="btn-xs" data-ps="link" title="Manda il link (WhatsApp…)"><svg><use href="#i-share"/></svg> Link</button>
+            <button type="button" class="btn-xs" data-ps="share" title="Condividi la posizione"><svg><use href="#i-pin"/></svg></button>
             <button type="button" class="btn-xs" data-ps="copy" title="Copia coordinate"><svg><use href="#i-copy"/></svg></button>
             <button type="button" class="btn-xs" data-ps="edit" title="Modifica"><svg><use href="#i-edit"/></svg></button>
             <button type="button" class="btn-xs" data-ps="history" title="Storico"><svg><use href="#i-clock"/></svg></button>
@@ -6090,6 +6108,10 @@
           ${kind === 'pfs' ? `<div class="ps-sec"><div class="ps-sec-t">Ribattiture <span class="count-pill">${ribs.length}</span></div>
             ${ribs.length ? ribs.map(([spl, r]) => `<button type="button" class="ps-li" data-ps="rib"><b>SP_${escapeHtml(String(spl).padStart(2, '0'))}</b><small>${(r.ottici || []).length} ottici${r.updatedAt ? ' · ' + escapeHtml(r.updatedAt) : ''}${r.tecnico ? ' · ' + escapeHtml(r.tecnico) : ''}</small></button>`).join('')
               : '<small class="ps-none">Nessuna ribattitura su questo PFS.</small>'}</div>` : ''}
+          <div class="ps-sec"><div class="ps-sec-t">Note dei colleghi <span class="count-pill" id="psComN">…</span></div>
+            <div id="psCom" class="ps-com-list"><small class="ps-none">Carico…</small></div>
+            ${canWrite() ? `<div class="ps-com-new"><textarea id="psComIn" class="custom-input" rows="2" maxlength="500" placeholder="Es. chiave dal portiere, armadio dietro il cancello…"></textarea>
+              <button type="button" class="btn-xs ok" id="psComSend">Invia</button></div>` : ''}</div>
           ${pds.length ? `<div class="ps-sec"><div class="ps-sec-t">PD collegati <span class="count-pill">${pds.length}</span></div>${pds.slice(0, 30).map(x => `<button type="button" class="ps-li" data-ps="open" data-arg="${escapeHtml(x.pfs)}"><b>${escapeHtml(posLabel(x))}</b><small>${escapeHtml(splitPosNote(x.note).rest)}</small></button>`).join('')}</div>` : ''}`,
         okText: 'Chiudi', cancelText: 'Chiudi',
         onOpen: () => {
@@ -6098,8 +6120,17 @@
             const a = b.dataset.ps;
             if (a === 'copy') { copyText(fmtCoord(it.lat, it.lng)).then(ok => toast(ok ? 'Coordinate copiate.' : 'Copia non riuscita.', ok ? 'success' : 'error')); return; }
             if (a === 'nav') { navigateTo(it); return; }
+            if (a === 'link') { sharePosLink(it); return; }
             choice = a; arg = b.dataset.arg || null; closeModal(true);
           }));
+          loadComments(pfs);
+          if ($('psComSend')) $('psComSend').addEventListener('click', () => sendComment(pfs));
+          $('psCom').addEventListener('click', async e => {
+            const d = e.target.closest('[data-com-del]'); if (!d) return;
+            if (!await confirmInline(d, 'Eliminare la nota?')) return;
+            try { const r = await accountCall({ action: 'deleteComment', token: account.token, id: d.dataset.comDel }); if (r.status !== 'success') throw new Error(r.message); loadComments(pfs); }
+            catch (err) { toast(accountError(err), 'error'); }
+          });
           loadLeaflet().then(L => {
             if (!$('psMap')) return;
             sheetMap = L.map('psMap', { zoomControl: false, attributionControl: false, dragging: true }).setView([it.lat, it.lng], 17);
@@ -6161,6 +6192,145 @@
       lsSet(ONBOARD_KEY, '1');
       try { localStorage.setItem(NEWS_KEY, NEWS_ID); } catch (e) {}   // chi è appena arrivato non ha bisogno delle novità
       return true;
+    }
+
+
+    /* =====================================================================
+       LINK DIRETTI (#pfs=…, #correzioni, #utenti): dai messaggi WhatsApp e dalle notifiche
+       ===================================================================== */
+    let deepLink = (() => {
+      const h = decodeURIComponent(location.hash || ''), q = new URLSearchParams(location.search);
+      const m = /^#pfs=(.+)$/.exec(h);
+      if (m) return { t: 'pfs', v: m[1] };
+      if (q.get('pfs')) return { t: 'pfs', v: q.get('pfs') };
+      if (h === '#correzioni') return { t: 'fix' };
+      if (h === '#utenti') return { t: 'users' };
+      return null;
+    })();
+    let deepSynced = false;
+    window.addEventListener('hashchange', () => {
+      const h = decodeURIComponent(location.hash || ''), m = /^#pfs=(.+)$/.exec(h);
+      deepLink = m ? { t: 'pfs', v: m[1] } : h === '#correzioni' ? { t: 'fix' } : h === '#utenti' ? { t: 'users' } : null;
+      if (!deepLink) return;
+      history.replaceState({}, '', location.pathname + location.search);
+      if (!$('modal').hidden) { try { closeModal(); } catch (e) {} }
+      runDeepLink();
+    });
+    const posLinkUrl = pfs => `${location.origin}${location.pathname}#pfs=${encodeURIComponent(pfs)}`;
+    function runDeepLink() {
+      if (!deepLink) return;
+      if (!canRead()) { if (!account && $('modal').hidden) { toast('Accedi per aprire il link ricevuto.', 'info', 4000); openAccount(); } return; }
+      if (!$('modal').hidden) { setTimeout(runDeepLink, 1200); return; }
+      const d = deepLink;
+      if (d.t === 'fix') { deepLink = null; if (isAdminRole()) openFixes(); return; }
+      if (d.t === 'users') { deepLink = null; if (isAdminRole()) openScreen('usersScreen', 'Gestione utenti', 'Approvazioni e ruoli'); return; }
+      const all = getPositions(), raw = String(d.v).trim();
+      const k = [raw, raw.toUpperCase(), canonPfs(raw), canonCen(raw), canonPop(raw)].find(x => x && all[x]);
+      if (k) { deepLink = null; openPosSheet(k); return; }
+      if (deepSynced) { deepLink = null; toast(`${raw} non è nell’archivio.`, 'error', 4500); }
+    }
+    async function sharePosLink(it) {
+      const url = posLinkUrl(it.pfs), np = splitPosNote(it.note);
+      const text = `${posFullName(it)}${np.comune ? ' – ' + np.comune : ''}\nApri nell’app Fiber Tools:`;
+      if (navigator.share) { try { await navigator.share({ title: posFullName(it), text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+      const ok = await copyText(`${text} ${url}`);
+      toast(ok ? 'Link copiato: incollalo su WhatsApp.' : 'Copia non riuscita.', ok ? 'success' : 'error');
+    }
+
+    /* =====================================================================
+       NOTE DEI COLLEGHI (nella scheda)
+       ===================================================================== */
+    async function loadComments(pfs) {
+      const box = $('psCom'); if (!box) return;
+      if (navigator.onLine === false) { box.innerHTML = '<small class="ps-none">Le note dei colleghi si vedono quando c’è campo.</small>'; return; }
+      try {
+        const d = await accountCall({ action: 'comments', token: account.token, pfs });
+        if (!$('psCom')) return;
+        if (d.status !== 'success') throw new Error(d.message);
+        const list = d.comments || [];
+        $('psComN').textContent = list.length;
+        box.innerHTML = list.length ? list.map(c => `<div class="ps-com${c.mine ? ' mine' : ''}">
+            <div class="ps-com-h"><b>${escapeHtml(c.tecnico)}</b>${c.societa ? `<span>${escapeHtml(c.societa)}</span>` : ''}<small>${escapeHtml(c.data)}</small>
+              ${c.canDelete ? `<button type="button" class="ps-com-del" data-com-del="${escapeHtml(c.id)}" aria-label="Elimina nota"><svg><use href="#i-x"/></svg></button>` : ''}</div>
+            <div class="ps-com-t">${escapeHtml(c.testo)}</div></div>`).join('')
+          : '<small class="ps-none">Nessuna nota. Scrivi tu la prima: accesso, chiavi, attenzioni…</small>';
+      } catch (e) { if ($('psCom')) box.innerHTML = `<small class="ps-none">${escapeHtml(accountError(e))}</small>`; }
+    }
+    function confirmInline(btn, msg) {
+      return new Promise(res => {
+        if (btn.dataset.armed) { res(true); return; }
+        btn.dataset.armed = '1'; btn.classList.add('armed'); btn.title = msg + ' Tocca di nuovo per confermare.';
+        toast(msg + ' Tocca di nuovo la ✕ per confermare.', 'info', 2500);
+        setTimeout(() => { delete btn.dataset.armed; btn.classList.remove('armed'); }, 3000);
+        res(false);
+      });
+    }
+    async function sendComment(pfs) {
+      const t = ($('psComIn').value || '').trim();
+      if (t.length < 2) { $('psComIn').focus(); return; }
+      if (!canWrite()) { toast('Serve un account approvato per scrivere le note.', 'info'); return; }
+      $('psComSend').disabled = true;
+      try {
+        const d = await accountCall({ action: 'addComment', token: account.token, pfs, testo: t });
+        if (d.status !== 'success') throw new Error(d.message);
+        $('psComIn').value = ''; loadComments(pfs);
+      } catch (e) { toast(e instanceof NetError ? 'Serve la connessione per inviare la nota.' : accountError(e), 'error'); }
+      finally { if ($('psComSend')) $('psComSend').disabled = false; }
+    }
+
+    /* =====================================================================
+       NOTIFICHE SUL TELEFONO (anche ad app chiusa)
+       ===================================================================== */
+    const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && /^https:$/.test(location.protocol);
+    async function pushSub() { try { const reg = await navigator.serviceWorker.ready; return await reg.pushManager.getSubscription(); } catch (e) { return null; } }
+    async function pushStatus() {
+      if (isIOS() && !isStandalone()) return 'ios';
+      if (!pushSupported()) return 'no';
+      if (Notification.permission === 'denied') return 'denied';
+      return (await pushSub()) ? 'on' : 'off';
+    }
+    const b64uToBytes = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); const b = atob(s + '='.repeat((4 - s.length % 4) % 4)); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+    /** Il service worker legge da qui come chiedere i messaggi allo script. */
+    const savePushCfg = () => account ? idbSet('pushCfg', { url: GOOGLE_SHEET_WEB_APP_URL, key: getTeamKey(), token: account.token }).catch(() => {}) : idbDel('pushCfg').catch(() => {});
+    async function enablePush() {
+      if (!canWrite()) { toast('Serve un account approvato per ricevere le notifiche.', 'info'); return false; }
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { toast('Permesso negato: puoi attivarlo nelle impostazioni del telefono.', 'error', 5000); return false; }
+      try {
+        const k = await accountCall({ action: 'pushKey' });
+        if (k.status !== 'success' || !k.publicKey) throw new Error(k.message || 'Chiave non disponibile');
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(k.publicKey) });
+        await savePushCfg();
+        const d = await accountCall({ action: 'pushSubscribe', token: account.token, endpoint: sub.endpoint, device: deviceLabel() });
+        if (d.status !== 'success') throw new Error(d.message);
+        toast('Notifiche attive su questo telefono.', 'success');
+        return true;
+      } catch (e) { toast('Notifiche non attivate: ' + (e.message || 'errore'), 'error', 5000); return false; }
+    }
+    async function disablePush(quiet) {
+      const sub = await pushSub();
+      if (sub) { try { if (account) await accountCall({ action: 'pushUnsubscribe', token: account.token, endpoint: sub.endpoint }); } catch (e) {} try { await sub.unsubscribe(); } catch (e) {} }
+      if (!quiet) toast('Notifiche disattivate su questo telefono.', 'info');
+    }
+    async function testPush() {
+      try { const d = await accountCall({ action: 'pushTest', token: account.token }); if (d.status !== 'success') throw new Error(d.message); toast(d.sent ? 'Notifica di prova inviata: arriva tra qualche secondo.' : 'Nessun telefono iscritto: riattiva le notifiche.', d.sent ? 'success' : 'error', 5000); }
+      catch (e) { toast(accountError(e), 'error'); }
+    }
+    async function renderPushSettings() {
+      const box = $('setPush'); if (!box) return;
+      const st = await pushStatus();
+      const txt = { ios: 'Su iPhone le notifiche arrivano solo all’app installata: aggiungila alla schermata Home (Condividi → Aggiungi alla schermata Home) e aprila da lì.',
+        no: 'Questo browser non supporta le notifiche.', denied: 'Le notifiche sono bloccate per questo sito: riattivale nelle impostazioni del browser o del telefono.',
+        off: account && isAdminRole() ? 'Ricevi un avviso per nuove richieste di accesso e correzioni da approvare, anche ad app chiusa.' : 'Ricevi un avviso quando una tua correzione viene approvata o qualcuno scrive su un PFS dove hai lasciato una nota.',
+        on: 'Notifiche attive su questo telefono.' }[st];
+      box.innerHTML = `<div class="status-line ${st === 'on' ? 'ok' : 'warn'}"><span class="dot"></span>${txt}</div>
+        ${st === 'off' ? '<button type="button" class="btn-secondary" id="pushOn" style="margin-top:6px"><svg><use href="#i-bell"/></svg> Attiva le notifiche</button>' : ''}
+        ${st === 'on' ? '<div class="grid-2" style="margin:6px 0 0"><button type="button" class="btn-secondary" id="pushTest"><svg><use href="#i-bell"/></svg> Prova</button><button type="button" class="btn-secondary" id="pushOff">Disattiva</button></div>' : ''}`;
+      if ($('pushOn')) $('pushOn').addEventListener('click', async () => { if (await enablePush()) renderPushSettings(); });
+      if ($('pushOff')) $('pushOff').addEventListener('click', async () => { await disablePush(); renderPushSettings(); });
+      if ($('pushTest')) $('pushTest').addEventListener('click', testPush);
     }
 
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
@@ -6335,7 +6505,7 @@
     }
     function setAccount(a) {
       account = a && a.token ? a : null;
-      if (account) lsSet(ACCOUNT_KEY, JSON.stringify(account)); else { try { localStorage.removeItem(ACCOUNT_KEY); } catch (e) {} accountPending = 0; }
+      if (account) lsSet(ACCOUNT_KEY, JSON.stringify(account)); else { try { localStorage.removeItem(ACCOUNT_KEY); } catch (e) {} accountPending = 0; idbDel('pushCfg').catch(() => {}); pushSub().then(x => x && x.unsubscribe()).catch(() => {}); }
       isAdminLoggedIn = isAdminRole();
       if (!canRead()) purgeData();
       updateAccountUI();
@@ -6646,6 +6816,8 @@
     }
 
     function afterLogin() {
+      savePushCfg();
+      if (deepLink) syncFromGoogleSheets(true);
       if ($('ribattituraScreen').classList.contains('active')) syncFromGoogleSheets(true);
       if ($('pfsPosScreen').classList.contains('active')) { renderPositions(); syncFromGoogleSheets(true); }
     }
@@ -8009,9 +8181,10 @@
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-24c';
+    const NEWS_ID = '2026-11-24d';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#dc2626', i: 'i-bell', t: 'Link, note e notifiche', d: 'Nella scheda di un PFS tocca “Link” per mandarlo su WhatsApp: chi lo apre arriva dritto alla scheda (serve l’account). Sotto trovi le “Note dei colleghi”: chiavi, accessi, attenzioni, con nome e data. In Impostazioni → Notifiche sul telefono attiva gli avvisi: correzioni approvate e nuove note sui PFS dove hai scritto, anche ad app chiusa (su iPhone serve l’app aggiunta alla schermata Home).' },
       { c: '#d97706', i: 'i-sun', t: 'Più comoda sul campo', d: 'In ribattitura Permuta e ID aprono il tastierino numerico (il tasto 123 / ABC torna alle lettere) e con Invio passi al campo dopo. Lo schermo resta acceso durante ribattitura e schema di giunzione. Con i guanti? Tocca “Guanti” in alto nella ribattitura o vai in Impostazioni → Sul campo: pulsanti e testi più grandi.' },
       { c: '#4f46e5', i: 'i-search', t: 'Cerca tutto e apri la scheda', d: 'In cima al menu c’è la ricerca unica: scrivi un PFS, un CNO, una centrale o una via e trovi posizioni e ribattiture. Toccando un risultato (o un PFS nell’elenco) si apre la scheda con mappa, comune, POP, foto, ribattiture e PD collegati. La guida rapida è in Impostazioni.' },
       { c: '#0d9488', i: 'i-pin', t: 'Comune, tipo e POP quando aggiungi', d: 'Aggiungendo un PFS o un CNO scegli il comune dall’elenco di tutti i comuni italiani (per i codici catastali si compila da solo, oppure tocca “Comune più vicino”) e indica il POP di riferimento. Con “Tipo” puoi segnare direttamente anche POP, PD, PFP e centrali.' },
@@ -8158,7 +8331,9 @@
       initSplice();
       maybeShowNews();
       initUsersCount();
-      history.replaceState({}, '', location.pathname + location.search);
+      history.replaceState({}, '', location.pathname + location.search.replace(/[?&]pfs=[^&]*/, '').replace(/^&/, '?'));
+      if (deepLink) { if (!canRead()) setTimeout(runDeepLink, 800); else { if (Object.keys(getPositions()).length) setTimeout(runDeepLink, 600); syncFromGoogleSheets(true); } }
+      if (account) savePushCfg();
     });
   </script>
 </body>

@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 17;
+const SCRIPT_VERSION = 18;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_CEN = 'Centrali', SH_FIX = 'Correzioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -168,6 +168,9 @@ function nowIt_() {
 
 function log_(azione, pfs, splitter, tecnico, dettaglio) {
   appendText_(logSheet_(), [nowIt_(), azione, pfs, splitter || '', norm_(tecnico), String(dettaglio || '').slice(0, 1500)]);
+  // notifiche sul telefono degli amministratori per le cose da decidere
+  const P = PUSH_ADMIN_ACTIONS[azione];
+  if (P) try { notifyAdmins_(P[0], azione === 'Correzione proposta' ? pfs + ' · ' + norm_(tecnico) : norm_(tecnico) + (dettaglio ? ' · ' + String(dettaglio).slice(0, 90) : ''), P[1]); } catch (e) {}
 }
 
 /* ------------------------------------------------------------------ sicurezza */
@@ -655,7 +658,7 @@ function history_(pfs, splitter) {
 }
 
 /* ------------------------------------------------------------------ notifiche agli amministratori */
-const CONTENT_ACTIONS = ['Creata', 'Modificata', 'Eliminata', 'Posizione salvata', 'Posizione modificata', 'Posizione eliminata', 'Importazione posizioni', 'Correzione proposta', 'Posizione verificata', 'Uso anomalo', 'Richiesta di accesso'];
+const CONTENT_ACTIONS = ['Creata', 'Modificata', 'Eliminata', 'Posizione salvata', 'Posizione modificata', 'Posizione eliminata', 'Importazione posizioni', 'Correzione proposta', 'Posizione verificata', 'Uso anomalo', 'Richiesta di accesso', 'Nota aggiunta'];
 /** Contenuti aggiunti o modificati dagli altri utenti dopo la riga «since» dello Storico (le più recenti per prime). */
 function activity_(ad, since) {
   const sh = logSheet_(), last = sh.getLastRow();
@@ -825,6 +828,185 @@ function deletePos_(b) {
   return { status: 'success', deleted: !!f };
 }
 
+
+/* ==================================================================
+   NOTIFICHE SUL TELEFONO (Web Push, anche ad app chiusa)
+   Il telefono riceve solo un "segnale" (senza contenuto, niente da cifrare); il service worker
+   chiede poi allo script i messaggi non letti dell'account (pushInbox).
+   Firma VAPID ES256 (curva P-256) fatta qui con BigInt: le chiavi nascono e restano nelle proprietà dello script.
+   ================================================================== */
+const PUSH_ADMIN_ACTIONS = {
+  'Richiesta di accesso': ['Nuova richiesta di accesso', '#utenti'],
+  'Correzione proposta': ['Correzione da approvare', '#correzioni'],
+  'Uso anomalo': ['Uso anomalo di un account', '#utenti']
+};
+const SH_PUSH = 'Push', SH_MSG = 'Messaggi';
+const pushSheet_ = () => sheet_(SH_PUSH, ['EMAIL', 'ENDPOINT', 'DISPOSITIVO', 'CREATO', 'ULTIMO_INVIO']);
+const msgSheet_ = () => sheet_(SH_MSG, ['EMAIL', 'DATA', 'TITOLO', 'TESTO', 'LINK', 'LETTO']);
+const EC = {
+  p: BigInt('0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff'),
+  n: BigInt('0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551'),
+  b: BigInt('0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b'),
+  gx: BigInt('0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296'),
+  gy: BigInt('0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5')
+};
+const ecMod_ = (a, m) => { const r = a % m; return r < 0n ? r + m : r; };
+function ecInv_(a, m) { let [x, y, u, v] = [ecMod_(a, m), m, 1n, 0n]; while (x !== 0n) { const q = y / x; [x, y] = [y - q * x, x]; [u, v] = [v - q * u, u]; } return ecMod_(v, m); }
+// punti in coordinate di Jacobi [X, Y, Z]
+function ecDbl_(P) {
+  const p = EC.p, [X, Y, Z] = P; if (Y === 0n || Z === 0n) return [0n, 1n, 0n];
+  const YY = Y * Y % p, S = 4n * X * YY % p, ZZ = Z * Z % p, M = 3n * (X - ZZ) * (X + ZZ) % p;
+  const X3 = ecMod_(M * M - 2n * S, p), Y3 = ecMod_(M * (S - X3) - 8n * YY * YY, p), Z3 = 2n * Y * Z % p;
+  return [X3, Y3, Z3];
+}
+function ecAdd_(P, Q) {
+  const p = EC.p; if (P[2] === 0n) return Q; if (Q[2] === 0n) return P;
+  const Z1Z1 = P[2] * P[2] % p, Z2Z2 = Q[2] * Q[2] % p;
+  const U1 = P[0] * Z2Z2 % p, U2 = Q[0] * Z1Z1 % p, S1 = P[1] * Q[2] % p * Z2Z2 % p, S2 = Q[1] * P[2] % p * Z1Z1 % p;
+  if (U1 === U2) return S1 === S2 ? ecDbl_(P) : [0n, 1n, 0n];
+  const H = ecMod_(U2 - U1, p), R = ecMod_(S2 - S1, p), HH = H * H % p, HHH = H * HH % p, V = U1 * HH % p;
+  const X3 = ecMod_(R * R - HHH - 2n * V, p), Y3 = ecMod_(R * (V - X3) - S1 * HHH, p), Z3 = P[2] * Q[2] % p * H % p;
+  return [X3, Y3, Z3];
+}
+function ecMul_(k) {
+  let R = [0n, 1n, 0n], Q = [EC.gx, EC.gy, 1n];
+  while (k > 0n) { if (k & 1n) R = ecAdd_(R, Q); Q = ecDbl_(Q); k >>= 1n; }
+  const zi = ecInv_(R[2], EC.p), zi2 = zi * zi % EC.p;
+  return [R[0] * zi2 % EC.p, R[1] * zi2 % EC.p * zi % EC.p];
+}
+const bytesToBig_ = bytes => bytes.reduce((n, x) => (n << 8n) + BigInt(x & 255), 0n);
+function bigToBytes_(n, len) { const out = new Array(len).fill(0); for (let i = len - 1; i >= 0; i--) { out[i] = Number(n & 255n); n >>= 8n; } return out; }
+const signed_ = arr => arr.map(x => x > 127 ? x - 256 : x);   // Apps Script usa byte con segno
+const b64url_ = bytes => Utilities.base64EncodeWebSafe(signed_(bytes)).replace(/=+$/, '');
+/** Chiavi VAPID: create una volta sola e conservate nelle proprietà dello script. */
+function vapidKeys_() {
+  const p = props_();
+  let d = p.getProperty('VAPID_D'), pub = p.getProperty('VAPID_PUB');
+  if (d && pub) return { d: BigInt('0x' + d), pub: pub };
+  let k = 0n;
+  while (k <= 0n || k >= EC.n) {
+    const seed = Utilities.getUuid() + Utilities.getUuid() + Date.now() + Math.random();
+    k = bytesToBig_(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, seed)) % EC.n;
+  }
+  const P = ecMul_(k);
+  pub = b64url_([4].concat(bigToBytes_(P[0], 32), bigToBytes_(P[1], 32)));
+  p.setProperty('VAPID_D', k.toString(16)); p.setProperty('VAPID_PUB', pub);
+  return { d: k, pub: pub };
+}
+/** Firma ES256 (nonce deterministico: HMAC della chiave privata sul messaggio). */
+function es256_(msg, d) {
+  const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, msg, Utilities.Charset.UTF_8);
+  const z = bytesToBig_(hash), dBytes = signed_(bigToBytes_(d, 32));
+  for (let ctr = 0; ctr < 16; ctr++) {
+    const k = bytesToBig_(Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, hash.concat([ctr]), dBytes)) % EC.n;
+    if (k === 0n) continue;
+    const r = ecMul_(k)[0] % EC.n; if (r === 0n) continue;
+    const sg = ecInv_(k, EC.n) * (z + r * d) % EC.n; if (sg === 0n) continue;
+    return b64url_(bigToBytes_(r, 32).concat(bigToBytes_(sg, 32)));
+  }
+  throw new Error('firma non riuscita');
+}
+function vapidAuth_(endpoint) {
+  const aud = /^(https:\/\/[^/]+)/.exec(endpoint)[1], c = CacheService.getScriptCache(), ck = 'vapid_' + aud.replace(/\W/g, '').slice(0, 200);
+  const hit = c.get(ck); if (hit) return hit;
+  const keys = vapidKeys_(), enc = o => Utilities.base64EncodeWebSafe(JSON.stringify(o), Utilities.Charset.UTF_8).replace(/=+$/, '');
+  const unsigned = enc({ typ: 'JWT', alg: 'ES256' }) + '.' + enc({ aud: aud, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: 'https://napoltano.github.io/fiber-tools/' });
+  const auth = 'vapid t=' + unsigned + '.' + es256_(unsigned, keys.d) + ', k=' + keys.pub;
+  c.put(ck, auth, 6 * 3600);
+  return auth;
+}
+/** Messaggio per uno o più account + segnale ai loro telefoni. */
+function notify_(emails, titolo, testo, link) {
+  emails = [...new Set(emails.map(normEmail_).filter(Boolean))];
+  if (!emails.length) return 0;
+  const psh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SH_PUSH);
+  if (!psh || psh.getLastRow() < 2) return 0;
+  const subs = psh.getRange(2, 1, psh.getLastRow() - 1, 5).getValues().map((r, i) => ({ email: normEmail_(r[0]), endpoint: String(r[1]), row: i + 2 })).filter(x => emails.includes(x.email) && /^https:\/\//.test(x.endpoint));
+  if (!subs.length) return 0;
+  const now = nowIt_(), withSub = [...new Set(subs.map(x => x.email))];
+  const msh = msgSheet_();
+  writeRows_(msh, msh.getLastRow() + 1, withSub.map(e => [e, now, String(titolo).slice(0, 80), String(testo || '').slice(0, 200), String(link || ''), '']));
+  let res = [];
+  try {
+    res = UrlFetchApp.fetchAll(subs.map(x => ({ url: x.endpoint, method: 'post', muteHttpExceptions: true, payload: '', contentType: 'application/octet-stream',
+      headers: { TTL: '86400', Urgency: 'high', Authorization: vapidAuth_(x.endpoint) } })));
+  } catch (e) { Logger.log('push: ' + e); return 0; }
+  // iscrizioni scadute (telefono disinstallato o permesso tolto): via dal foglio
+  const dead = subs.filter((x, i) => res[i] && [404, 410].includes(res[i].getResponseCode())).map(x => x.row).sort((a, b) => b - a);
+  dead.forEach(r => psh.deleteRow(r));
+  return subs.length - dead.length;
+}
+function adminEmails_() { return readUsers_().rows.filter(u => stato_(u.row) === 'attivo' && ROLE_LEVEL[ruolo_(u.row)] >= 2).map(u => u.row[U.EMAIL]); }
+const notifyAdmins_ = (titolo, testo, link) => notify_(adminEmails_(), titolo, testo, link);
+function pushSubscribe_(b) {
+  const me = b._me, email = normEmail_(me[U.EMAIL]), ep = String(b.endpoint || '');
+  if (!/^https:\/\/[\w.-]+\//.test(ep) || ep.length > 1500) return err_('input', 'Iscrizione non valida');
+  const sh = pushSheet_(), last = sh.getLastRow();
+  const rows = last > 1 ? sh.getRange(2, 1, last - 1, 2).getValues() : [];
+  const i = rows.findIndex(r => String(r[1]) === ep);
+  const row = [email, ep, cleanDev_(b.device) || '', nowIt_(), ''];
+  if (i >= 0) writeRows_(sh, i + 2, [row]); else appendText_(sh, row);
+  return { status: 'success', unchanged: true };
+}
+function pushUnsubscribe_(b) {
+  const ep = String(b.endpoint || ''), sh = pushSheet_(), last = sh.getLastRow();
+  if (last > 1) sh.getRange(2, 2, last - 1, 1).getValues().map((r, i) => String(r[0]) === ep ? i + 2 : 0).filter(Boolean).sort((a, b) => b - a).forEach(r => sh.deleteRow(r));
+  return { status: 'success', unchanged: true };
+}
+function pushTest_(b) {
+  const n = notify_([b._me[U.EMAIL]], 'Notifica di prova', 'Le notifiche di Fiber Tools funzionano su questo telefono 👍', '');
+  return { status: 'success', unchanged: true, sent: n };
+}
+/** Messaggi non letti dell'account (li legge il service worker quando arriva il segnale). */
+function pushInbox_(a) {
+  const email = normEmail_(a.user.row[U.EMAIL]), sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SH_MSG);
+  if (!sh || sh.getLastRow() < 2) return { status: 'success', messages: [] };
+  const lock = LockService.getScriptLock(); if (!lock.tryLock(10000)) return { status: 'success', messages: [] };
+  try {
+    const n = sh.getLastRow() - 1, vals = sh.getRange(2, 1, n, 6).getValues(), out = [];
+    vals.forEach((r, i) => { if (normEmail_(r[0]) === email && !r[5]) { out.push({ data: String(r[1]), titolo: String(r[2]), testo: String(r[3]), link: String(r[4]) }); vals[i][5] = '1'; } });
+    if (out.length) sh.getRange(2, 6, n, 1).setNumberFormat('@').setValues(vals.map(r => [String(r[5] || '')]));
+    // pulizia: tengo al massimo 3000 messaggi
+    if (n > 3000) sh.deleteRows(2, n - 3000);
+    return { status: 'success', messages: out.slice(-5) };
+  } finally { lock.releaseLock(); }
+}
+
+/* ==================================================================
+   NOTE DEI COLLEGHI su un PFS (si accumulano, non si sovrascrivono)
+   ================================================================== */
+const SH_COM = 'Commenti';
+const comSheet_ = () => sheet_(SH_COM, ['ID', 'DATA', 'PFS', 'TECNICO', 'EMAIL', 'SOCIETA', 'TESTO']);
+function listComments_(a, pfs) {
+  pfs = norm_(pfs);
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SH_COM), me = normEmail_(a.user.row[U.EMAIL]), admin = ROLE_LEVEL[ruolo_(a.user.row)] >= 2;
+  if (!sh || sh.getLastRow() < 2) return { status: 'success', comments: [] };
+  const out = sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues().filter(r => norm_(r[2]) === pfs)
+    .map(r => ({ id: String(r[0]), data: String(r[1]), tecnico: String(r[3]), societa: String(r[5]), testo: String(r[6]), mine: normEmail_(r[4]) === me, canDelete: admin || normEmail_(r[4]) === me }));
+  return { status: 'success', comments: out.slice(-100) };
+}
+function addComment_(b) {
+  const me = b._me, pfs = norm_(b.pfs), testo = String(b.testo || '').replace(/\s+/g, ' ').trim().slice(0, 500);
+  if (!pfs || testo.length < 2) return err_('input', 'Scrivi la nota');
+  if (!findPosRow_(pfs)) return err_('input', 'Questo codice non è nell’archivio');
+  const email = normEmail_(me[U.EMAIL]), nome = String(me[U.NOME] || email), sh = comSheet_();
+  // chi ha già scritto su questo PFS riceve una notifica
+  const prev = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 7).getValues().filter(r => norm_(r[2]) === pfs).map(r => normEmail_(r[4])) : [];
+  appendText_(sh, [Utilities.getUuid().slice(0, 8), nowIt_(), pfs, nome, email, String(me[U.SOC] || ''), testo]);
+  log_('Nota aggiunta', pfs, '', nome, testo.slice(0, 120));
+  try { notify_(prev.filter(e => e !== email), 'Nuova nota su ' + pfs, nome + ': ' + testo.slice(0, 120), '#pfs=' + encodeURIComponent(pfs)); } catch (e) {}
+  return { status: 'success', unchanged: true };
+}
+function deleteComment_(b) {
+  const me = b._me, sh = comSheet_(), last = sh.getLastRow(), id = String(b.id || '');
+  if (last < 2) return err_('input', 'Nota non trovata');
+  const rows = sh.getRange(2, 1, last - 1, 7).getValues(), i = rows.findIndex(r => String(r[0]) === id);
+  if (i < 0) return err_('input', 'Nota non trovata');
+  if (normEmail_(rows[i][4]) !== normEmail_(me[U.EMAIL]) && ROLE_LEVEL[ruolo_(me)] < 2) return err_('forbidden', 'Puoi eliminare solo le tue note');
+  sh.deleteRow(i + 2);
+  return { status: 'success', unchanged: true };
+}
+
 /* ------------------------------------------------------------------ correzioni dal campo */
 const FIX_HEADER = ['ID', 'DATA', 'PFS', 'LAT', 'LNG', 'PRECISIONE_M', 'DISTANZA_M', 'TECNICO', 'EMAIL', 'SOCIETA', 'NOTA', 'STATO', 'DECISO_DA', 'DECISO_IL', 'LAT_PRIMA', 'LNG_PRIMA'];
 const F = { ID: 0, DATA: 1, PFS: 2, LAT: 3, LNG: 4, ACC: 5, DIST: 6, TEC: 7, EMAIL: 8, SOC: 9, NOTA: 10, STATO: 11, BY: 12, AT: 13, LAT0: 14, LNG0: 15 };
@@ -893,6 +1075,7 @@ function decideFix_(b) {
   row[F.STATO] = ok ? 'approvata' : 'rifiutata'; row[F.BY] = who; row[F.AT] = ts;
   writeRows_(sh, i + 2, [row.map(String)]);
   log_(ok ? 'Correzione approvata' : 'Correzione rifiutata', norm_(row[F.PFS]), '', who, 'Proposta da ' + row[F.TEC] + (ok && row[F.DIST] !== '' ? ', spostata di ' + row[F.DIST] + ' m' : ''));
+  try { notify_([row[F.EMAIL]], ok ? 'Correzione approvata ✓' : 'Correzione non approvata', norm_(row[F.PFS]) + (ok ? ': ora la posizione è verificata. Grazie!' : ': la posizione resta quella di prima.'), '#pfs=' + encodeURIComponent(norm_(row[F.PFS]))); } catch (e) {}
   return { status: 'success', applied: ok, unchanged: !ok };
 }
 
@@ -990,6 +1173,7 @@ function backupInfo_() {
 /** Letture: servono un account approvato (qualsiasi ruolo). Non bloccano gli altri utenti. */
 function readAction_(b) {
   if (b.action === 'companies') return companies_();
+  if (b.action === 'pushKey') return { status: 'success', publicKey: vapidKeys_().pub };
   if (b.action === 'stats' || b.action === 'backupInfo' || b.action === 'backupNow' || b.action === 'activity' || b.action === 'fixes') {
     const ad = authUser_(b.token, 2);
     if (ad.error) return ad.error;
@@ -1003,6 +1187,8 @@ function readAction_(b) {
   const a = authUser_(b.token, 1);
   if (a.error) return a.error;
   if (b.action === 'data') touch_(a, b.device, b.did);
+  if (b.action === 'comments') return listComments_(a, b.pfs);
+  if (b.action === 'pushInbox') return pushInbox_(a);
   if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
   // sincronizzazione leggera: se il telefono ha già l'ultima versione di una parte, quella parte non viene rimandata
   if (!Number(props_().getProperty('REV_POS') || 0)) bumpRev_('pos');
@@ -1080,6 +1266,13 @@ function separaCentrali() {
   } finally { lock.releaseLock(); }
 }
 
+/** Da eseguire una volta dall'editor: autorizza lo script a mandare le notifiche ai telefoni (richiede il permesso "servizi esterni"). */
+function autorizzaNotifiche() {
+  vapidKeys_();
+  UrlFetchApp.fetch('https://www.google.com/generate_204', { muteHttpExceptions: true });
+  Logger.log('Notifiche autorizzate. Chiave pubblica: ' + vapidKeys_().pub);
+}
+
 /** Da eseguire dall'editor dopo aver modificato il foglio a mano: i telefoni riscaricano tutto alla prossima apertura. */
 function segnaFoglioModificato() { bumpRev_('rib'); bumpRev_('pos'); props_().setProperty('POS_EPOCH', String(Date.now())); Logger.log('Fatto: i telefoni riscaricheranno ribattiture e posizioni.'); }
 
@@ -1088,7 +1281,7 @@ function doPost(e) {
   try { b = JSON.parse((e && e.postData && e.postData.contents) || '{}'); }
   catch (err) { return json_({ status: 'error', message: 'Richiesta non valida' }); }
   if (!teamOk_(b.key)) return json_({ status: 'error', code: 'auth', message: 'Codice squadra mancante o errato' });
-  if (['data', 'history', 'stats', 'backupInfo', 'backupNow', 'activity', 'companies', 'fixes'].includes(b.action)) {
+  if (['data', 'history', 'stats', 'backupInfo', 'backupNow', 'activity', 'companies', 'fixes', 'comments', 'pushInbox', 'pushKey'].includes(b.action)) {
     try { return json_(readAction_(b)); } catch (err) { return json_({ status: 'error', message: String(err) }); }
   }
   const lock = LockService.getScriptLock();
@@ -1106,7 +1299,8 @@ function doPost(e) {
     if (action === 'users') return json_(listUsers_(b));
     if (action === 'manageUser') return json_(manageUser_(b));
     // archivio: salvare richiede un account approvato, eliminare un amministratore
-    const WRITE = { save: [saveRib_, 1], savePos: [savePos_, 1], savePosBatch: [savePosBatch_, 1], delete: [deleteRib_, 2], deletePos: [deletePos_, 2], proposeFix: [proposeFix_, 1], decideFix: [decideFix_, 2] };
+    const WRITE = { save: [saveRib_, 1], savePos: [savePos_, 1], savePosBatch: [savePosBatch_, 1], delete: [deleteRib_, 2], deletePos: [deletePos_, 2], proposeFix: [proposeFix_, 1], decideFix: [decideFix_, 2],
+      addComment: [addComment_, 1], deleteComment: [deleteComment_, 1], pushSubscribe: [pushSubscribe_, 1], pushUnsubscribe: [pushUnsubscribe_, 1], pushTest: [pushTest_, 1] };
     const w = WRITE[action];
     if (!w) return json_({ status: 'error', message: 'Azione sconosciuta: ' + action });
     const a = authUser_(b.token, action === 'savePosBatch' && b.onlyNew === true ? 2 : w[1]);   // importazione elenco: solo amministratori

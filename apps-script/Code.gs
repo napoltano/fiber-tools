@@ -843,6 +843,7 @@ const PUSH_ADMIN_ACTIONS = {
 const SH_PUSH = 'Push', SH_MSG = 'Messaggi';
 const pushSheet_ = () => sheet_(SH_PUSH, ['EMAIL', 'ENDPOINT', 'DISPOSITIVO', 'CREATO', 'ULTIMO_INVIO']);
 const msgSheet_ = () => sheet_(SH_MSG, ['EMAIL', 'DATA', 'TITOLO', 'TESTO', 'LINK', 'LETTO']);
+const B0_ = BigInt(0), B1_ = BigInt(1), B2_ = BigInt(2), B3_ = BigInt(3), B4_ = BigInt(4), B8_ = BigInt(8), B255_ = BigInt(255);
 const EC = {
   p: BigInt('0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff'),
   n: BigInt('0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551'),
@@ -850,32 +851,32 @@ const EC = {
   gx: BigInt('0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296'),
   gy: BigInt('0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5')
 };
-const ecMod_ = (a, m) => { const r = a % m; return r < 0n ? r + m : r; };
-function ecInv_(a, m) { let [x, y, u, v] = [ecMod_(a, m), m, 1n, 0n]; while (x !== 0n) { const q = y / x; [x, y] = [y - q * x, x]; [u, v] = [v - q * u, u]; } return ecMod_(v, m); }
+const ecMod_ = (a, m) => { const r = a % m; return r < B0_ ? r + m : r; };
+function ecInv_(a, m) { let [x, y, u, v] = [ecMod_(a, m), m, B1_, B0_]; while (x !== B0_) { const q = y / x; [x, y] = [y - q * x, x]; [u, v] = [v - q * u, u]; } return ecMod_(v, m); }
 // punti in coordinate di Jacobi [X, Y, Z]
 function ecDbl_(P) {
-  const p = EC.p, [X, Y, Z] = P; if (Y === 0n || Z === 0n) return [0n, 1n, 0n];
-  const YY = Y * Y % p, S = 4n * X * YY % p, ZZ = Z * Z % p, M = 3n * (X - ZZ) * (X + ZZ) % p;
-  const X3 = ecMod_(M * M - 2n * S, p), Y3 = ecMod_(M * (S - X3) - 8n * YY * YY, p), Z3 = 2n * Y * Z % p;
+  const p = EC.p, [X, Y, Z] = P; if (Y === B0_ || Z === B0_) return [B0_, B1_, B0_];
+  const YY = Y * Y % p, S = B4_ * X * YY % p, ZZ = Z * Z % p, M = B3_ * (X - ZZ) * (X + ZZ) % p;
+  const X3 = ecMod_(M * M - B2_ * S, p), Y3 = ecMod_(M * (S - X3) - B8_ * YY * YY, p), Z3 = B2_ * Y * Z % p;
   return [X3, Y3, Z3];
 }
 function ecAdd_(P, Q) {
-  const p = EC.p; if (P[2] === 0n) return Q; if (Q[2] === 0n) return P;
+  const p = EC.p; if (P[2] === B0_) return Q; if (Q[2] === B0_) return P;
   const Z1Z1 = P[2] * P[2] % p, Z2Z2 = Q[2] * Q[2] % p;
   const U1 = P[0] * Z2Z2 % p, U2 = Q[0] * Z1Z1 % p, S1 = P[1] * Q[2] % p * Z2Z2 % p, S2 = Q[1] * P[2] % p * Z1Z1 % p;
-  if (U1 === U2) return S1 === S2 ? ecDbl_(P) : [0n, 1n, 0n];
+  if (U1 === U2) return S1 === S2 ? ecDbl_(P) : [B0_, B1_, B0_];
   const H = ecMod_(U2 - U1, p), R = ecMod_(S2 - S1, p), HH = H * H % p, HHH = H * HH % p, V = U1 * HH % p;
-  const X3 = ecMod_(R * R - HHH - 2n * V, p), Y3 = ecMod_(R * (V - X3) - S1 * HHH, p), Z3 = P[2] * Q[2] % p * H % p;
+  const X3 = ecMod_(R * R - HHH - B2_ * V, p), Y3 = ecMod_(R * (V - X3) - S1 * HHH, p), Z3 = P[2] * Q[2] % p * H % p;
   return [X3, Y3, Z3];
 }
 function ecMul_(k) {
-  let R = [0n, 1n, 0n], Q = [EC.gx, EC.gy, 1n];
-  while (k > 0n) { if (k & 1n) R = ecAdd_(R, Q); Q = ecDbl_(Q); k >>= 1n; }
+  let R = [B0_, B1_, B0_], Q = [EC.gx, EC.gy, B1_];
+  while (k > B0_) { if (k & B1_) R = ecAdd_(R, Q); Q = ecDbl_(Q); k >>= B1_; }
   const zi = ecInv_(R[2], EC.p), zi2 = zi * zi % EC.p;
   return [R[0] * zi2 % EC.p, R[1] * zi2 % EC.p * zi % EC.p];
 }
-const bytesToBig_ = bytes => bytes.reduce((n, x) => (n << 8n) + BigInt(x & 255), 0n);
-function bigToBytes_(n, len) { const out = new Array(len).fill(0); for (let i = len - 1; i >= 0; i--) { out[i] = Number(n & 255n); n >>= 8n; } return out; }
+const bytesToBig_ = bytes => bytes.reduce((n, x) => (n << B8_) + BigInt(x & 255), B0_);
+function bigToBytes_(n, len) { const out = new Array(len).fill(0); for (let i = len - 1; i >= 0; i--) { out[i] = Number(n & B255_); n >>= B8_; } return out; }
 const signed_ = arr => arr.map(x => x > 127 ? x - 256 : x);   // Apps Script usa byte con segno
 const b64url_ = bytes => Utilities.base64EncodeWebSafe(signed_(bytes)).replace(/=+$/, '');
 /** Chiavi VAPID: create una volta sola e conservate nelle proprietà dello script. */
@@ -883,8 +884,8 @@ function vapidKeys_() {
   const p = props_();
   let d = p.getProperty('VAPID_D'), pub = p.getProperty('VAPID_PUB');
   if (d && pub) return { d: BigInt('0x' + d), pub: pub };
-  let k = 0n;
-  while (k <= 0n || k >= EC.n) {
+  let k = B0_;
+  while (k <= B0_ || k >= EC.n) {
     const seed = Utilities.getUuid() + Utilities.getUuid() + Date.now() + Math.random();
     k = bytesToBig_(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, seed)) % EC.n;
   }
@@ -899,9 +900,9 @@ function es256_(msg, d) {
   const z = bytesToBig_(hash), dBytes = signed_(bigToBytes_(d, 32));
   for (let ctr = 0; ctr < 16; ctr++) {
     const k = bytesToBig_(Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, hash.concat([ctr]), dBytes)) % EC.n;
-    if (k === 0n) continue;
-    const r = ecMul_(k)[0] % EC.n; if (r === 0n) continue;
-    const sg = ecInv_(k, EC.n) * (z + r * d) % EC.n; if (sg === 0n) continue;
+    if (k === B0_) continue;
+    const r = ecMul_(k)[0] % EC.n; if (r === B0_) continue;
+    const sg = ecInv_(k, EC.n) * (z + r * d) % EC.n; if (sg === B0_) continue;
     return b64url_(bigToBytes_(r, 32).concat(bigToBytes_(sg, 32)));
   }
   throw new Error('firma non riuscita');

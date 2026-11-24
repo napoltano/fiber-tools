@@ -2549,7 +2549,8 @@
     /* ---------- Novità in prova: visibili solo a chi apre l'app con ?prova=1 ---------- */
     const BETA_KEY = 'fiber_tools_beta';
     (() => { const m = /[?&]prova=([01])/.exec(location.search); if (m) { try { localStorage.setItem(BETA_KEY, m[1]); } catch (e) {} } })();
-    const BETA = (() => { try { return localStorage.getItem(BETA_KEY) === '1'; } catch (e) { return false; } })();
+    const BETA_ON = (() => { try { return localStorage.getItem(BETA_KEY) === '1'; } catch (e) { return false; } })();   // per le prossime prove
+    const BETA = true;   // guanti, schermo acceso e tastiera numerica: provati e attivi per tutti dal 24/11/2026
 
     /* ---------- Sul campo: modalità guanti e schermo sempre acceso ---------- */
     const FIELD_KEY = 'fiber_tools_field_mode', WAKE_KEY = 'fiber_tools_wake';
@@ -4504,10 +4505,9 @@
           </div>
           ${BETA ? '' : '<!--'}<hr>
           <div class="field-group">
-            <span class="field-label">Sul campo <span class="count-pill" style="margin-left:6px">in prova</span></span>
+            <span class="field-label">Sul campo</span>
             <label class="check-row big"><input type="checkbox" id="setGlove" ${fieldModeOn() ? 'checked' : ''}> <span>Modalità guanti<small>Pulsanti e testi più grandi, contrasto più alto per leggere al sole</small></span></label>
             <label class="check-row big"><input type="checkbox" id="setWake" ${wakeWanted() ? 'checked' : ''}> <span>Schermo sempre acceso<small>Durante ribattitura e schema di giunzione il telefono non va in standby${'wakeLock' in navigator ? '' : ' (non supportato da questo browser)'}</small></span></label>
-            <button type="button" class="btn-secondary" id="setBetaOff" style="margin-top:8px">Esci dalla prova</button>
           </div>${BETA ? '' : '-->'}
           <hr>
           <div class="field-group">
@@ -4541,7 +4541,6 @@
           if (BETA) {
             $('setGlove').addEventListener('change', e => { lsSet(FIELD_KEY, e.target.checked ? '1' : '0'); applyFieldMode(); });
             $('setWake').addEventListener('change', e => { lsSet(WAKE_KEY, e.target.checked ? '1' : '0'); updateWakeLock(); });
-            $('setBetaOff').addEventListener('click', () => { lsSet(BETA_KEY, '0'); location.replace(location.pathname); });
           }
         }
       });
@@ -8010,9 +8009,10 @@
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-24b';
+    const NEWS_ID = '2026-11-24c';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#d97706', i: 'i-sun', t: 'Più comoda sul campo', d: 'In ribattitura Permuta e ID aprono il tastierino numerico (il tasto 123 / ABC torna alle lettere) e con Invio passi al campo dopo. Lo schermo resta acceso durante ribattitura e schema di giunzione. Con i guanti? Tocca “Guanti” in alto nella ribattitura o vai in Impostazioni → Sul campo: pulsanti e testi più grandi.' },
       { c: '#4f46e5', i: 'i-search', t: 'Cerca tutto e apri la scheda', d: 'In cima al menu c’è la ricerca unica: scrivi un PFS, un CNO, una centrale o una via e trovi posizioni e ribattiture. Toccando un risultato (o un PFS nell’elenco) si apre la scheda con mappa, comune, POP, foto, ribattiture e PD collegati. La guida rapida è in Impostazioni.' },
       { c: '#0d9488', i: 'i-pin', t: 'Comune, tipo e POP quando aggiungi', d: 'Aggiungendo un PFS o un CNO scegli il comune dall’elenco di tutti i comuni italiani (per i codici catastali si compila da solo, oppure tocca “Comune più vicino”) e indica il POP di riferimento. Con “Tipo” puoi segnare direttamente anche POP, PD, PFP e centrali.' },
       { c: '#16a34a', i: 'i-target', t: 'Sono qui: correggi le posizioni', d: 'Davanti a un PFS o a una centrale con la posizione sbagliata tocca il mirino accanto a Naviga: il GPS propone il punto giusto e, quando un amministratore lo approva, la posizione diventa “verificata” per tutti. L’aggiornamento manuale ora scarica solo i PFS cambiati.' },

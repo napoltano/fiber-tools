@@ -972,6 +972,36 @@
 
     /* ---------- V3 ---------- */
     .t-teal   { --tile-bg: color-mix(in srgb, #14b8a6 15%, transparent); --tile-fg: #0d9488; }
+    .home-search { position: relative; margin: 0 0 14px; }
+    .hs-box { display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .hs-box svg { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }
+    .hs-box input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 14px 0; font: inherit; font-size: .95rem; color: var(--text); outline: none; }
+    .hs-results { margin-top: 8px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+    .hs-head { padding: 10px 14px 4px; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    .hs-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; border: 0; border-top: 1px solid var(--border); background: transparent; color: inherit; text-align: left; font: inherit; cursor: pointer; }
+    .hs-item:first-of-type { border-top: 0; }
+    .hs-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; } .hs-txt b { font-size: .9rem; } .hs-txt small { color: var(--muted); font-size: .74rem; }
+    .hs-ver { display: inline-block; width: 12px; height: 12px; color: #16a34a; margin-left: 4px; vertical-align: -1px; }
+    .hs-go { width: 14px; height: 14px; color: var(--muted); }
+    .hs-empty { padding: 14px; color: var(--muted); font-size: .85rem; }
+    .pos-kind-tag.pfsk { background: color-mix(in srgb, #2563eb 14%, transparent); color: #1d4ed8; }
+    .pos-kind-tag.rib { background: color-mix(in srgb, #ea580c 14%, transparent); color: #c2410c; }
+    [data-theme="dark"] .pos-kind-tag.pfsk { color: #93c5fd; } [data-theme="dark"] .pos-kind-tag.rib { color: #fdba74; }
+    .pos-body { cursor: pointer; }
+    .ps-tags { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: -4px 0 10px; } .ps-tags .ver-badge { margin-left: 0; }
+    .ps-map { height: 170px; border-radius: 12px; overflow: hidden; background: var(--input-bg, rgba(127,127,127,.08)); }
+    .ps-actions { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; margin: 10px 0 6px; } .ps-actions > * { flex-shrink: 0; }
+    .ps-rows { display: flex; flex-direction: column; border-top: 1px solid var(--border); margin-top: 6px; }
+    .ps-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .84rem; }
+    .ps-row span { color: var(--muted); flex-shrink: 0; } .ps-row b { text-align: right; font-weight: 600; word-break: break-word; } .ps-row a { color: var(--primary, #0284c7); }
+    .ps-photo { display: block; margin-top: 10px; padding: 0; border: 0; border-radius: 12px; overflow: hidden; width: 100%; max-height: 180px; background: none; cursor: zoom-in; } .ps-photo img { width: 100%; height: 180px; object-fit: cover; display: block; }
+    .ps-sec { margin-top: 14px; } .ps-sec-t { display: flex; align-items: center; justify-content: space-between; font-size: .7rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .ps-li { display: flex; flex-direction: column; align-items: flex-start; width: 100%; padding: 8px 10px; margin-bottom: 6px; border: 1px solid var(--border); border-radius: 10px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; } .ps-li small { color: var(--muted); font-size: .74rem; }
+    .ps-none { color: var(--muted); }
+    .ob { text-align: left; } .ob p { margin: 0 0 10px; line-height: 1.5; }
+    .ob-ico { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; margin-bottom: 12px; background: linear-gradient(135deg, #0284c7, #4f46e5); color: #fff; } .ob-ico svg { width: 26px; height: 26px; }
+    .ob-list, .ob-steps { margin: 0 0 6px; padding-left: 20px; line-height: 1.6; font-size: .9rem; } .ob-list li, .ob-steps li { margin-bottom: 4px; }
+    .ob-dots { display: flex; gap: 6px; justify-content: center; margin-top: 16px; } .ob-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--border); } .ob-dots i.on { width: 20px; border-radius: 4px; background: #0284c7; }
     .st-kpis-3 { grid-template-columns: repeat(3, 1fr) !important; }
     .st-socs { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
     .st-soc { display: grid; grid-template-columns: minmax(90px, 40%) 1fr auto; align-items: center; gap: 8px; font-size: .78rem; }
@@ -1438,6 +1468,7 @@
       <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
       <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
       <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
       <symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M3 21h18M8 7h4M8 11h4M8 15h4"/></symbol>
       <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></symbol>
       <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol>
@@ -1497,6 +1528,12 @@
         </div>
       </div>
       <div class="home-lock" data-locked-only role="note"><svg><use href="#i-lock"/></svg><span>I dati di <b>PFS, posizioni e ribattiture</b> e lo <b>schema di giunzione</b> sono riservati: per vederli accedi con un account approvato. Gli altri strumenti sono liberi.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
+
+      <div class="home-search" data-need-login>
+        <div class="hs-box"><svg><use href="#i-search"/></svg>
+          <input type="search" id="homeSearch" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Cerca PFS, CNO, centrale, POP o ribattitura…" aria-label="Cerca in tutto l’archivio"></div>
+        <div class="hs-results" id="homeResults" hidden></div>
+      </div>
 
       <div class="install-card" id="installCard" hidden>
         <img src="icons/icon-192.png" alt="">
@@ -4372,6 +4409,7 @@
             ${account ? accountCardHtml() : '<p class="small">Non hai effettuato l’accesso: puoi consultare tutto, ma per salvare serve un account approvato.</p>'}
             <button type="button" class="btn-secondary" id="setAccount" style="margin-top:6px"><svg><use href="#i-user"/></svg> ${account ? 'Il mio account' : 'Accedi o registrati'}</button>
             <button type="button" class="btn-secondary" id="setNews" style="margin-top:6px"><svg><use href="#i-check"/></svg> Novità dell’app</button>
+            <button type="button" class="btn-secondary" id="setGuide" style="margin-top:6px"><svg><use href="#i-info"/></svg> Guida rapida</button>
           </div>
           <hr>
           <div class="field-group">
@@ -4401,6 +4439,7 @@
           $('setRestoreFile').addEventListener('change', e => { const f = e.target.files[0]; closeModal(false); restoreBackup(f); });
           $('setAccount').addEventListener('click', () => { closeModal(false); openAccount(); });
           $('setNews').addEventListener('click', () => { closeModal(false); setTimeout(openNews, 50); });
+          $('setGuide').addEventListener('click', () => { closeModal(false); setTimeout(() => openOnboarding(true), 50); });
         }
       });
     }
@@ -5276,6 +5315,7 @@
         } catch (e) { toast('Incolla manualmente nel campo (tieni premuto → Incolla).', 'info'); $('posCoords').focus(); }
       });
       $('posSave').addEventListener('click', savePosition);
+      bindHomeSearch();
       bindPosExtras();
       $('posCancel').addEventListener('click', () => { resetPosForm(); $('posForm').open = false; });
       $('posPhotoBtn').addEventListener('click', () => $('posPhotoFile').click());
@@ -5313,7 +5353,8 @@
           if (open && posKind !== 'pop') pushRecent({ k: posKind, g: f.dataset.anello });
           return;
         }
-        const b = e.target.closest('[data-pact]'); if (!b) return;
+        const b = e.target.closest('[data-pact]');
+        if (!b) { const body = e.target.closest('.pos-body'); if (body) openPosSheet(body.closest('[data-pos]').dataset.pos); return; }
         const pfs = b.closest('[data-pos]').dataset.pos;
         const it = getPositions()[pfs]; if (!it) return;
         if (b.dataset.pact !== 'delete') pushRecent({ k: posKind, p: pfs });
@@ -5848,6 +5889,173 @@
       } catch (e) { if ($('fixList')) $('fixList').innerHTML = `<div class="empty-state">${escapeHtml(accountError(e))}</div>`; }
       await done;
       $('modalCancel').hidden = false;
+    }
+
+
+    /* =====================================================================
+       RICERCA UNICA (home) e SCHEDA DEL PFS
+       ===================================================================== */
+    let hsIndex = null, hsIndexRef = null, hsTimer = null;
+    /** Indice per la ricerca: si ricostruisce solo quando cambia l'archivio. */
+    function homeSearchIndex() {
+      const all = getPositions();
+      if (hsIndex && hsIndexRef === all && hsIndex.n === Object.keys(all).length) return hsIndex;
+      const rows = [];
+      for (const k in all) { const it = all[k]; rows.push([k, looseKey(posLabel(it)), String(it.note || '').toUpperCase(), String(posGroupKey(it) || '').toUpperCase()]); }
+      hsIndex = { rows, n: rows.length }; hsIndexRef = all;
+      return hsIndex;
+    }
+    function homeSearch() {
+      const q = ($('homeSearch').value || '').trim().toUpperCase(), box = $('homeResults');
+      if (q.length < 2 || !canRead()) { box.hidden = true; box.innerHTML = ''; return; }
+      const lq = looseKey(q), all = getPositions(), hits = [];
+      for (const [k, lk, note, grp] of homeSearchIndex().rows) {
+        let score = 0;
+        if (lq && lk === lq) score = 100; else if (lq && lk.startsWith(lq)) score = 80; else if (lq && lk.includes(lq)) score = 60;
+        else if (q.length >= 3 && grp.includes(q)) score = 40; else if (q.length >= 3 && note.includes(q)) score = 30;
+        if (score) { hits.push([score, k]); if (hits.length > 400) break; }
+      }
+      hits.sort((a, b) => b[0] - a[0] || IT_NUM.compare(a[1], b[1]));
+      const db = getRibattitureData();
+      const ribs = Object.keys(db).filter(p => lq && looseKey(p).includes(lq)).slice(0, 5);
+      const posHtml = hits.slice(0, 12).map(([, k]) => {
+        const it = all[k], kind = posKindOf(it), grp = posGroupKey(it);
+        return `<button type="button" class="hs-item" data-hs-pos="${escapeHtml(k)}">
+          <span class="pos-kind-tag ${kind === 'pfs' ? 'pfsk' : kind}">${kind === 'pfs' ? (/^[A-Z]\d{3}_/.test(k) ? 'CNO' : 'PFS') : KIND_TAG[kind]}</span>
+          <span class="hs-txt"><b>${escapeHtml(posLabel(it))}</b>${it.verificata ? '<svg class="hs-ver"><use href="#i-check"/></svg>' : ''}<small>${escapeHtml(grp && grp !== posLabel(it) ? grp : '')}${myPos ? ' · ' + fmtDist(distanceM(myPos, it)) : ''}</small></span>
+          <svg class="hs-go"><use href="#i-chev"/></svg></button>`;
+      }).join('');
+      const ribHtml = ribs.map(p => `<button type="button" class="hs-item" data-hs-rib="${escapeHtml(p)}"><span class="pos-kind-tag rib">RIB.</span>
+          <span class="hs-txt"><b>${escapeHtml(p)}</b><small>${Object.keys(db[p]).length} splitter ribattuti</small></span><svg class="hs-go"><use href="#i-chev"/></svg></button>`).join('');
+      box.innerHTML = (posHtml || ribHtml)
+        ? `${posHtml ? `<div class="hs-head">Posizioni${hits.length > 12 ? ` · ${hits.length > 400 ? 'oltre 400' : hits.length} trovate, ecco le prime 12` : ''}</div>${posHtml}` : ''}${ribHtml ? `<div class="hs-head">Ribattiture</div>${ribHtml}` : ''}`
+        : `<div class="hs-empty">Nessun risultato per «${escapeHtml(q)}».</div>`;
+      box.hidden = false;
+    }
+    function openRibFor(pfs) {
+      const btn = document.querySelector('[data-open="ribattituraScreen"]'); if (btn) btn.click();
+      setTimeout(() => { const f = $('archiveSearch'); if (!f) return; f.value = pfs; f.dispatchEvent(new Event('input', { bubbles: true })); f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 250);
+    }
+    function bindHomeSearch() {
+      $('homeSearch').addEventListener('input', () => { clearTimeout(hsTimer); hsTimer = setTimeout(homeSearch, getPositionsCount() > 3000 ? 220 : 60); });
+      $('homeSearch').addEventListener('keydown', e => { if (e.key === 'Escape') { $('homeSearch').value = ''; homeSearch(); } });
+      $('homeResults').addEventListener('click', e => {
+        const p = e.target.closest('[data-hs-pos]'); if (p) { openPosSheet(p.dataset.hsPos); return; }
+        const r = e.target.closest('[data-hs-rib]'); if (r) openRibFor(r.dataset.hsRib);
+      });
+    }
+
+    let sheetMap = null;
+    /** Scheda completa di una posizione: mappa, dati, foto, ribattiture, PD collegati e azioni. */
+    async function openPosSheet(pfs) {
+      const it = getPositions()[pfs]; if (!it) return;
+      pushRecent({ k: posKindOf(it), p: pfs });
+      const kind = posKindOf(it), np = splitPosNote(it.note), db = getRibattitureData();
+      const ribs = kind === 'pfs' ? Object.entries(db[pfs] || {}).sort((a, b) => IT_NUM.compare(a[0], b[0])) : [];
+      const pds = kind === 'pfs' ? Object.values(getPositions()).filter(x => isPd(x) && pdParent(x) === posLabel(it)).sort((a, b) => IT_NUM.compare(posLabel(a), posLabel(b))) : [];
+      const popIt = np.pop ? getPositions()[canonPop(np.pop)] : null;
+      const ph = photoSrc(it);
+      const row = (k, v) => v ? `<div class="ps-row"><span>${k}</span><b>${v}</b></div>` : '';
+      let choice = null, arg = null;
+      $('modalOk').hidden = true;
+      const done = openModal({
+        title: posFullName(it),
+        bodyHtml: `<div class="ps-tags">${isSpecial(it) ? `<span class="pos-kind-tag ${kind}">${KIND_TAG[kind]}</span>` : `<span class="pos-kind-tag pfsk">${/^[A-Z]\d{3}_/.test(pfs) ? 'CNO' : 'PFS'}</span>`}
+            ${it.verificata ? `<span class="ver-badge"><svg><use href="#i-check"/></svg>verificata ${escapeHtml(it.verificata)}</span>` : ''}</div>
+          <div id="psMap" class="ps-map"></div>
+          <div class="ps-actions">
+            <button type="button" class="btn-nav" data-ps="nav"><svg><use href="#i-nav"/></svg> Naviga</button>
+            <button type="button" class="btn-xs" data-ps="fix" title="Sono qui: correggi la posizione"><svg><use href="#i-target"/></svg> Sono qui</button>
+            <button type="button" class="btn-xs" data-ps="share"><svg><use href="#i-share"/></svg></button>
+            <button type="button" class="btn-xs" data-ps="copy" title="Copia coordinate"><svg><use href="#i-copy"/></svg></button>
+            <button type="button" class="btn-xs" data-ps="edit" title="Modifica"><svg><use href="#i-edit"/></svg></button>
+            <button type="button" class="btn-xs" data-ps="history" title="Storico"><svg><use href="#i-clock"/></svg></button>
+          </div>
+          <div class="ps-rows">
+            ${row('Coordinate', escapeHtml(fmtCoord(it.lat, it.lng)))}
+            ${myPos ? row('Distanza da te', fmtDist(distanceM(myPos, it))) : ''}
+            ${row('Comune', escapeHtml(np.comune))}
+            ${kind === 'pfs' && /^[A-Z]{2,3}_\d+/.test(pfs) ? row('Anello', escapeHtml(it.anello)) : ''}
+            ${kind === 'pd' ? row('PFS', `<a href="#" data-ps="open" data-arg="${escapeHtml(pdParent(it))}">${escapeHtml(pdParent(it))}</a>`) : ''}
+            ${np.pop ? row('POP', popIt ? `<a href="#" data-ps="open" data-arg="${escapeHtml(popIt.pfs)}">${escapeHtml(np.pop)}</a>` : escapeHtml(np.pop)) : ''}
+            ${row('Note', escapeHtml(np.rest))}
+            ${row('Ultima modifica', escapeHtml([it.updatedAt, it.tecnico].filter(Boolean).join(' · ')))}
+          </div>
+          ${ph ? `<button type="button" class="ps-photo" data-ps="photo"><img src="${escapeHtml(ph)}" alt="Foto"></button>` : ''}
+          ${kind === 'pfs' ? `<div class="ps-sec"><div class="ps-sec-t">Ribattiture <span class="count-pill">${ribs.length}</span></div>
+            ${ribs.length ? ribs.map(([spl, r]) => `<button type="button" class="ps-li" data-ps="rib"><b>SP_${escapeHtml(String(spl).padStart(2, '0'))}</b><small>${(r.ottici || []).length} ottici${r.updatedAt ? ' · ' + escapeHtml(r.updatedAt) : ''}${r.tecnico ? ' · ' + escapeHtml(r.tecnico) : ''}</small></button>`).join('')
+              : '<small class="ps-none">Nessuna ribattitura su questo PFS.</small>'}</div>` : ''}
+          ${pds.length ? `<div class="ps-sec"><div class="ps-sec-t">PD collegati <span class="count-pill">${pds.length}</span></div>${pds.slice(0, 30).map(x => `<button type="button" class="ps-li" data-ps="open" data-arg="${escapeHtml(x.pfs)}"><b>${escapeHtml(posLabel(x))}</b><small>${escapeHtml(splitPosNote(x.note).rest)}</small></button>`).join('')}</div>` : ''}`,
+        okText: 'Chiudi', cancelText: 'Chiudi',
+        onOpen: () => {
+          $('modalBody').querySelectorAll('[data-ps]').forEach(b => b.addEventListener('click', e => {
+            e.preventDefault();
+            const a = b.dataset.ps;
+            if (a === 'copy') { copyText(fmtCoord(it.lat, it.lng)).then(ok => toast(ok ? 'Coordinate copiate.' : 'Copia non riuscita.', ok ? 'success' : 'error')); return; }
+            if (a === 'nav') { navigateTo(it); return; }
+            choice = a; arg = b.dataset.arg || null; closeModal(true);
+          }));
+          loadLeaflet().then(L => {
+            if (!$('psMap')) return;
+            sheetMap = L.map('psMap', { zoomControl: false, attributionControl: false, dragging: true }).setView([it.lat, it.lng], 17);
+            L.tileLayer(TILE_URL, { maxZoom: 19, crossOrigin: true }).addTo(sheetMap);
+            L.circleMarker([it.lat, it.lng], { radius: 9, weight: 3, color: '#fff', fillColor: anelloColor(it.anello), fillOpacity: 1 }).addTo(sheetMap);
+            if (myPos) L.circleMarker([myPos.lat, myPos.lng], { radius: 6, weight: 2, color: '#fff', fillColor: '#2563eb', fillOpacity: 1 }).addTo(sheetMap);
+            setTimeout(() => sheetMap && sheetMap.invalidateSize(), 80);
+          }).catch(() => { if ($('psMap')) $('psMap').hidden = true; });
+        }
+      });
+      await done;
+      if (sheetMap) { sheetMap.remove(); sheetMap = null; }
+      $('modalOk').hidden = false;
+      switch (choice) {
+        case 'fix': correctPosition(it); break;
+        case 'share': chooseSharePosition(it); break;
+        case 'edit': openPosKind(kind); setTimeout(() => editPosition(pfs), 300); break;
+        case 'history': showHistory(pfs, '', 'PFS'); break;
+        case 'photo': viewPhoto(it, `Foto ${pfs}`); break;
+        case 'rib': openRibFor(pfs); break;
+        case 'open': if (arg && getPositions()[canonPfs(arg)] ) openPosSheet(canonPfs(arg)); else if (arg && getPositions()[arg]) openPosSheet(arg); break;
+      }
+    }
+
+    /* =====================================================================
+       PRIMO AVVIO: guida in tre passi
+       ===================================================================== */
+    const ONBOARD_KEY = 'fiber_tools_onboarded';
+    async function openOnboarding(force) {
+      if (!force && lsGet(ONBOARD_KEY, '') === '1') return false;
+      const ios = isIOS(), standalone = isStandalone();
+      const installTxt = standalone ? '<p>✅ L’app è già installata su questo dispositivo.</p>'
+        : ios ? `<ol class="ob-steps"><li>Apri questa pagina con <b>Safari</b></li><li>Tocca <b>Condividi</b> (il quadrato con la freccia in su)</li><li>Scegli <b>Aggiungi alla schermata Home</b>, poi <b>Aggiungi</b></li></ol>`
+        : `<ol class="ob-steps"><li>Apri il menu del browser (i tre puntini <b>⋮</b>)</li><li>Tocca <b>Installa app</b> o <b>Aggiungi a schermata Home</b></li></ol>${deferredInstall ? '<button type="button" class="btn-action" id="obInstall" style="margin:6px 0 0"><svg><use href="#i-phone"/></svg> Installa ora</button>' : ''}`;
+      const pages = [
+        { ico: 'i-bolt', t: 'Benvenuto in Fiber Tools', h: `<p>Gli strumenti di tutti i giorni per chi lavora sulla fibra:</p>
+            <ul class="ob-list"><li><b>Codici colore</b> per PFS, FiberCop e Open Fiber</li><li><b>Ribattiture</b> degli ottici, condivise con la squadra</li><li><b>Archivio</b> di oltre 100.000 PFS, CNO e centrali con mappa e Naviga</li><li><b>Schema di giunzione</b> con PDF</li></ul>` },
+        { ico: 'i-phone', t: 'Mettila sulla schermata Home', h: `<p>Così si apre come un’app, a schermo intero, e funziona anche senza campo.</p>${installTxt}` },
+        { ico: 'i-search', t: 'Dove trovare le cose', h: `<ul class="ob-list"><li><b>Cerca</b> in alto nel menu: scrivi un PFS, un CNO o una centrale e apri la sua scheda</li><li><b>PFS, PFP, POP e PD</b> e <b>Centrali FiberCop</b>: elenco per provincia e mappa</li><li><b>Sono qui</b> (il mirino): se una posizione è sbagliata la correggi con il GPS</li><li>I dati riservati si vedono dopo aver <b>effettuato l’accesso</b> con un account approvato</li></ul>` }
+      ];
+      let i = 0;
+      const paint = () => {
+        const pg = pages[i];
+        $('modalTitle').textContent = pg.t;
+        $('modalBody').innerHTML = `<div class="ob"><div class="ob-ico"><svg><use href="#${pg.ico}"/></svg></div>${pg.h}
+          <div class="ob-dots">${pages.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('')}</div></div>`;
+        $('modalOk').textContent = i < pages.length - 1 ? 'Avanti' : 'Inizia';
+        $('modalCancel').textContent = i ? 'Indietro' : 'Salta';
+        const ib = $('obInstall'); if (ib) ib.addEventListener('click', async () => { if (!deferredInstall) return; deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null; ib.remove(); });
+      };
+      // i pulsanti della finestra scorrono le pagine invece di chiuderla
+      const onOk = e => { if (i < pages.length - 1) { e.stopImmediatePropagation(); e.preventDefault(); i++; paint(); } };
+      const onCancel = e => { if (i > 0) { e.stopImmediatePropagation(); e.preventDefault(); i--; paint(); } };
+      const done = openModal({ title: pages[0].t, bodyHtml: '', okText: 'Avanti', cancelText: 'Salta', onOpen: () => {
+        $('modalOk').addEventListener('click', onOk, true); $('modalCancel').addEventListener('click', onCancel, true); paint();
+      } });
+      await done;
+      $('modalOk').removeEventListener('click', onOk, true); $('modalCancel').removeEventListener('click', onCancel, true);
+      lsSet(ONBOARD_KEY, '1');
+      try { localStorage.setItem(NEWS_KEY, NEWS_ID); } catch (e) {}   // chi è appena arrivato non ha bisogno delle novità
+      return true;
     }
 
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
@@ -7696,9 +7904,10 @@
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-24';
+    const NEWS_ID = '2026-11-24b';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#4f46e5', i: 'i-search', t: 'Cerca tutto e apri la scheda', d: 'In cima al menu c’è la ricerca unica: scrivi un PFS, un CNO, una centrale o una via e trovi posizioni e ribattiture. Toccando un risultato (o un PFS nell’elenco) si apre la scheda con mappa, comune, POP, foto, ribattiture e PD collegati. La guida rapida è in Impostazioni.' },
       { c: '#0d9488', i: 'i-pin', t: 'Comune, tipo e POP quando aggiungi', d: 'Aggiungendo un PFS o un CNO scegli il comune dall’elenco di tutti i comuni italiani (per i codici catastali si compila da solo, oppure tocca “Comune più vicino”) e indica il POP di riferimento. Con “Tipo” puoi segnare direttamente anche POP, PD, PFP e centrali.' },
       { c: '#16a34a', i: 'i-target', t: 'Sono qui: correggi le posizioni', d: 'Davanti a un PFS o a una centrale con la posizione sbagliata tocca il mirino accanto a Naviga: il GPS propone il punto giusto e, quando un amministratore lo approva, la posizione diventa “verificata” per tutti. L’aggiornamento manuale ora scarica solo i PFS cambiati.' },
       { c: '#0369a1', i: 'i-building', t: 'Centrali FiberCop', d: 'Nuova voce nel menu con le posizioni di circa 10.800 centrali FiberCop in tutta Italia, divise per provincia e comune. Cerca per nome, comune, indirizzo o codici (ID BRE, GAT, SGU) e tocca Naviga per arrivarci. Foto GPS ora è accanto a Barcode.' },
@@ -7730,6 +7939,11 @@
       });
     }
     function maybeShowNews() {
+      if (lsGet(ONBOARD_KEY, '') !== '1') {
+        // primo avvio: prima la guida (che segna anche le novità come lette)
+        const go = (n = 0) => { if (!$('modal').hidden) { if (n < 20) setTimeout(() => go(n + 1), 1500); return; } openOnboarding(); };
+        setTimeout(go, 900); return;
+      }
       let seen = null;
       try { seen = localStorage.getItem(NEWS_KEY); } catch (e) {}
       if (seen === NEWS_ID) return;

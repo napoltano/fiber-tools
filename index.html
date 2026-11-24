@@ -2084,6 +2084,16 @@
       <details class="adv-card" id="posForm" data-need-login>
         <summary><svg class="rot"><use href="#i-plus"/></svg> <span id="posFormTitle">Aggiungi PFS</span> <svg class="chev-r"><use href="#i-down"/></svg></summary>
         <div class="adv-body">
+          <div class="field-group">
+            <label class="field-label" for="posType">Tipo</label>
+            <select id="posType" class="custom-select">
+              <option value="pfs">PFS / CNO</option>
+              <option value="pfp">PFP (armadio primario)</option>
+              <option value="pd">PD (punto di distribuzione)</option>
+              <option value="pop">POP Open Fiber</option>
+              <option value="cen">Centrale FiberCop</option>
+            </select>
+          </div>
           <div class="row-fields">
             <div class="field-group" style="flex:1.4">
               <label class="field-label" for="posPfs" id="posPfsLabel">Codice PFS</label>
@@ -2102,6 +2112,20 @@
               <button type="button" class="chip" id="posPaste"><svg><use href="#i-copy"/></svg>Incolla</button>
             </div>
             <div class="note" id="posAcc" style="font-size:0.74rem;color:var(--success);font-weight:700"></div>
+          </div>
+          <div class="field-group" id="posComuneGroup">
+            <label class="field-label" for="posComune">Comune</label>
+            <input type="text" id="posComune" class="custom-input" list="posComuneList" autocomplete="off" placeholder="Scrivi il comune, es. Napoli">
+            <datalist id="posComuneList"></datalist>
+            <div class="chip-row">
+              <button type="button" class="chip" id="posComuneNear"><svg><use href="#i-target"/></svg>Comune più vicino</button>
+            </div>
+            <div class="note" id="posComuneHint" style="font-size:0.74rem"></div>
+          </div>
+          <div class="field-group" id="posPopGroup">
+            <label class="field-label" for="posPop">POP di riferimento (facoltativo)</label>
+            <input type="text" id="posPop" class="custom-input" list="posPopList" data-upper autocapitalize="characters" autocomplete="off" placeholder="es. NA_06">
+            <datalist id="posPopList"></datalist>
           </div>
           <div class="field-group">
             <label class="field-label" for="posNote">Note (indirizzo, accesso, chiavi…)</label>
@@ -4430,7 +4454,7 @@
     const getPositionsCount = () => { let n = 0; for (const k in getPositions()) n++; return n; };
     function kindPositions() { const k = posKind; return Object.values(getPositions()).filter(it => posKindOf(it) === k); }
 
-    function setPosKind(kind) {
+    function setPosKind(kind, keepForm) {
       const changed = kind !== posKind;
       posKind = KIND_TAG[kind] ? kind : 'pfs';
       const pop = posKind === 'pop', pd = posKind === 'pd', pfp = posKind === 'pfp', cen = posKind === 'cen', special = posKind !== 'pfs';
@@ -4442,6 +4466,9 @@
       $('posImportBtn').hidden = special;
       $('posExportBtn').hidden = !isAdminRole();
       $('posListModeBtn').textContent = cen ? 'Elenco per comune' : pop ? 'Elenco' : pd ? 'Elenco per PFS' : 'Elenco per anello';
+      $('posType').value = posKind;
+      $('posPopGroup').hidden = pop || cen;
+      if (changed && keepForm) { $('posSearch').value = ''; if (!posEditing) $('posFormTitle').textContent = `Aggiungi ${kindWord()}`; return; }
       if (changed) { $('posSearch').value = ''; if (!posEditing) resetPosForm(); else { resetPosForm(); } $('posForm').open = false; }
     }
     function openPosKind(kind) {
@@ -4834,11 +4861,74 @@
     function resetPosForm(prefillPfs) {
       posEditing = null;
       $('posPfs').value = prefillPfs || ''; $('posAnello').value = prefillPfs ? anelloFrom(prefillPfs) : '';
-      $('posCoords').value = ''; $('posNote').value = '';
+      $('posCoords').value = ''; $('posNote').value = ''; $('posComune').value = ''; $('posPop').value = ''; $('posComuneHint').textContent = '';
       $('posAcc').textContent = ''; $('posFormTitle').textContent = `Aggiungi ${kindWord()}`;
       $('posCancel').hidden = true;
       posPhoto = { data: null, thumb: '', fotoId: '' }; renderPosPhoto();
-      ['posPfs', 'posCoords'].forEach(id => setInvalid(id, ''));
+      ['posPfs', 'posCoords', 'posComune'].forEach(id => setInvalid(id, ''));
+    }
+
+    /* ---------- Comune e POP di riferimento nel modulo ---------- */
+    let comuniList = null;   // ["Napoli (NA)", …] dai codici catastali (vendor/comuni.js)
+    async function ensureComuniList() {
+      if (comuniList) return comuniList;
+      const m = await loadComuni();
+      comuniList = Object.values(m).map(c => `${c.nome} (${c.prov})`).sort(IT_NUM.compare);
+      $('posComuneList').innerHTML = comuniList.map(x => `<option value="${escapeHtml(x)}">`).join('');
+      return comuniList;
+    }
+    const foldTxt = v => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9()]+/g, ' ').trim();
+    /** "napoli", "Napoli (NA)" o "NAPOLI NA" -> "Napoli (NA)"; null se non si trova o è ambiguo. */
+    function matchComune(text) {
+      const q = foldTxt(text); if (!q || !comuniList) return null;
+      const exact = comuniList.find(c => foldTxt(c) === q || foldTxt(c).replace(/[()]/g, '') === q.replace(/[()]/g, ''));
+      if (exact) return exact;
+      const byName = comuniList.filter(c => foldTxt(c.replace(/\s*\([A-Z]{2}\)$/, '')) === q);
+      return byName.length === 1 ? byName[0] : null;
+    }
+    /** La nota salvata contiene "Comune: X (PR)" e "POP: …": nel modulo stanno in campi separati. */
+    function splitPosNote(note) {
+      let comune = '', pop = '';
+      const rest = String(note || '').split(' · ').filter(part => {
+        const c = /^Comune:\s*(.+)$/i.exec(part.trim()); if (c && !comune) { comune = c[1].trim(); return false; }
+        const p = /^POP:\s*(.+)$/i.exec(part.trim()); if (p && !pop) { pop = p[1].trim(); return false; }
+        return true;
+      }).join(' · ');
+      return { comune, pop, rest };
+    }
+    function joinPosNote(comune, pop, rest) { return [comune ? 'Comune: ' + comune : '', pop ? 'POP: ' + pop : '', String(rest || '').trim()].filter(Boolean).join(' · '); }
+    /** Comune della posizione già in archivio più vicina alle coordinate del modulo. */
+    function nearestComune(c) {
+      let best = null, bd = Infinity;
+      const all = getPositions();
+      for (const k in all) {
+        const it = all[k], m = /Comune:\s*([^·\n]*\([A-Z]{2}\))/.exec(it.note || ''); if (!m || /^codice /i.test(m[1])) continue;
+        const d = (it.lat - c.lat) ** 2 + ((it.lng - c.lng) * 0.75) ** 2;
+        if (d < bd) { bd = d; best = { comune: m[1].trim(), it }; }
+      }
+      return best ? { ...best, dist: distanceM(c, best.it) } : null;
+    }
+    function bindPosExtras() {
+      $('posForm').addEventListener('toggle', () => { if ($('posForm').open) ensureComuniList().catch(() => { $('posComuneHint').textContent = 'Elenco dei comuni non disponibile senza rete: puoi scriverlo a mano.'; }); });
+      $('posType').addEventListener('change', () => setPosKind($('posType').value, true) || renderPositions());
+      $('posPfs').addEventListener('input', async () => {
+        // codici catastali (es. F839_CNO3): il comune si ricava dal codice
+        const m = /^([A-Z]\d{3})_/.exec(canonPfs($('posPfs').value) || ''); if (!m || $('posComune').value) return;
+        try { const c = (await loadComuni())[m[1]]; if (c && !$('posComune').value) { $('posComune').value = `${c.nome} (${c.prov})`; $('posComuneHint').textContent = 'Comune ricavato dal codice catastale.'; } } catch (e) {}
+      });
+      $('posComune').addEventListener('change', () => { const c = matchComune($('posComune').value); if (c) { $('posComune').value = c; setInvalid('posComune', ''); $('posComuneHint').textContent = ''; } });
+      $('posComuneNear').addEventListener('click', () => {
+        const c = parseCoords($('posCoords').value) || myPos;
+        if (!c) { toast('Prima inserisci le coordinate o usa "Posizione attuale".', 'info'); return; }
+        const n = nearestComune(c);
+        if (!n) { toast('Nessuna posizione vicina con il comune indicato.', 'info'); return; }
+        $('posComune').value = n.comune; setInvalid('posComune', '');
+        $('posComuneHint').textContent = `Dal ${posFullName(n.it)}, a ${fmtDist(n.dist)}: controlla che sia giusto.`;
+      });
+      $('posPop').addEventListener('focus', () => {
+        const pops = Object.values(getPositions()).filter(isPop).map(posLabel).sort(IT_NUM.compare);
+        $('posPopList').innerHTML = pops.map(x => `<option value="${escapeHtml(x)}">`).join('');
+      }, { once: false });
     }
 
     function renderPosPhoto() {
@@ -4851,7 +4941,9 @@
       const it = getPositions()[pfs]; if (!it) return;
       posEditing = pfs;
       $('posPfs').value = posLabel(it); $('posAnello').value = isSpecial(it) ? '' : it.anello;
-      $('posCoords').value = fmtCoord(it.lat, it.lng); $('posNote').value = it.note || '';
+      $('posCoords').value = fmtCoord(it.lat, it.lng);
+      const np = splitPosNote(it.note);
+      $('posNote').value = np.rest; $('posComune').value = np.comune; $('posPop').value = np.pop; $('posComuneHint').textContent = '';
       $('posAcc').textContent = '';
       $('posFormTitle').textContent = `Modifica ${posFullName(it)}`; $('posCancel').hidden = false;
       posPhoto = { data: null, thumb: it.thumb || '', fotoId: it.fotoId || '' }; renderPosPhoto();
@@ -4878,10 +4970,19 @@
         const ok = await confirmBox(`${kindWord()} già presente`, `${pfs} ha già una posizione salvata. Vuoi sostituirla?`, 'Sostituisci');
         if (!ok) return;
       }
+      const comuneRaw = $('posComune').value.trim();
+      const comune = comuneRaw ? (matchComune(comuneRaw) || (comuniList ? null : comuneRaw)) : '';
+      setInvalid('posComune', comune === null ? 'x' : '');
+      if (comune === null) { toast('Comune non trovato: sceglilo dall’elenco (es. Napoli (NA)).', 'error', 4500); return; }
+      const popRef = pop || cen ? '' : String($('posPop').value || '').trim().toUpperCase().replace(/^POP[\s_-]*/, '');
+      const ringCode = /^[A-Z]{2,3}_\d+/.test(pfs);
+      const anelloIn = $('posAnello').value.trim().toUpperCase();
+      // PFS/CNO senza codice d'anello (es. F839_CNO3): la cartella è il comune
+      const anello = KIND_ANELLO[posKind] || (ringCode ? anelloIn || anelloFrom(pfs) : ($('posAnello').dataset.touched && anelloIn) || (comune ? comune.toUpperCase() : anelloIn || anelloFrom(pfs)));
       const tecnico = await ensureTecnico();
       const it = {
-        pfs, anello: KIND_ANELLO[posKind] || ($('posAnello').value.trim() || anelloFrom(pfs)).toUpperCase(),
-        lat: coords.lat, lng: coords.lng, note: $('posNote').value.trim(),
+        pfs, anello,
+        lat: coords.lat, lng: coords.lng, note: joinPosNote(comune, popRef, $('posNote').value),
         tecnico, updatedAt: nowStamp(),
         fotoId: posPhoto.data ? '' : (posPhoto.fotoId || ''), thumb: posPhoto.thumb || ''
       };
@@ -5150,7 +5251,7 @@
       $('posOfflineBtn').addEventListener('click', () => { if (tileDl) { tileDl.stop = true; return; } openOfflineMap(); });
       $('posPfs').addEventListener('input', () => {
         setInvalid('posPfs', '');
-        if (!$('posAnello').dataset.touched) $('posAnello').value = anelloFrom($('posPfs').value);
+        if (!$('posAnello').dataset.touched) $('posAnello').value = /^[A-Z]{2,3}_\d+/.test(canonPfs($('posPfs').value) || '') ? anelloFrom($('posPfs').value) : '';   // CNO catastali: la cartella è il comune
       });
       $('posAnello').addEventListener('input', () => { $('posAnello').dataset.touched = $('posAnello').value ? '1' : ''; });
       $('posCoords').addEventListener('input', () => {
@@ -5175,6 +5276,7 @@
         } catch (e) { toast('Incolla manualmente nel campo (tieni premuto → Incolla).', 'info'); $('posCoords').focus(); }
       });
       $('posSave').addEventListener('click', savePosition);
+      bindPosExtras();
       $('posCancel').addEventListener('click', () => { resetPosForm(); $('posForm').open = false; });
       $('posPhotoBtn').addEventListener('click', () => $('posPhotoFile').click());
       $('posPhotoFile').addEventListener('change', async e => {
@@ -7594,9 +7696,10 @@
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-20';
+    const NEWS_ID = '2026-11-24';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#0d9488', i: 'i-pin', t: 'Comune, tipo e POP quando aggiungi', d: 'Aggiungendo un PFS o un CNO scegli il comune dall’elenco di tutti i comuni italiani (per i codici catastali si compila da solo, oppure tocca “Comune più vicino”) e indica il POP di riferimento. Con “Tipo” puoi segnare direttamente anche POP, PD, PFP e centrali.' },
       { c: '#16a34a', i: 'i-target', t: 'Sono qui: correggi le posizioni', d: 'Davanti a un PFS o a una centrale con la posizione sbagliata tocca il mirino accanto a Naviga: il GPS propone il punto giusto e, quando un amministratore lo approva, la posizione diventa “verificata” per tutti. L’aggiornamento manuale ora scarica solo i PFS cambiati.' },
       { c: '#0369a1', i: 'i-building', t: 'Centrali FiberCop', d: 'Nuova voce nel menu con le posizioni di circa 10.800 centrali FiberCop in tutta Italia, divise per provincia e comune. Cerca per nome, comune, indirizzo o codici (ID BRE, GAT, SGU) e tocca Naviga per arrivarci. Foto GPS ora è accanto a Barcode.' },
       { c: '#0f766e', i: 'i-pin', t: 'PFS di tutta Italia', d: 'L’archivio si allarga a tutta Italia: oltre 80.000 PFS, divisi per provincia e per anello o comune. Scegli la tua zona con i pulsanti sopra l’elenco. La mappa disegna i punti della zona che stai guardando (avvicinati per vederli tutti) e l’aggiornamento scarica solo i PFS cambiati, così resta veloce.' },

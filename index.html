@@ -1017,6 +1017,12 @@
     html.field-mode .pos-actions { gap: 8px; }
     html.field-mode .field-label { font-size: .8rem; color: var(--text); }
     .home-search { position: relative; margin: 0 0 14px; }
+    .hs-row { display: flex; gap: 8px; align-items: stretch; } .hs-row .hs-box { flex: 1; min-width: 0; }
+    .hs-glove { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 58px; padding: 6px 8px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); color: var(--muted); font: inherit; font-size: .64rem; font-weight: 800; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .hs-glove[hidden] { display: none; }
+    .hs-glove svg { width: 20px; height: 20px; }
+    .hs-glove.on { background: var(--primary, #0284c7); border-color: transparent; color: #fff; }
+    html.field-mode .hs-glove { min-width: 70px; font-size: .74rem; }
     .hs-box { display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
     .hs-box svg { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }
     .hs-box input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 14px 0; font: inherit; font-size: .95rem; color: var(--text); outline: none; }
@@ -1574,8 +1580,11 @@
       <div class="home-lock" data-locked-only role="note"><svg><use href="#i-lock"/></svg><span>I dati di <b>PFS, posizioni e ribattiture</b> e lo <b>schema di giunzione</b> sono riservati: per vederli accedi con un account approvato. Gli altri strumenti sono liberi.</span><button type="button" class="btn-xs" data-open-account>Accedi</button></div>
 
       <div class="home-search" data-need-login>
-        <div class="hs-box"><svg><use href="#i-search"/></svg>
-          <input type="search" id="homeSearch" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Cerca PFS, CNO, centrale, POP o ribattitura…" aria-label="Cerca in tutto l’archivio"></div>
+        <div class="hs-row">
+          <div class="hs-box"><svg><use href="#i-search"/></svg>
+            <input type="search" id="homeSearch" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Cerca PFS, CNO, centrale, POP o ribattitura…" aria-label="Cerca in tutto l’archivio"></div>
+          <button type="button" class="hs-glove" data-glove hidden title="Modalità guanti: pulsanti più grandi" aria-label="Modalità guanti" aria-pressed="false"><svg><use href="#i-expand"/></svg><span>Guanti</span></button>
+        </div>
         <div class="hs-results" id="homeResults" hidden></div>
       </div>
 
@@ -1686,7 +1695,7 @@
       <div class="screen-top">
         <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
         <span class="wake-pill" data-wake-pill hidden title="Il telefono non va in standby finché resti qui"><svg><use href="#i-sun"/></svg> Schermo acceso</span>
-        <button type="button" class="glove-quick" id="gloveQuick" hidden title="Modalità guanti: pulsanti più grandi"><svg><use href="#i-expand"/></svg> Guanti</button>
+        <button type="button" class="glove-quick" id="gloveQuick" data-glove hidden title="Modalità guanti: pulsanti più grandi"><svg><use href="#i-expand"/></svg> Guanti</button>
       </div>
 
       <div class="data-lock" data-locked-only>
@@ -2557,7 +2566,7 @@
     const wakeWanted = () => BETA && lsGet(WAKE_KEY, '1') !== '0';   // attivo di serie
     function applyFieldMode() {
       document.documentElement.classList.toggle('field-mode', fieldModeOn());
-      const b = $('gloveQuick'); if (b) { b.classList.toggle('on', fieldModeOn()); b.hidden = !BETA; }
+      document.querySelectorAll('[data-glove]').forEach(b => { b.classList.toggle('on', fieldModeOn()); b.setAttribute('aria-pressed', String(fieldModeOn())); b.hidden = !BETA; });
       const k = $('ribKbToggle'); if (k) k.hidden = !BETA;
       document.documentElement.classList.toggle('beta', BETA);
     }
@@ -5444,7 +5453,7 @@
       $('posSave').addEventListener('click', savePosition);
       $('ribKbToggle').addEventListener('pointerdown', e => e.preventDefault());   // non toglie il focus al campo
       $('ribKbToggle').addEventListener('click', toggleRibKb);
-      $('gloveQuick').addEventListener('click', () => { lsSet(FIELD_KEY, fieldModeOn() ? '0' : '1'); applyFieldMode(); toast(fieldModeOn() ? 'Modalità guanti attiva: pulsanti più grandi.' : 'Modalità guanti disattivata.', 'info', 2500); });
+      document.querySelectorAll('[data-glove]').forEach(g => g.addEventListener('click', () => { lsSet(FIELD_KEY, fieldModeOn() ? '0' : '1'); applyFieldMode(); toast(fieldModeOn() ? 'Modalità guanti attiva: pulsanti più grandi.' : 'Modalità guanti disattivata.', 'info', 2500); }));
       bindHomeSearch();
       bindPosExtras();
       $('posCancel').addEventListener('click', () => { resetPosForm(); $('posForm').open = false; });

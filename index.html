@@ -6242,6 +6242,7 @@
        ===================================================================== */
     async function loadComments(pfs) {
       const box = $('psCom'); if (!box) return;
+      if (scriptVersion < 18) { box.innerHTML = '<small class="ps-none">Le note dei colleghi saranno attive a breve.</small>'; $('psComN').textContent = '0'; if ($('psComIn')) $('psComIn').closest('.ps-com-new').hidden = true; return; }
       if (navigator.onLine === false) { box.innerHTML = '<small class="ps-none">Le note dei colleghi si vedono quando c’è campo.</small>'; return; }
       try {
         const d = await accountCall({ action: 'comments', token: account.token, pfs });
@@ -6320,11 +6321,11 @@
     }
     async function renderPushSettings() {
       const box = $('setPush'); if (!box) return;
-      const st = await pushStatus();
+      const st = scriptVersion < 18 ? 'soon' : await pushStatus();
       const txt = { ios: 'Su iPhone le notifiche arrivano solo all’app installata: aggiungila alla schermata Home (Condividi → Aggiungi alla schermata Home) e aprila da lì.',
         no: 'Questo browser non supporta le notifiche.', denied: 'Le notifiche sono bloccate per questo sito: riattivale nelle impostazioni del browser o del telefono.',
         off: account && isAdminRole() ? 'Ricevi un avviso per nuove richieste di accesso e correzioni da approvare, anche ad app chiusa.' : 'Ricevi un avviso quando una tua correzione viene approvata o qualcuno scrive su un PFS dove hai lasciato una nota.',
-        on: 'Notifiche attive su questo telefono.' }[st];
+        on: 'Notifiche attive su questo telefono.', soon: 'Le notifiche sul telefono saranno attive a breve.' }[st];
       box.innerHTML = `<div class="status-line ${st === 'on' ? 'ok' : 'warn'}"><span class="dot"></span>${txt}</div>
         ${st === 'off' ? '<button type="button" class="btn-secondary" id="pushOn" style="margin-top:6px"><svg><use href="#i-bell"/></svg> Attiva le notifiche</button>' : ''}
         ${st === 'on' ? '<div class="grid-2" style="margin:6px 0 0"><button type="button" class="btn-secondary" id="pushTest"><svg><use href="#i-bell"/></svg> Prova</button><button type="button" class="btn-secondary" id="pushOff">Disattiva</button></div>' : ''}`;

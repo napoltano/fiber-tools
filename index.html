@@ -979,6 +979,18 @@
     .ps-com-t { font-size: .86rem; margin-top: 3px; white-space: pre-wrap; word-break: break-word; }
     .ps-com-del { border: 0; background: none; color: var(--muted); padding: 2px; cursor: pointer; } .ps-com-del svg { width: 14px; height: 14px; } .ps-com-del.armed { color: #dc2626; }
     .ps-com-new { display: flex; gap: 8px; align-items: flex-end; margin-top: 8px; } .ps-com-new textarea { font-family: inherit; flex: 1; min-height: 0; resize: vertical; font-size: .9rem; }
+    .ac-wrap { position: relative; }
+    .ac-list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 40; background: var(--card, #fff); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 30px rgba(15,23,42,.18); overflow: hidden; max-height: 320px; overflow-y: auto; }
+    .ac-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 11px 12px; border: 0; background: none; text-align: left; font: inherit; color: var(--text); cursor: pointer; border-top: 1px solid var(--border); }
+    .ac-item:first-child { border-top: 0; }
+    .ac-item.sel, .ac-item:hover { background: color-mix(in srgb, var(--primary, #0284c7) 9%, transparent); }
+    .ac-item b { font-size: .95rem; } .ac-item b mark { background: none; color: var(--primary, #0284c7); }
+    .ac-item small { color: var(--muted); margin-left: auto; text-align: right; font-size: .74rem; flex-shrink: 0; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ac-item .ac-tag { font-size: .66rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: color-mix(in srgb, #16a34a 14%, transparent); color: #15803d; flex-shrink: 0; }
+    .controls-card:has(.ac-list:not([hidden])) { position: relative; z-index: 30; overflow: visible; }
+    .ac-link { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: .8rem; color: var(--muted); }
+    .ac-link svg { width: 14px; height: 14px; color: #16a34a; } .ac-link b { color: var(--text); }
+    .ac-link svg { flex-shrink: 0; } .ac-link span { flex: 1; min-width: 0; line-height: 1.35; } .ac-link .btn-xs { flex-shrink: 0; }
     .kb-toggle { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; margin-right: 8px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: .75rem; font-weight: 800; letter-spacing: .03em; cursor: pointer; }
     .kb-toggle svg { width: 13px; height: 13px; color: var(--primary, #0284c7); }
     .kb-toggle.alpha { background: color-mix(in srgb, var(--primary, #0284c7) 12%, transparent); }
@@ -1714,11 +1726,18 @@
       <div class="controls-card">
         <div class="field-group">
           <label class="field-label" for="ribPfsInput">Nome / Codice PFS (es. NA_05/08w22)</label>
-          <input type="text" id="ribPfsInput" class="custom-input" data-upper placeholder="Inserisci PFS..." autocomplete="off" autocapitalize="characters">
+          <div class="ac-wrap">
+            <input type="text" id="ribPfsInput" class="custom-input" data-upper placeholder="Inserisci PFS..." autocomplete="off" autocapitalize="characters" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ribPfsAc">
+            <div id="ribPfsAc" class="ac-list" role="listbox" hidden></div>
+          </div>
+          <div id="ribPfsLink" class="ac-link" hidden></div>
         </div>
         <div class="field-group">
           <label class="field-label" for="ribSplitterInput">Splitter (es. Splitter 1, Primary...)</label>
-          <input type="text" id="ribSplitterInput" class="custom-input" data-upper placeholder="Inserisci Splitter..." autocomplete="off" autocapitalize="characters">
+          <div class="ac-wrap">
+            <input type="text" id="ribSplitterInput" class="custom-input" data-upper placeholder="Inserisci Splitter..." autocomplete="off" autocapitalize="characters" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ribSplAc">
+            <div id="ribSplAc" class="ac-list" role="listbox" hidden></div>
+          </div>
         </div>
         <div class="photo-row">
           <button type="button" class="btn-secondary" id="ribPhotoBtn"><svg><use href="#i-photo"/></svg> <span id="ribPhotoBtnText">Aggiungi foto splitter</span></button>
@@ -3159,6 +3178,7 @@
       refreshRibProgress();
       setRibPhotoFromItem(item);
       setInvalid('ribPfsInput', ''); setInvalid('ribSplitterInput', '');
+      paintRibPfsLink();
       if (focusOttico >= 1 && focusOttico <= 16) {
         const row = $(`ribRow${focusOttico}`);
         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -3225,7 +3245,7 @@
       if (!any) return;
       const ok = await confirmBox('Svuota modulo', 'Cancellare tutti i campi del modulo? L’archivio salvato non viene toccato.', 'Svuota', true);
       if (!ok) return;
-      $('ribPfsInput').value = ''; $('ribSplitterInput').value = '';
+      $('ribPfsInput').value = ''; $('ribSplitterInput').value = ''; if ($('ribPfsLink')) $('ribPfsLink').hidden = true;
       for (let i = 1; i <= 16; i++) { $(`ribPte${i}`).value = ''; $(`ribFibra${i}`).value = ''; }
       $('ribNoteInput').value = '';
       refreshRibProgress();
@@ -6350,6 +6370,101 @@
       if ($('pushTest')) $('pushTest').addEventListener('click', testPush);
     }
 
+
+    /* =====================================================================
+       SUGGERIMENTI MENTRE SCRIVI (PFS e splitter in ribattitura)
+       ===================================================================== */
+    let acIndex = null, acIndexN = -1;
+    function pfsAcIndex() {
+      const pos = getPositions(), db = getRibattitureData();
+      const n = Object.keys(db).length + (posCache ? Object.keys(pos).length : 0);
+      if (acIndex && acIndexN === n) return acIndex;
+      const map = new Map();
+      for (const k in pos) { const it = pos[k]; if (it && posKindOf(it) === 'pfs') map.set(k, { k, lk: looseKey(k), it, rib: 0 }); }
+      for (const k in db) { const n2 = Object.keys(db[k] || {}).length; const e = map.get(k); if (e) e.rib = n2; else map.set(k, { k, lk: looseKey(k), it: null, rib: n2 }); }
+      acIndex = [...map.values()]; acIndexN = n;
+      return acIndex;
+    }
+    function pfsSuggest(q) {
+      const lq = looseKey(q); if (lq.length < 2) return [];
+      const pre = [], mid = [];
+      for (const e of pfsAcIndex()) {
+        const i = e.lk.indexOf(lq); if (i < 0) continue;
+        (i === 0 ? pre : mid).push(e);
+        if (pre.length >= 40) break;
+      }
+      // prima quelli con ribattiture già fatte, poi in ordine di codice
+      const sort = a => a.sort((x, y) => (y.rib > 0) - (x.rib > 0) || x.lk.length - y.lk.length || IT_NUM.compare(x.k, y.k));
+      return sort(pre).concat(sort(mid)).slice(0, 7);
+    }
+    /** Evidenzia la parte scritta (ignorando _ / - e spazi). */
+    function hiMatch(k, q) {
+      const lq = looseKey(q), idx = [];
+      for (let i = 0; i < k.length; i++) if (/[A-Za-z0-9]/.test(k[i])) idx.push(i);
+      const start = idx.map(i => k[i].toUpperCase()).join('').indexOf(lq);
+      if (start < 0 || !lq) return escapeHtml(k);
+      const from = idx[start], to = idx[start + lq.length - 1] + 1;
+      return escapeHtml(k.slice(0, from)) + '<mark>' + escapeHtml(k.slice(from, to)) + '</mark>' + escapeHtml(k.slice(to));
+    }
+    function attachAc(input, list, getItems, onPick) {
+      let items = [], sel = -1, timer = null;
+      const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); sel = -1; };
+      const paint = () => {
+        list.innerHTML = items.map((x, i) => `<button type="button" role="option" class="ac-item${i === sel ? ' sel' : ''}" data-i="${i}">${x.html}</button>`).join('');
+        list.hidden = !items.length; input.setAttribute('aria-expanded', String(!!items.length));
+      };
+      const update = () => { items = getItems(input.value); sel = -1; paint(); };
+      input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(update, 90); });
+      input.addEventListener('focus', () => { if (input.value) update(); });
+      input.addEventListener('blur', () => setTimeout(close, 150));
+      input.addEventListener('keydown', e => {
+        if (list.hidden) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); sel = (sel + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; paint(); }
+        else if (e.key === 'Enter' && sel >= 0) { e.preventDefault(); e.stopPropagation(); pick(sel); }
+        else if (e.key === 'Escape') close();
+      });
+      const pick = i => { const x = items[i]; if (!x) return; close(); onPick(x); };
+      list.addEventListener('pointerdown', e => e.preventDefault());   // il campo non perde il fuoco prima del tocco
+      list.addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) pick(Number(b.dataset.i)); });
+      return { close, update };
+    }
+    function paintRibPfsLink() {
+      const box = $('ribPfsLink'); if (!box) return;
+      const raw = $('ribPfsInput').value.trim(); if (!raw) { box.hidden = true; return; }
+      const pos = getPositions(), k = [raw.toUpperCase(), canonPfs(raw)].find(x => pos[x] && posKindOf(pos[x]) === 'pfs');
+      const nRib = Object.keys(getRibattitureData()[canonPfs(raw)] || getRibattitureData()[raw.toUpperCase()] || {}).length;
+      if (!k) { box.hidden = true; return; }
+      const np = splitPosNote(pos[k].note);
+      box.innerHTML = `<svg><use href="#i-pin"/></svg><span>Collegato a <b>${escapeHtml(k)}</b>${np.comune ? ' · ' + escapeHtml(np.comune) : ''}${nRib ? ` · ${nRib} splitter già salvati` : ''}</span>
+        <button type="button" class="btn-xs" data-rl="sheet">Scheda</button><button type="button" class="btn-xs pos-chip" data-rl="nav"><svg><use href="#i-nav"/></svg> Naviga</button>`;
+      box.hidden = false;
+      box.onclick = e => { const b = e.target.closest('[data-rl]'); if (!b) return; if (b.dataset.rl === 'nav') navigateTo(pos[k]); else openPosSheet(k); };
+    }
+    function initRibAutocomplete() {
+      const splAc = attachAc($('ribSplitterInput'), $('ribSplAc'), q => {
+        const db = getRibattitureData(), pfs = canonPfs($('ribPfsInput').value), lq = looseKey(q);
+        return Object.keys(db[pfs] || db[$('ribPfsInput').value.trim().toUpperCase()] || {}).filter(sp => !lq || looseKey(sp).includes(lq)).sort(IT_NUM.compare).slice(0, 8)
+          .map(sp => ({ v: sp, html: `<b>${escapeHtml(sp)}</b><small>salvato · apri</small>` }));
+      }, x => {
+        const pfs = canonPfs($('ribPfsInput').value), db = getRibattitureData(), key = db[pfs] ? pfs : $('ribPfsInput').value.trim().toUpperCase();
+        loadSplitterToForm(key, x.v);
+      });
+      attachAc($('ribPfsInput'), $('ribPfsAc'), q => pfsSuggest(q).map(e => {
+        const np = e.it ? splitPosNote(e.it.note) : {};
+        const info = [np.comune, e.rib ? `${e.rib} splitter` : ''].filter(Boolean).join(' · ');
+        return { v: e.k, html: `<b>${hiMatch(e.k, q)}</b>${e.it ? '<span class="ac-tag">POS</span>' : ''}<small>${escapeHtml(info || (e.it ? e.it.anello || '' : 'solo ribattiture'))}</small>` };
+      }), x => {
+        $('ribPfsInput').value = x.v;
+        $('ribPfsInput').dispatchEvent(new Event('input', { bubbles: true }));
+        paintRibPfsLink();
+        const sp = $('ribSplitterInput'); sp.focus();
+        if (!sp.value) splAc.update();
+      });
+      $('ribPfsInput').addEventListener('input', () => { clearTimeout(paintRibPfsLink.t); paintRibPfsLink.t = setTimeout(paintRibPfsLink, 250); });
+      $('ribPfsInput').addEventListener('focus', () => {}, { once: true });
+      $('ribSplitterInput').addEventListener('focus', () => { if (!$('ribSplitterInput').value && $('ribPfsInput').value.trim()) splAc.update(); });
+    }
+
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
     const kmlEsc = v => String(v ?? '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
     function kmlColor(css) {   // "#rrggbb" -> "ffbbggrr" (formato colore KML)
@@ -8351,6 +8466,7 @@
       initGeoCam();
       initStats();
       initSplice();
+      initRibAutocomplete();
       maybeShowNews();
       initUsersCount();
       history.replaceState({}, '', location.pathname + location.search.replace(/[?&]pfs=[^&]*/, '').replace(/^&/, '?'));

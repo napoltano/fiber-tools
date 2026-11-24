@@ -2601,7 +2601,7 @@
       else if (screenId === 'pfsScreen') { renderPfsColors(); updatePFS(); }
       else if (screenId === 'pteScreen') { renderPteColors(); calculatePTE(); }
       else if (screenId === 'fibercopScreen') { renderFcColors(); updateFiberCop(); }
-      else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); syncFromGoogleSheets(true); }
+      else if (screenId === 'ribattituraScreen') { renderRibattituraOttici(); loadRibattitureArchive(); setTimeout(() => syncFromGoogleSheets(true), 450); }
       else if (screenId === 'usersScreen') loadUsers();
       else if (screenId === 'statsScreen') { loadStats(); loadBackupInfo(); }
       else if (screenId === 'pfsPosScreen') { setPosKind({ POP: 'pop', PD: 'pd', PFP: 'pfp', 'Centrali FiberCop': 'cen' }[title] || 'pfs'); renderPositions(); syncFromGoogleSheets(true); }
@@ -3088,12 +3088,29 @@
       }
 
       let html = '', shown = 0;
+      archiveSpls = {};
       pfsKeys.forEach(pfs => {
         const spls = Object.keys(db[pfs] || {}).filter(spl => !q || pfs.toUpperCase().includes(q) || spl.toUpperCase().includes(q)
           || String(db[pfs][spl]?.note || '').toUpperCase().includes(q)
           || (db[pfs][spl]?.ottici || []).some(o => String(o.fibra || '').toUpperCase().includes(q) || String(o.pte || '').toUpperCase().includes(q)));
         if (!spls.length) return;
         const isOpen = openNow.has(pfs) || (q && spls.length);
+        archiveSpls[pfs] = spls;
+        html += `
+          <div class="pfs-folder ${isOpen ? 'open' : ''}" data-pfs="${escapeHtml(pfs)}" style="--i:${shown++}">
+            <button type="button" class="pfs-folder-header" aria-expanded="${!!isOpen}">
+              <span class="pfs-folder-title"><svg><use href="#i-folder"/></svg>${escapeHtml(pfs)}</span>
+              <span class="folder-meta">${spls.length} splitter <svg><use href="#i-down"/></svg></span>
+            </button>
+            <div class="pfs-folder-content"><div class="pfs-folder-inner">${isOpen ? archiveFolderBody(pfs, spls, db, positions) : '<div data-lazy="1"></div>'}</div></div>
+          </div>`;
+      });
+      const hitsHtml = q ? renderIdHits(db, q) : '';
+      container.innerHTML = (hitsHtml + html) || `<div class="empty-state">Nessun risultato per “${escapeHtml(q)}”.</div>`;
+    }
+    let archiveSpls = {};
+    /** Contenuto di una cartella dell'archivio (costruito solo quando la cartella è aperta: con tante cartelle chiuse la schermata resta leggera). */
+    function archiveFolderBody(pfs, spls, db, positions) {
         const items = spls.map(spl => `
           <div class="splitter-item" data-pfs="${escapeHtml(pfs)}" data-spl="${escapeHtml(spl)}">
             <div class="split-head">
@@ -3114,13 +3131,7 @@
               <button type="button" class="btn-xs danger" data-act="delete" aria-label="Elimina"><svg><use href="#i-x"/></svg></button>
             </div>
           </div>`).join('');
-        html += `
-          <div class="pfs-folder ${isOpen ? 'open' : ''}" data-pfs="${escapeHtml(pfs)}" style="--i:${shown++}">
-            <button type="button" class="pfs-folder-header" aria-expanded="${!!isOpen}">
-              <span class="pfs-folder-title"><svg><use href="#i-folder"/></svg>${escapeHtml(pfs)}</span>
-              <span class="folder-meta">${spls.length} splitter <svg><use href="#i-down"/></svg></span>
-            </button>
-            <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>
+        return `<div>
               <div class="folder-actions">
                 <span class="lbl">Cartella:</span>
                 <button type="button" class="btn-xs" data-act="folder-share"><svg><use href="#i-share"/></svg> Condividi</button>
@@ -3128,11 +3139,7 @@
               </div>
               ${(() => { const st = folderStats(db, pfs); return `<div class="folder-stats"><span class="ok">${st.withId}/${st.total} con ID</span>${st.noIdr ? `<span class="warn">${st.noIdr} NO IDR</span>` : ''}${st.empty ? `<span>${st.empty} vuoti</span>` : ''}</div>`; })()}
               ${items}
-            </div></div></div>
-          </div>`;
-      });
-      const hitsHtml = q ? renderIdHits(db, q) : '';
-      container.innerHTML = (hitsHtml + html) || `<div class="empty-state">Nessun risultato per “${escapeHtml(q)}”.</div>`;
+            </div>`;
     }
 
     function loadSplitterToForm(pfs, splitter, focusOttico) {
@@ -4230,7 +4237,16 @@
     /* ---------- Sincronizzazione leggera ---------- */
     const SYNC_REV_KEY = 'fiber_tools_sync_rev';
     const SYNC_FULL_MS = 6 * 3600 * 1000;   // ogni 6 ore riscarica comunque tutto (copre le modifiche fatte a mano sul foglio)
-    const countSynced = obj => { let n = 0; Object.values(obj || {}).forEach(v => { if (v && v.synced === true) n++; else if (v && typeof v === 'object' && !('synced' in v)) Object.values(v).forEach(x => { if (x && x.synced === true) n++; }); }); return n; };
+    const countSynced = obj => {
+      let n = 0;
+      for (const k in obj || {}) {
+        const v = obj[k];
+        if (!v || typeof v !== 'object') continue;
+        if (v.synced === true) n++;
+        else if (!('synced' in v)) for (const j in v) { const x = v[j]; if (x && x.synced === true) n++; }
+      }
+      return n;
+    };
     function getSyncRevs() { try { return JSON.parse(lsGet(SYNC_REV_KEY, 'null')) || null; } catch (e) { return null; } }
     /** Le revisioni da mandare allo script: solo se l'archivio locale è quello scaricato l'ultima volta da questo account. */
     function syncRevs() {
@@ -7125,7 +7141,12 @@
       $('pfsArchiveContainer').addEventListener('click', e => {
         const header = e.target.closest('.pfs-folder-header');
         if (header) {
-          const f = header.parentElement;
+          const f = header.parentElement, lazy = f.querySelector(':scope > .pfs-folder-content > .pfs-folder-inner > [data-lazy]');
+          if (lazy && !f.classList.contains('open')) {
+            const pfs = f.dataset.pfs, db = getRibattitureData();
+            lazy.outerHTML = archiveFolderBody(pfs, archiveSpls[pfs] || Object.keys(db[pfs] || {}), db, getPositions());
+            void f.offsetHeight;   // poi l'animazione di apertura parte dal contenuto già pronto
+          }
           f.classList.toggle('open');
           header.setAttribute('aria-expanded', f.classList.contains('open'));
           return;

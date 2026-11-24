@@ -1549,7 +1549,7 @@
         <svg id="adminIcon"><use href="#i-user"/></svg> <span class="lbl" id="adminText">Accedi</span>
       </button>
       <button class="icon-btn" id="themeToggleBtn" type="button" aria-label="Cambia tema">
-        <svg class="theme-icon" id="themeIcon"><use href="#i-moon"/></svg> <span class="lbl" id="themeText">Scuro</span>
+        <svg class="theme-icon" id="themeIcon"><use href="#i-moon"/></svg><span class="lbl" id="themeText" hidden>Scuro</span>
       </button>
     </div>
   </header>
@@ -2643,6 +2643,7 @@
       document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#0b1220' : '#f3f6fb';
       $('themeIcon').innerHTML = `<use href="#${theme === 'dark' ? 'i-sun' : 'i-moon'}"/>`;
       $('themeText').textContent = theme === 'dark' ? 'Chiaro' : 'Scuro';
+      $('themeToggleBtn').setAttribute('aria-label', theme === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'); $('themeToggleBtn').title = theme === 'dark' ? 'Tema chiaro' : 'Tema scuro';
     }
     function toggleTheme() {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';

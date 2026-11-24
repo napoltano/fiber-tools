@@ -1654,52 +1654,24 @@
           <span class="badge-num">07</span>
         </button>
 
-        <div class="btn-main pq-tile" style="--i:7" id="pqTile" role="button" tabindex="0" aria-expanded="false" aria-controls="pqChoices">
-          <div class="pq-top">
-            <div class="tile-icon t-teal"><svg><use href="#i-nav"/></svg></div>
-            <div class="btn-main-content">
-              <span class="btn-title">PFS, PFP, POP e PD</span>
-              <span class="btn-desc">Coordinate e navigazione</span>
-            </div>
+        <button class="btn-main full-width" type="button" style="--i:7" id="pqTile">
+          <div class="tile-icon t-teal"><svg><use href="#i-nav"/></svg></div>
+          <div class="btn-main-content">
+            <span class="btn-title">Posizioni PFS</span>
+            <span class="btn-desc">Coordinate, mappa e navigazione per anello</span>
           </div>
           <span class="badge-num">08</span>
-          <div class="pq-choices" id="pqChoices">
-            <button type="button" class="pq-choice" data-pq="pfs" tabindex="-1">
-              <span class="pq-ico"><svg><use href="#i-pin"/></svg></span>
-              <span><b>PFS</b><small>Armadi divisi per anello</small></span>
-            </button>
-            <button type="button" class="pq-choice pfp" data-pq="pfp" tabindex="-1">
-              <span class="pq-ico"><svg><use href="#i-box"/></svg></span>
-              <span><b>PFP</b><small>Armadi primari</small></span>
-            </button>
-            <button type="button" class="pq-choice pop" data-pq="pop" tabindex="-1">
-              <span class="pq-ico"><svg><use href="#i-nav"/></svg></span>
-              <span><b>POP</b><small>Centrali Open Fiber</small></span>
-            </button>
-            <button type="button" class="pq-choice pd" data-pq="pd" tabindex="-1">
-              <span class="pq-ico"><svg><use href="#i-pin"/></svg></span>
-              <span><b>PD</b><small>Punti di distribuzione</small></span>
-            </button>
-          </div>
-        </div>
-
-        <button class="btn-main" type="button" style="--i:8" id="cenTile" data-cen>
-          <div class="tile-icon t-cen"><svg><use href="#i-building"/></svg></div>
-          <div class="btn-main-content">
-            <span class="btn-title">Centrali FiberCop</span>
-            <span class="btn-desc">Posizioni delle centrali</span>
-          </div>
-          <span class="badge-num">09</span>
+          <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
         </button>
 
-        <button class="btn-main full-width" type="button" style="--i:9" data-open="spliceScreen" data-title="Schema giunzione" data-sub="Schema completo del PD / PFS">
+        <button class="btn-main full-width" type="button" style="--i:8" data-open="spliceScreen" data-title="Schema giunzione" data-sub="Schema completo del PD / PFS">
           <div class="tile-icon t-orange"><svg><use href="#i-table"/></svg></div>
           <div class="btn-main-content">
             <span class="btn-title">Schema di Giunzione</span>
             <span class="btn-desc">Più cavi N− / N+ con tubetti, fibre e colori</span>
             <span class="tile-lock" data-locked-only><svg><use href="#i-lock"/></svg> Accesso richiesto</span>
           </div>
-          <span class="badge-num">10</span>
+          <span class="badge-num">09</span>
           <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
         </button>
       </div>
@@ -6205,7 +6177,7 @@
         { ico: 'i-bolt', t: 'Benvenuto in Fiber Tools', h: `<p>Gli strumenti di tutti i giorni per chi lavora sulla fibra:</p>
             <ul class="ob-list"><li><b>Codici colore</b> per PFS, FiberCop e Open Fiber</li><li><b>Ribattiture</b> degli ottici, condivise con la squadra</li><li><b>Archivio</b> di oltre 100.000 PFS, CNO e centrali con mappa e Naviga</li><li><b>Schema di giunzione</b> con PDF</li></ul>` },
         { ico: 'i-phone', t: 'Mettila sulla schermata Home', h: `<p>Così si apre come un’app, a schermo intero, e funziona anche senza campo.</p>${installTxt}` },
-        { ico: 'i-search', t: 'Dove trovare le cose', h: `<ul class="ob-list"><li><b>Cerca</b> in alto nel menu: scrivi un PFS, un CNO o una centrale e apri la sua scheda</li><li><b>PFS, PFP, POP e PD</b> e <b>Centrali FiberCop</b>: elenco per provincia e mappa</li><li><b>Sono qui</b> (il mirino): se una posizione è sbagliata la correggi con il GPS</li><li>I dati riservati si vedono dopo aver <b>effettuato l’accesso</b> con un account approvato</li></ul>` }
+        { ico: 'i-search', t: 'Dove trovare le cose', h: `<ul class="ob-list"><li><b>Cerca</b> in alto nel menu: scrivi un PFS, un CNO o una centrale e apri la sua scheda</li><li><b>Posizioni PFS</b>: elenco per provincia e mappa</li><li><b>Sono qui</b> (il mirino): se una posizione è sbagliata la correggi con il GPS</li><li>I dati riservati si vedono dopo aver <b>effettuato l’accesso</b> con un account approvato</li></ul>` }
       ];
       let i = 0;
       const paint = () => {
@@ -7169,25 +7141,8 @@
       });
       document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', () => goHome()));
 
-      // PFS, POP e PD: il riquadro si ingrandisce e propone la scelta
-      const pq = $('pqTile');
-      const pqSet = open => {
-        pq.classList.toggle('open', open); pq.setAttribute('aria-expanded', String(open));
-        pq.querySelectorAll('.pq-choice').forEach(c => c.tabIndex = open ? 0 : -1);
-        if (open) setTimeout(() => pq.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
-      };
-      pq.addEventListener('click', e => {
-        const c = e.target.closest('[data-pq]');
-        if (c && pq.classList.contains('open')) { pqSet(false); openPosKind(c.dataset.pq); return; }
-        pqSet(!pq.classList.contains('open'));
-      });
-      pq.addEventListener('keydown', e => {
-        if (e.target !== pq) return;
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pqSet(!pq.classList.contains('open')); if (pq.classList.contains('open')) pq.querySelector('.pq-choice').focus(); }
-        else if (e.key === 'Escape') pqSet(false);
-      });
-      document.addEventListener('click', e => { if (pq.classList.contains('open') && !pq.contains(e.target)) pqSet(false); });
-      pq.addEventListener('pointermove', e => { const r = pq.getBoundingClientRect(); pq.style.setProperty('--mx', `${e.clientX - r.left}px`); pq.style.setProperty('--my', `${e.clientY - r.top}px`); });
+      // Posizioni: si apre direttamente l'elenco dei PFS (PFP, POP, PD e centrali restano nell'archivio e nella ricerca)
+      $('pqTile').addEventListener('click', () => openPosKind('pfs'));
 
       $('adminLoginBtn').addEventListener('click', () => openAccount());
       $('themeToggleBtn').addEventListener('click', toggleTheme);
@@ -7898,7 +7853,6 @@
 
     function initGeoCam() {
       $('geoCamBtn').addEventListener('click', openGeoCam);
-      $('cenTile').addEventListener('click', () => openPosKind('cen'));
       $('gcClose').addEventListener('click', () => closeGeoCam());
       $('gcShutter').addEventListener('click', gcShutter);
       $('gcModes').addEventListener('click', e => {

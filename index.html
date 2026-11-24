@@ -972,6 +972,31 @@
 
     /* ---------- V3 ---------- */
     .t-teal   { --tile-bg: color-mix(in srgb, #14b8a6 15%, transparent); --tile-fg: #0d9488; }
+    .kb-toggle { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; margin-right: 8px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: .75rem; font-weight: 800; letter-spacing: .03em; cursor: pointer; }
+    .kb-toggle svg { width: 13px; height: 13px; color: var(--primary, #0284c7); }
+    .kb-toggle.alpha { background: color-mix(in srgb, var(--primary, #0284c7) 12%, transparent); }
+    html.field-mode .kb-toggle { min-height: 44px; padding: 8px 14px; font-size: .85rem; }
+    .screen-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .screen-top .btn-back { margin-right: auto; }
+    .wake-pill, .glove-quick { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; border: 1px solid var(--border); background: var(--card); color: var(--muted); }
+    .wake-pill { color: #b45309; border-color: color-mix(in srgb, #f59e0b 40%, transparent); background: color-mix(in srgb, #f59e0b 12%, transparent); }
+    .wake-pill svg, .glove-quick svg { width: 14px; height: 14px; }
+    .glove-quick { cursor: pointer; font: inherit; font-size: .72rem; font-weight: 700; }
+    .glove-quick.on { background: var(--primary, #0284c7); border-color: transparent; color: #fff; }
+    .check-row.big { align-items: flex-start; font-size: .9rem; margin-top: 12px; } .check-row.big input { margin-top: 2px; }
+    .check-row.big small { display: block; font-weight: 500; color: var(--muted); font-size: .76rem; margin-top: 2px; }
+    /* Modalità guanti: tutto più grande e più contrastato */
+    html.field-mode { font-size: 118%; }
+    html.field-mode body { --muted: #334155; --border: #94a3b8; }
+    html.field-mode[data-theme="dark"] body, html.field-mode body[data-theme="dark"] { --muted: #dbe4f0; --border: #64748b; }
+    html.field-mode .btn-xs { min-width: 48px; min-height: 48px; padding: 10px 12px; }
+    html.field-mode .btn-xs svg { width: 20px; height: 20px; }
+    html.field-mode .btn-nav, html.field-mode .chip, html.field-mode .glove-quick { min-height: 48px; padding-left: 16px; padding-right: 16px; }
+    html.field-mode .btn-action, html.field-mode .btn-secondary, html.field-mode .btn-back { min-height: 58px; }
+    html.field-mode .custom-input, html.field-mode .custom-select { min-height: 58px; font-size: 1.1rem; border-width: 2px; }
+    html.field-mode .pos-item, html.field-mode .btn-main, html.field-mode .controls-card { border-width: 2px; }
+    html.field-mode .pos-actions { gap: 8px; }
+    html.field-mode .field-label { font-size: .8rem; color: var(--text); }
     .home-search { position: relative; margin: 0 0 14px; }
     .hs-box { display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
     .hs-box svg { width: 18px; height: 18px; color: var(--muted); flex-shrink: 0; }
@@ -1667,7 +1692,11 @@
 
     <!-- ================= RIBATTITURA ================= -->
     <section id="ribattituraScreen" class="screen">
-      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+      <div class="screen-top">
+        <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+        <span class="wake-pill" data-wake-pill hidden title="Il telefono non va in standby finché resti qui"><svg><use href="#i-sun"/></svg> Schermo acceso</span>
+        <button type="button" class="glove-quick" id="gloveQuick" hidden title="Modalità guanti: pulsanti più grandi"><svg><use href="#i-expand"/></svg> Guanti</button>
+      </div>
 
       <div class="data-lock" data-locked-only>
         <div class="lock-ico"><svg><use href="#i-lock"/></svg></div>
@@ -1698,6 +1727,7 @@
       <div class="controls-card">
         <div class="section-title">
           <span>Ottici 1 – 16</span>
+          <button type="button" class="kb-toggle" id="ribKbToggle" hidden aria-label="Cambia tastiera"><svg><use href="#i-grid"/></svg><span id="ribKbLabel">123</span></button>
           <span class="count-pill" id="ribFillCount">0 / 16</span>
         </div>
         <div class="progress" aria-hidden="true"><div id="ribProgress"></div></div>
@@ -1794,7 +1824,10 @@
 
     <!-- ================= SCHEMA GIUNZIONE ================= -->
     <section id="spliceScreen" class="screen">
-      <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+      <div class="screen-top">
+        <button class="btn-back" type="button" data-home><svg><use href="#i-back"/></svg> Menu</button>
+        <span class="wake-pill" data-wake-pill hidden title="Il telefono non va in standby finché resti qui"><svg><use href="#i-sun"/></svg> Schermo acceso</span>
+      </div>
 
       <div class="data-lock" data-locked-only>
         <div class="lock-ico"><svg><use href="#i-lock"/></svg></div>
@@ -2513,12 +2546,42 @@
       [t, s].forEach(el => { el.classList.remove('swap'); void el.offsetWidth; el.classList.add('swap'); });
     }
 
+    /* ---------- Novità in prova: visibili solo a chi apre l'app con ?prova=1 ---------- */
+    const BETA_KEY = 'fiber_tools_beta';
+    (() => { const m = /[?&]prova=([01])/.exec(location.search); if (m) { try { localStorage.setItem(BETA_KEY, m[1]); } catch (e) {} } })();
+    const BETA = (() => { try { return localStorage.getItem(BETA_KEY) === '1'; } catch (e) { return false; } })();
+
+    /* ---------- Sul campo: modalità guanti e schermo sempre acceso ---------- */
+    const FIELD_KEY = 'fiber_tools_field_mode', WAKE_KEY = 'fiber_tools_wake';
+    const WAKE_SCREENS = ['ribattituraScreen', 'spliceScreen'];
+    const fieldModeOn = () => BETA && lsGet(FIELD_KEY, '0') === '1';
+    const wakeWanted = () => BETA && lsGet(WAKE_KEY, '1') !== '0';   // attivo di serie
+    function applyFieldMode() {
+      document.documentElement.classList.toggle('field-mode', fieldModeOn());
+      const b = $('gloveQuick'); if (b) { b.classList.toggle('on', fieldModeOn()); b.hidden = !BETA; }
+      const k = $('ribKbToggle'); if (k) k.hidden = !BETA;
+      document.documentElement.classList.toggle('beta', BETA);
+    }
+    let wakeLock = null;
+    async function updateWakeLock() {
+      const active = document.querySelector('.screen.active');
+      const want = wakeWanted() && 'wakeLock' in navigator && document.visibilityState === 'visible' && active && WAKE_SCREENS.includes(active.id);
+      try {
+        if (want && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; showWakePill(); }); }
+        else if (!want && wakeLock) { const w = wakeLock; wakeLock = null; await w.release(); }
+      } catch (e) { wakeLock = null; }
+      showWakePill();
+    }
+    function showWakePill() { document.querySelectorAll('[data-wake-pill]').forEach(el => { el.hidden = !wakeLock; }); }
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') updateWakeLock(); });
+
     function showScreen(id, back = false) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'back'));
       const el = $(id);
       el.classList.add('active');
       if (back) el.classList.add('back');
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+      updateWakeLock();
     }
 
     function openScreen(screenId, title, subtitle, fromHistory = false) {
@@ -2864,13 +2927,41 @@
         html += `
           <div class="ottico-row" id="ribRow${i}" style="--i:${i - 1}">
             <span class="ottico-num" aria-hidden="true">${i}</span>
-            <input type="text" id="ribPte${i}" class="custom-input" data-upper placeholder="Permuta" aria-label="Permuta ottico ${i}" autocomplete="off" autocapitalize="characters">
-            <input type="text" id="ribFibra${i}" class="custom-input" data-upper placeholder="ID" aria-label="ID ottico ${i}" autocomplete="off" autocapitalize="characters">
+            <input type="text" id="ribPte${i}" class="custom-input" data-upper data-ribkb inputmode="${ribKbMode()}" enterkeyhint="next" placeholder="Permuta" aria-label="Permuta ottico ${i}" autocomplete="off" autocapitalize="characters">
+            <input type="text" id="ribFibra${i}" class="custom-input" data-upper data-ribkb inputmode="${ribKbMode()}" enterkeyhint="${i < 16 ? 'next' : 'done'}" placeholder="ID" aria-label="ID ottico ${i}" autocomplete="off" autocapitalize="characters">
             <button type="button" class="scan-btn" data-scan="ribFibra${i}" aria-label="Scansiona ID ottico ${i}"><svg><use href="#i-camera"/></svg></button>
           </div>`;
       }
       container.innerHTML = html;
       refreshRibProgress();
+      // Invio passa al campo successivo: Permuta -> ID -> Permuta dell'ottico dopo
+      container.addEventListener('keydown', e => {
+        if (!BETA || e.key !== 'Enter' || !e.target.matches('[data-ribkb]')) return;
+        e.preventDefault();
+        const all = [...container.querySelectorAll('[data-ribkb]')], i = all.indexOf(e.target);
+        if (all[i + 1]) all[i + 1].focus(); else e.target.blur();
+      });
+      paintRibKb();
+    }
+
+    /* Tastiera per Permuta e ID: numerica di serie (si usano quasi sempre numeri), con il tasto per tornare alle lettere. */
+    const RIB_KB_KEY = 'fiber_tools_rib_kb';
+    const ribKbMode = () => !BETA || lsGet(RIB_KB_KEY, 'numeric') === 'text' ? 'text' : 'numeric';
+    function paintRibKb() {
+      const num = ribKbMode() === 'numeric';
+      $('ribKbToggle').hidden = !BETA;
+      $('ribKbLabel').textContent = num ? '123' : 'ABC';
+      $('ribKbToggle').title = num ? 'Tastiera numerica: tocca per avere le lettere' : 'Tastiera con lettere: tocca per i numeri';
+      $('ribKbToggle').classList.toggle('alpha', !num);
+    }
+    function toggleRibKb() {
+      lsSet(RIB_KB_KEY, ribKbMode() === 'numeric' ? 'text' : 'numeric');
+      const mode = ribKbMode(), active = document.activeElement;
+      document.querySelectorAll('[data-ribkb]').forEach(el => el.setAttribute('inputmode', mode));
+      paintRibKb();
+      // il campo in cui stai scrivendo cambia subito tastiera
+      if (active && active.matches && active.matches('[data-ribkb]')) { active.blur(); setTimeout(() => active.focus(), 60); }
+      toast(mode === 'numeric' ? 'Tastiera numerica.' : 'Tastiera con lettere.', 'info', 1500);
     }
 
     function refreshRibProgress() {
@@ -4411,6 +4502,13 @@
             <button type="button" class="btn-secondary" id="setNews" style="margin-top:6px"><svg><use href="#i-check"/></svg> Novità dell’app</button>
             <button type="button" class="btn-secondary" id="setGuide" style="margin-top:6px"><svg><use href="#i-info"/></svg> Guida rapida</button>
           </div>
+          ${BETA ? '' : '<!--'}<hr>
+          <div class="field-group">
+            <span class="field-label">Sul campo <span class="count-pill" style="margin-left:6px">in prova</span></span>
+            <label class="check-row big"><input type="checkbox" id="setGlove" ${fieldModeOn() ? 'checked' : ''}> <span>Modalità guanti<small>Pulsanti e testi più grandi, contrasto più alto per leggere al sole</small></span></label>
+            <label class="check-row big"><input type="checkbox" id="setWake" ${wakeWanted() ? 'checked' : ''}> <span>Schermo sempre acceso<small>Durante ribattitura e schema di giunzione il telefono non va in standby${'wakeLock' in navigator ? '' : ' (non supportato da questo browser)'}</small></span></label>
+            <button type="button" class="btn-secondary" id="setBetaOff" style="margin-top:8px">Esci dalla prova</button>
+          </div>${BETA ? '' : '-->'}
           <hr>
           <div class="field-group">
             <span class="field-label">Google Sheets</span>
@@ -4440,6 +4538,11 @@
           $('setAccount').addEventListener('click', () => { closeModal(false); openAccount(); });
           $('setNews').addEventListener('click', () => { closeModal(false); setTimeout(openNews, 50); });
           $('setGuide').addEventListener('click', () => { closeModal(false); setTimeout(() => openOnboarding(true), 50); });
+          if (BETA) {
+            $('setGlove').addEventListener('change', e => { lsSet(FIELD_KEY, e.target.checked ? '1' : '0'); applyFieldMode(); });
+            $('setWake').addEventListener('change', e => { lsSet(WAKE_KEY, e.target.checked ? '1' : '0'); updateWakeLock(); });
+            $('setBetaOff').addEventListener('click', () => { lsSet(BETA_KEY, '0'); location.replace(location.pathname); });
+          }
         }
       });
     }
@@ -5315,6 +5418,9 @@
         } catch (e) { toast('Incolla manualmente nel campo (tieni premuto → Incolla).', 'info'); $('posCoords').focus(); }
       });
       $('posSave').addEventListener('click', savePosition);
+      $('ribKbToggle').addEventListener('pointerdown', e => e.preventDefault());   // non toglie il focus al campo
+      $('ribKbToggle').addEventListener('click', toggleRibKb);
+      $('gloveQuick').addEventListener('click', () => { lsSet(FIELD_KEY, fieldModeOn() ? '0' : '1'); applyFieldMode(); toast(fieldModeOn() ? 'Modalità guanti attiva: pulsanti più grandi.' : 'Modalità guanti disattivata.', 'info', 2500); });
       bindHomeSearch();
       bindPosExtras();
       $('posCancel').addEventListener('click', () => { resetPosForm(); $('posForm').open = false; });
@@ -8041,7 +8147,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       await initPosStore();
-      initTheme();
+      initTheme(); applyFieldMode();
       renderHeroColors();
       bindEvents();
       initPwa();

@@ -1732,7 +1732,7 @@
       <button type="button" class="gem-btn" id="gemBtn" hidden>
         <span class="gem-ico"><svg><use href="#i-mic"/></svg></span>
         <span class="gem-txt"><b>Parla con Gemini</b><small id="gemBtnSub">Detta PFS, splitter, permute e ID: scrive lui</small></span>
-        <span class="gem-tag">PROVA</span>
+        <span class="gem-tag">NUOVO</span>
       </button>
       <div class="controls-card">
         <div class="field-group">
@@ -4572,7 +4572,7 @@
             <button type="button" class="btn-secondary" id="setGuide" style="margin-top:6px"><svg><use href="#i-info"/></svg> Guida rapida</button>
           </div>
           ${GEM_BETA ? `<hr><div class="field-group">
-            <span class="field-label">Assistente Gemini <span class="gem-tag" style="background:#ede9fe;color:#6d28d9">PROVA</span></span>
+            <span class="field-label">Assistente Gemini </span>
             <div id="setGem"></div>
           </div>` : ''}
           <hr>
@@ -6496,7 +6496,7 @@
        ASSISTENTE GEMINI (prova): il tecnico parla, Gemini compila la ribattitura.
        La chiave è dell'utente e resta solo su questo telefono. Audio diretto telefono ↔ Google (Live API).
        ===================================================================== */
-    const GEM_BETA = BETA_ON;
+    const GEM_BETA = true;   // provato sul campo e attivo per tutti dal 27/11/2026
     const GEM_KEY = 'fiber_tools_gemini_key', GEM_MODEL = 'gemini-3.8-live';
     const gemKey = () => lsGet(GEM_KEY, '');
     const gemKeyLooksOk = k => /^[A-Za-z0-9_\-]{30,60}$/.test(k || '');
@@ -8609,9 +8609,10 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-24d';
+    const NEWS_ID = '2026-11-27a';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
+      { c: '#8e44ec', i: 'i-mic', t: 'Ribattitura a voce con Gemini', d: 'In Ribattitura tocca “Parla con Gemini”: detti PFS, splitter, permute e ID e lui li scrive nei campi, ripetendo le cifre ad alta voce. Si collega in un minuto con una chiave gratuita di Google, che resta solo sul tuo telefono. Ideale quando lavori da solo.' },
       { c: '#dc2626', i: 'i-bell', t: 'Link, note e notifiche', d: 'Nella scheda di un PFS tocca “Link” per mandarlo su WhatsApp: chi lo apre arriva dritto alla scheda (serve l’account). Sotto trovi le “Note dei colleghi”: chiavi, accessi, attenzioni, con nome e data. In Impostazioni → Notifiche sul telefono attiva gli avvisi: correzioni approvate e nuove note sui PFS dove hai scritto, anche ad app chiusa (su iPhone serve l’app aggiunta alla schermata Home).' },
       { c: '#d97706', i: 'i-sun', t: 'Più comoda sul campo', d: 'In ribattitura Permuta e ID aprono il tastierino numerico (il tasto 123 / ABC torna alle lettere) e con Invio passi al campo dopo. Lo schermo resta acceso durante ribattitura e schema di giunzione. Con i guanti? Tocca “Guanti” in alto nella ribattitura o vai in Impostazioni → Sul campo: pulsanti e testi più grandi.' },
       { c: '#4f46e5', i: 'i-search', t: 'Cerca tutto e apri la scheda', d: 'In cima al menu c’è la ricerca unica: scrivi un PFS, un CNO, una centrale o una via e trovi posizioni e ribattiture. Toccando un risultato (o un PFS nell’elenco) si apre la scheda con mappa, comune, POP, foto, ribattiture e PD collegati. La guida rapida è in Impostazioni.' },

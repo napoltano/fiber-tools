@@ -991,6 +991,29 @@
     .ac-link { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: .8rem; color: var(--muted); }
     .ac-link svg { width: 14px; height: 14px; color: #16a34a; } .ac-link b { color: var(--text); }
     .ac-link svg { flex-shrink: 0; } .ac-link span { flex: 1; min-width: 0; line-height: 1.35; } .ac-link .btn-xs { flex-shrink: 0; }
+    .gem-btn { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 14px; padding: 14px 16px; border: 0; border-radius: var(--radius); cursor: pointer; text-align: left; font: inherit; color: #fff;
+      background: linear-gradient(120deg, #1a73e8, #8e44ec 60%, #d64e84); box-shadow: 0 8px 22px rgba(66, 85, 230, .28); }
+    .gem-btn[hidden] { display: none; }
+    .gem-ico { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.2); display: grid; place-items: center; flex-shrink: 0; } .gem-ico svg { width: 22px; height: 22px; }
+    .gem-txt { display: flex; flex-direction: column; flex: 1; min-width: 0; } .gem-txt b { font-size: 1rem; } .gem-txt small { opacity: .88; font-size: .78rem; }
+    .gem-tag { font-size: .6rem; font-weight: 800; letter-spacing: .06em; padding: 3px 7px; border-radius: 6px; background: rgba(255,255,255,.22); }
+    .gem-btn.live .gem-ico { animation: gemPulse 1.4s ease-in-out infinite; }
+    @keyframes gemPulse { 50% { box-shadow: 0 0 0 8px rgba(255,255,255,.18); } }
+    .gem-panel { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 60; max-width: 560px; margin: 0 auto; border-radius: 18px; background: var(--card, #fff); border: 1px solid var(--border); box-shadow: 0 18px 44px rgba(15,23,42,.28); overflow: hidden; }
+    .gem-panel[hidden] { display: none; }
+    .gem-head { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; background: linear-gradient(120deg, rgba(26,115,232,.12), rgba(142,68,236,.12) 60%, rgba(214,78,132,.12)); }
+    .gem-orb { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #1a73e8, #8e44ec, #d64e84); flex-shrink: 0; transform: scale(calc(1 + var(--lvl, 0) * .35)); transition: transform .08s; }
+    .gem-orb svg { width: 18px; height: 18px; } .gem-panel.talk .gem-orb { animation: gemPulse 1s ease-in-out infinite; }
+    .gem-state { flex: 1; font-weight: 700; font-size: .88rem; color: var(--text); }
+    .gem-ctl { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--text); display: grid; place-items: center; cursor: pointer; } .gem-ctl svg { width: 18px; height: 18px; }
+    .gem-ctl.off { background: #fee2e2; color: #b91c1c; border-color: transparent; } .gem-ctl.stop { background: #1f2937; color: #fff; border-color: transparent; }
+    .gem-log { max-height: 132px; overflow-y: auto; padding: 8px 12px 10px; display: flex; flex-direction: column; gap: 4px; font-size: .84rem; }
+    .gem-log p { margin: 0; line-height: 1.35; } .gem-log .u { color: var(--muted); } .gem-log .g { color: var(--text); font-weight: 600; } .gem-log .t { color: #15803d; font-size: .78rem; font-weight: 700; } .gem-log .e { color: #b91c1c; font-weight: 600; }
+    .ottico-row.gem-hit { animation: gemHit 1.2s ease-out; } @keyframes gemHit { 0% { background: rgba(142,68,236,.28); } 100% { background: transparent; } }
+    body.gem-on .container { padding-bottom: 210px; }
+    .gem-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .gem-steps li { display: flex; gap: 10px; align-items: flex-start; } .gem-steps .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .8rem; color: #fff; background: linear-gradient(135deg, #1a73e8, #8e44ec); flex-shrink: 0; }
+    .gem-steps p { margin: 2px 0 6px; font-size: .86rem; } .gem-note { font-size: .74rem; color: var(--muted); margin-top: 12px; line-height: 1.4; }
     .kb-toggle { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; margin-right: 8px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-size: .75rem; font-weight: 800; letter-spacing: .03em; cursor: pointer; }
     .kb-toggle svg { width: 13px; height: 13px; color: var(--primary, #0284c7); }
     .kb-toggle.alpha { background: color-mix(in srgb, var(--primary, #0284c7) 12%, transparent); }
@@ -1479,6 +1502,8 @@
   <!-- Icone SVG riutilizzabili -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
+      <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.4 4.6 2.4 7.6 6 9-3.6 1.4-5.6 4.4-6 9-.4-4.6-2.4-7.6-6-9 3.6-1.4 5.6-4.4 6-9z"/></symbol>
       <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
       <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
       <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
@@ -1704,6 +1729,11 @@
         <p>L’archivio delle ribattiture e lo storico sono visibili solo agli account approvati.<br>Accedi, oppure registrati indicando la società per cui lavori: un amministratore approverà la richiesta.</p>
         <button type="button" class="btn-action" data-open-account><svg><use href="#i-user"/></svg> Accedi o registrati</button>
       </div>
+      <button type="button" class="gem-btn" id="gemBtn" hidden>
+        <span class="gem-ico"><svg><use href="#i-mic"/></svg></span>
+        <span class="gem-txt"><b>Parla con Gemini</b><small id="gemBtnSub">Detta PFS, splitter, permute e ID: scrive lui</small></span>
+        <span class="gem-tag">PROVA</span>
+      </button>
       <div class="controls-card">
         <div class="field-group">
           <label class="field-label" for="ribPfsInput">Nome / Codice PFS (es. NA_05/08w22)</label>
@@ -1756,6 +1786,15 @@
         </div>
       </div>
 
+      <div class="gem-panel" id="gemPanel" hidden role="region" aria-label="Assistente Gemini">
+        <div class="gem-head">
+          <span class="gem-orb" id="gemOrb"><svg><use href="#i-spark"/></svg></span>
+          <span class="gem-state" id="gemState">Collegamento…</span>
+          <button type="button" class="gem-ctl" id="gemMute" aria-label="Pausa microfono"><svg><use href="#i-mic"/></svg></button>
+          <button type="button" class="gem-ctl stop" id="gemStop" aria-label="Chiudi Gemini"><svg><use href="#i-x"/></svg></button>
+        </div>
+        <div class="gem-log" id="gemLog"></div>
+      </div>
       <button class="btn-action" type="button" id="ribSaveBtn"><svg><use href="#i-save"/></svg> Salva in Cartella PFS &amp; Google Sheets</button>
       <button class="btn-action green" type="button" id="ribSyncBtn" data-need-login><svg id="ribSyncIcon"><use href="#i-sync"/></svg> Aggiorna da Google Sheets</button>
       <div class="grid-2">
@@ -4532,6 +4571,10 @@
             <button type="button" class="btn-secondary" id="setNews" style="margin-top:6px"><svg><use href="#i-check"/></svg> Novità dell’app</button>
             <button type="button" class="btn-secondary" id="setGuide" style="margin-top:6px"><svg><use href="#i-info"/></svg> Guida rapida</button>
           </div>
+          ${GEM_BETA ? `<hr><div class="field-group">
+            <span class="field-label">Assistente Gemini <span class="gem-tag" style="background:#ede9fe;color:#6d28d9">PROVA</span></span>
+            <div id="setGem"></div>
+          </div>` : ''}
           <hr>
           <div class="field-group">
             <span class="field-label">Notifiche sul telefono</span>
@@ -4573,6 +4616,7 @@
           $('setNews').addEventListener('click', () => { closeModal(false); setTimeout(openNews, 50); });
           $('setGuide').addEventListener('click', () => { closeModal(false); setTimeout(() => openOnboarding(true), 50); });
           renderPushSettings();
+          if (GEM_BETA) renderGemSettings();
           if (BETA) {
             $('setGlove').addEventListener('change', e => { lsSet(FIELD_KEY, e.target.checked ? '1' : '0'); applyFieldMode(); });
             $('setWake').addEventListener('change', e => { lsSet(WAKE_KEY, e.target.checked ? '1' : '0'); updateWakeLock(); });
@@ -6445,6 +6489,289 @@
       $('ribPfsInput').addEventListener('input', () => { clearTimeout(paintRibPfsLink.t); paintRibPfsLink.t = setTimeout(paintRibPfsLink, 250); });
       $('ribPfsInput').addEventListener('focus', () => {}, { once: true });
       $('ribSplitterInput').addEventListener('focus', () => { if (!$('ribSplitterInput').value && $('ribPfsInput').value.trim()) splAc.update(); });
+    }
+
+
+    /* =====================================================================
+       ASSISTENTE GEMINI (prova): il tecnico parla, Gemini compila la ribattitura.
+       La chiave è dell'utente e resta solo su questo telefono. Audio diretto telefono ↔ Google (Live API).
+       ===================================================================== */
+    const GEM_BETA = BETA_ON;
+    const GEM_KEY = 'fiber_tools_gemini_key', GEM_MODEL = 'gemini-3.8-live';
+    const gemKey = () => lsGet(GEM_KEY, '');
+    const gemKeyLooksOk = k => /^[A-Za-z0-9_\-]{30,60}$/.test(k || '');
+    async function gemTestKey(k) {
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 12000);
+      try {
+        const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=' + encodeURIComponent(k), { signal: ctl.signal });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) return { ok: false, msg: (d.error && d.error.message) || ('Errore ' + r.status) };
+        const live = (d.models || []).some(m => /live/i.test(m.name || ''));
+        return { ok: true, live };
+      } catch (e) { return { ok: false, msg: e.name === 'AbortError' ? 'Google non risponde: controlla la connessione.' : 'Connessione non riuscita.' }; }
+      finally { clearTimeout(t); }
+    }
+    function renderGemSettings() {
+      const box = $('setGem'); if (!box) return;
+      const k = gemKey();
+      box.innerHTML = k ? `<div class="status-line ok"><span class="dot"></span>Collegato · chiave …${escapeHtml(k.slice(-4))} salvata solo su questo telefono</div>
+          <div class="grid-2" style="margin:6px 0 0"><button type="button" class="btn-secondary" id="gemSetTest">Prova</button><button type="button" class="btn-secondary" id="gemSetDel">Scollega</button></div>`
+        : `<div class="status-line warn"><span class="dot"></span>Parla mentre fai la ribattitura: Gemini scrive PFS, splitter, permute e ID. Serve una chiave gratuita di Google.</div>
+          <button type="button" class="btn-secondary" id="gemSetOn" style="margin-top:6px"><svg><use href="#i-spark"/></svg> Collega Gemini</button>`;
+      if ($('gemSetOn')) $('gemSetOn').onclick = () => openGemConnect();
+      if ($('gemSetDel')) $('gemSetDel').onclick = () => { try { localStorage.removeItem(GEM_KEY); } catch (e) {} toast('Gemini scollegato: la chiave è stata cancellata da questo telefono.', 'info'); renderGemSettings(); paintGemBtn(); };
+      if ($('gemSetTest')) $('gemSetTest').onclick = async () => { const r = await gemTestKey(gemKey()); toast(r.ok ? 'Chiave valida: Gemini è pronto.' : 'Chiave non valida: ' + r.msg, r.ok ? 'success' : 'error', 5000); };
+    }
+    /** Collegamento guidato: apri AI Studio, copia la chiave, torna e tocca "Incolla e collega". */
+    function openGemConnect() {
+      const p = openModal({ title: 'Collega Gemini', okText: 'Chiudi', cancelText: '', bodyHtml: `
+        <ol class="gem-steps">
+          <li><span class="n">1</span><div><p>Apri Google AI Studio e accedi con il tuo account Google. Tocca <b>Crea chiave API</b> e poi <b>copia</b>. È gratis.</p>
+            <button type="button" class="btn-secondary" id="gemOpenStudio"><svg><use href="#i-share"/></svg> Apri Google AI Studio</button></div></li>
+          <li><span class="n">2</span><div><p>Torna qui e collega la chiave che hai copiato.</p>
+            <button type="button" class="btn-action" id="gemPaste" style="margin:0"><svg><use href="#i-spark"/></svg> Incolla e collega</button>
+            <input type="text" id="gemKeyIn" class="custom-input" placeholder="…oppure incollala qui" autocomplete="off" autocapitalize="off" spellcheck="false" style="margin-top:8px">
+            <div id="gemConnState" class="note-hint"></div></div></li>
+        </ol>
+        <div class="gem-note">La chiave resta <b>solo su questo telefono</b> e non viene mandata a Fiber Tools. Quando parli, la voce va direttamente a Google. Con la chiave gratuita Google può usare le conversazioni per migliorare i suoi servizi: non dettare dati personali.</div>` ,
+        onOpen: () => {
+          if ($('modalCancel')) $('modalCancel').hidden = true;
+          $('gemOpenStudio').onclick = () => window.open('https://aistudio.google.com/apikey', '_blank', 'noopener');
+          const connect = async raw => {
+            const k = String(raw || '').trim().replace(/^key=/, '');
+            if (!gemKeyLooksOk(k)) { $('gemConnState').textContent = 'Questa non sembra una chiave di Google: copiala di nuovo da AI Studio.'; return; }
+            $('gemConnState').textContent = 'Verifico la chiave…'; $('gemPaste').disabled = true;
+            const r = await gemTestKey(k);
+            $('gemPaste').disabled = false;
+            if (!r.ok) { $('gemConnState').textContent = 'Chiave non accettata da Google: ' + r.msg; return; }
+            lsSet(GEM_KEY, k);
+            closeModal(true);
+            toast('Gemini collegato! Ora tocca «Parla con Gemini» in Ribattitura.', 'success', 4500);
+            renderGemSettings(); paintGemBtn();
+          };
+          $('gemPaste').onclick = async () => {
+            let t = '';
+            try { t = await navigator.clipboard.readText(); } catch (e) {}
+            if (!t) { $('gemConnState').textContent = 'Non riesco a leggere gli appunti: incolla la chiave nel campo qui sotto.'; $('gemKeyIn').focus(); return; }
+            connect(t);
+          };
+          $('gemKeyIn').addEventListener('input', e => { if (gemKeyLooksOk(e.target.value.trim())) connect(e.target.value); });
+        } });
+      p.then(() => { if ($('modalCancel')) $('modalCancel').hidden = false; });
+    }
+    function paintGemBtn() {
+      const b = $('gemBtn'); if (!b) return;
+      b.hidden = !GEM_BETA;
+      $('gemBtnSub').textContent = gem.live ? 'In ascolto: tocca per chiudere' : gemKey() ? 'Detta PFS, splitter, permute e ID: scrive lui' : 'Tocca per collegarlo (gratis, 1 minuto)';
+      b.classList.toggle('live', !!gem.live);
+    }
+
+    // --- audio: microfono a 16 kHz (PCM 16 bit) verso Google, voce di Gemini a 24 kHz verso l'altoparlante
+    const GEM_WORKLET = `class C extends AudioWorkletProcessor{constructor(){super();this.r=sampleRate/16000;this.p=0;this.b=new Int16Array(640);this.i=0;this.m=false;this.port.onmessage=e=>{this.m=!!e.data.mute}}
+      process(inp){const c=inp[0]&&inp[0][0];if(!c)return true;let s=0;for(let k=0;k<c.length;k++)s+=c[k]*c[k];this.port.postMessage({lvl:Math.sqrt(s/c.length)});
+      while(this.p<c.length){const v=this.m?0:Math.max(-1,Math.min(1,c[Math.floor(this.p)]));this.b[this.i++]=v<0?v*32768:v*32767;if(this.i>=this.b.length){this.port.postMessage({pcm:this.b.buffer.slice(0)});this.i=0}this.p+=this.r}
+      this.p-=c.length;return true}}registerProcessor('gem-cap',C);`;
+    const b64FromBuf = buf => { const u = new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+    const gem = { live: false, ws: null, ctx: null, out: null, stream: null, node: null, muted: false, playAt: 0, sources: [], lastOttico: 0, uLine: null, gLine: null, closing: false };
+
+    function gemLog(cls, text, append) {
+      const log = $('gemLog'); if (!log) return null;
+      const key = cls === 'u' ? 'uLine' : cls === 'g' ? 'gLine' : null;
+      if (append && key && gem[key]) { gem[key].textContent += text; log.scrollTop = log.scrollHeight; return gem[key]; }
+      const p = document.createElement('p'); p.className = cls; p.textContent = text; log.appendChild(p);
+      while (log.children.length > 30) log.firstChild.remove();
+      log.scrollTop = log.scrollHeight;
+      if (key) gem[key] = p;
+      return p;
+    }
+    const gemState = (t, talk) => { if ($('gemState')) $('gemState').textContent = t; $('gemPanel').classList.toggle('talk', !!talk); };
+
+    const GEM_TOOLS = [
+      { name: 'imposta_pfs', description: 'Imposta il PFS (armadio) della ribattitura. Accetta il codice anche detto a voce in modo approssimativo: cerca nell’archivio.', parameters: { type: 'OBJECT', properties: { codice: { type: 'STRING', description: 'Codice PFS, es. NA_05/08E22, oppure parte del codice' } }, required: ['codice'] } },
+      { name: 'imposta_splitter', description: 'Imposta il nome dello splitter, es. SPLITTER 1, PRIMARY.', parameters: { type: 'OBJECT', properties: { nome: { type: 'STRING' } }, required: ['nome'] } },
+      { name: 'scrivi_ottico', description: 'Scrive permuta e/o ID di un ottico (1-16) nel modulo.', parameters: { type: 'OBJECT', properties: { ottico: { type: 'INTEGER', description: 'Numero ottico da 1 a 16' }, permuta: { type: 'STRING', description: 'Codice permuta esatto (cifre/lettere, maiuscolo)' }, id: { type: 'STRING', description: 'Codice ID esatto' } }, required: ['ottico'] } },
+      { name: 'cancella_ottico', description: 'Svuota permuta e ID di un ottico.', parameters: { type: 'OBJECT', properties: { ottico: { type: 'INTEGER' } }, required: ['ottico'] } },
+      { name: 'aggiungi_nota', description: 'Aggiunge una riga alle note della ribattitura (indirizzi, fibre tolte, cessazioni).', parameters: { type: 'OBJECT', properties: { testo: { type: 'STRING' } }, required: ['testo'] } },
+      { name: 'leggi_modulo', description: 'Legge cosa c’è nel modulo adesso (PFS, splitter, ottici compilati, note).', parameters: { type: 'OBJECT', properties: {} } },
+      { name: 'salva', description: 'Salva la ribattitura. Solo quando il tecnico chiede esplicitamente di salvare.', parameters: { type: 'OBJECT', properties: {} } }
+    ];
+    const GEM_SYSTEM = `Sei l'assistente vocale di Fiber Tools e aiuti un tecnico di fibra ottica italiano a fare la ribattitura degli ottici di un PFS. Il tecnico ha le mani occupate: tu ascolti e scrivi nel modulo con gli strumenti.
+Regole:
+- Quando senti un ottico (da 1 a 16) con permuta e/o ID chiama subito scrivi_ottico. Esempi: "ottico 3 permuta 12 ID 4567"; "tre, dodici, quattromilacinquecentosessantasette"; "prossimo: 14 e 220" (prossimo = l'ottico dopo l'ultimo scritto); "il 5 è libero" = cancella_ottico.
+- Permuta e ID sono codici: trascrivili esatti, cifre e lettere maiuscole, senza spazi. Lettere dettate tipo "A come Ancona" diventano A. Non inventare mai: se non hai capito chiedi di ripetere.
+- Dopo ogni scrittura conferma brevissimo, ripetendo le cifre una per una, es. "Tre: uno-due, quattro-cinque-sei-sette". Niente altro.
+- PFS: usa imposta_pfs. Se ci sono più candidati leggili e chiedi quale. Splitter: imposta_splitter.
+- Note: usa aggiungi_nota quando il tecnico dice "nota..." o detta indirizzi e fibre tolte.
+- Salva solo quando il tecnico dice di salvare: prima dici quanti ottici sono compilati.
+- Parla sempre italiano, frasi cortissime, niente spiegazioni, niente domande inutili.
+All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
+
+    function ribRowsState() {
+      const out = [];
+      for (let i = 1; i <= 16; i++) { const p = ($('ribPte' + i) || {}).value || '', f = ($('ribFibra' + i) || {}).value || ''; if (p || f) out.push({ ottico: i, permuta: p, id: f }); }
+      return out;
+    }
+    const gemClean = v => String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '').slice(0, 30);
+    async function gemRunTool(name, a) {
+      a = a || {};
+      if (name === 'imposta_pfs') {
+        const raw = String(a.codice || '').trim(), pos = getPositions(), db = getRibattitureData();
+        const exact = [raw.toUpperCase(), canonPfs(raw)].find(k => k && (db[k] || (pos[k] && posKindOf(pos[k]) === 'pfs')));
+        const list = exact ? [] : pfsSuggest(raw);
+        const pick = exact || (list.length === 1 || (list[0] && looseKey(list[0].k) === looseKey(raw)) ? list[0].k : null);
+        if (!pick) return list.length ? { ok: false, motivo: 'più candidati', candidati: list.slice(0, 5).map(e => e.k) } : { ok: false, motivo: 'non trovato nell’archivio', scritto: raw.toUpperCase() };
+        $('ribPfsInput').value = pick; $('ribPfsInput').dispatchEvent(new Event('input', { bubbles: true })); paintRibPfsLink();
+        const np = pos[pick] ? splitPosNote(pos[pick].note) : {};
+        return { ok: true, pfs: pick, comune: np.comune || '', splitter_gia_salvati: Object.keys(db[pick] || {}) };
+      }
+      if (name === 'imposta_splitter') {
+        const n = gemClean(a.nome).replace(/^SPLITTER(?=\d)/, 'SPLITTER '); if (!n) return { ok: false };
+        const pfs = $('ribPfsInput').value.trim().toUpperCase(), db = getRibattitureData();
+        const name2 = String(a.nome || '').trim().toUpperCase();
+        const exist = db[pfs] && Object.keys(db[pfs]).find(k => looseKey(k) === looseKey(name2));
+        if (exist && !ribRowsState().length) { loadSplitterToForm(pfs, exist); return { ok: true, splitter: exist, caricato: true, ottici_salvati: ribRowsState().length }; }
+        $('ribSplitterInput').value = exist || name2; $('ribSplitterInput').dispatchEvent(new Event('input', { bubbles: true }));
+        return { ok: true, splitter: exist || name2, esisteva_gia: !!exist };
+      }
+      if (name === 'scrivi_ottico' || name === 'cancella_ottico') {
+        const i = Math.round(Number(a.ottico));
+        if (!(i >= 1 && i <= 16)) return { ok: false, motivo: 'ottico deve essere da 1 a 16' };
+        const pe = $('ribPte' + i), fe = $('ribFibra' + i);
+        if (name === 'cancella_ottico') { pe.value = ''; fe.value = ''; }
+        else { if (a.permuta != null && a.permuta !== '') pe.value = gemClean(a.permuta); if (a.id != null && a.id !== '') fe.value = gemClean(a.id); }
+        gem.lastOttico = i;
+        [pe, fe].forEach(x => x.dispatchEvent(new Event('input', { bubbles: true })));
+        refreshRibProgress();
+        const row = $('ribRow' + i); if (row) { row.classList.remove('gem-hit'); void row.offsetWidth; row.classList.add('gem-hit'); row.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+        gemLog('t', name === 'cancella_ottico' ? `✓ Ottico ${i} svuotato` : `✓ Ottico ${i}: ${pe.value || '–'} · ${fe.value || '–'}`);
+        return { ok: true, ottico: i, permuta: pe.value, id: fe.value, ottici_compilati: ribRowsState().length };
+      }
+      if (name === 'aggiungi_nota') {
+        const t = String(a.testo || '').trim(); if (!t) return { ok: false };
+        const n = $('ribNoteInput'); n.value = (n.value ? n.value.replace(/\s+$/, '') + '\n' : '') + t; n.dispatchEvent(new Event('input', { bubbles: true }));
+        gemLog('t', '✓ Nota: ' + t);
+        return { ok: true };
+      }
+      if (name === 'leggi_modulo') return { pfs: $('ribPfsInput').value, splitter: $('ribSplitterInput').value, ottici: ribRowsState(), note: $('ribNoteInput').value };
+      if (name === 'salva') {
+        if (!canWrite()) return { ok: false, motivo: 'serve un account approvato' };
+        if (!$('ribPfsInput').value.trim() || !$('ribSplitterInput').value.trim()) return { ok: false, motivo: 'mancano PFS o splitter' };
+        const before = JSON.stringify(getRibattitureData()[$('ribPfsInput').value.trim().toUpperCase()]?.[$('ribSplitterInput').value.trim().toUpperCase()] || null);
+        await saveRibattitura();
+        const after = getRibattitureData()[$('ribPfsInput').value.trim().toUpperCase()]?.[$('ribSplitterInput').value.trim().toUpperCase()];
+        const ok = !!after && JSON.stringify(after) !== before;
+        if (ok) gemLog('t', '✓ Salvato');
+        return ok ? { ok: true } : { ok: false, motivo: 'non salvato: guarda lo schermo' };
+      }
+      return { ok: false, motivo: 'strumento sconosciuto' };
+    }
+
+    function gemPlay(b64) {
+      const ctx = gem.out; if (!ctx) return;
+      const bin = atob(b64), n = bin.length >> 1, buf = ctx.createBuffer(1, n, 24000), ch = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 32768) v -= 65536; ch[i] = v / 32768; }
+      const src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination);
+      const at = Math.max(ctx.currentTime + 0.03, gem.playAt); src.start(at); gem.playAt = at + buf.duration;
+      gem.sources.push(src); src.onended = () => { gem.sources = gem.sources.filter(x => x !== src); if (!gem.sources.length && gem.live) gemState(gem.muted ? 'Microfono in pausa' : 'In ascolto…'); };
+      gemState('Gemini parla…', true);
+    }
+    const gemHush = () => { gem.sources.forEach(s => { try { s.stop(); } catch (e) {} }); gem.sources = []; gem.playAt = 0; };
+
+    async function gemStart() {
+      if (gem.live) return gemStop();
+      if (!gemKey()) { openGemConnect(); return; }
+      if (!navigator.mediaDevices || !window.AudioWorkletNode || !window.WebSocket) { toast('Questo telefono non supporta l’audio in tempo reale.', 'error'); return; }
+      gem.closing = false; gem.live = true; gem.muted = false; paintGemBtn();
+      $('gemPanel').hidden = false; document.body.classList.add('gem-on'); $('gemLog').innerHTML = ''; gem.uLine = gem.gLine = null; $('gemMute').classList.remove('off');
+      gemState('Collegamento…');
+      try {
+        gem.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      } catch (e) { gemLog('e', 'Serve il permesso del microfono: consentilo nelle impostazioni del browser.'); gemStop(true); return; }
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        try { gem.ctx = new AC({ sampleRate: 16000 }); } catch (e) { gem.ctx = new AC(); }
+        try { gem.out = new AC({ sampleRate: 24000 }); } catch (e) { gem.out = new AC(); }
+        await gem.ctx.resume(); await gem.out.resume();
+        const url = URL.createObjectURL(new Blob([GEM_WORKLET], { type: 'application/javascript' }));
+        await gem.ctx.audioWorklet.addModule(url); URL.revokeObjectURL(url);
+        const srcNode = gem.ctx.createMediaStreamSource(gem.stream);
+        gem.node = new AudioWorkletNode(gem.ctx, 'gem-cap');
+        srcNode.connect(gem.node);
+        let ready = false;
+        gem.node.port.onmessage = e => {
+          if (e.data.lvl != null) { const o = $('gemOrb'); if (o) o.style.setProperty('--lvl', gem.muted ? 0 : Math.min(1, e.data.lvl * 6).toFixed(2)); return; }
+          if (ready && e.data.pcm && gem.ws && gem.ws.readyState === 1) gem.ws.send(JSON.stringify({ realtimeInput: { audio: { mimeType: 'audio/pcm;rate=16000', data: b64FromBuf(e.data.pcm) } } }));
+        };
+        const ws = gem.ws = new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=' + encodeURIComponent(gemKey()));
+        ws.onopen = () => ws.send(JSON.stringify({ setup: {
+          model: 'models/' + GEM_MODEL,
+          generationConfig: { responseModalities: ['AUDIO'], temperature: 0.4, speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } } },
+          systemInstruction: { parts: [{ text: GEM_SYSTEM + `\nStato attuale del modulo: ${JSON.stringify(gemRunToolSync())}` }] },
+          tools: [{ functionDeclarations: GEM_TOOLS }],
+          inputAudioTranscription: {}, outputAudioTranscription: {},
+          realtimeInputConfig: { automaticActivityDetection: { silenceDurationMs: 700, prefixPaddingMs: 300 } }
+        } }));
+        ws.onmessage = async ev => {
+          let d; try { d = JSON.parse(typeof ev.data === 'string' ? ev.data : await (ev.data.text ? ev.data.text() : new Response(ev.data).text())); } catch (e) { return; }
+          if (d.setupComplete) {
+            ready = true; gemState('In ascolto…');
+            ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: 'Inizia.' }] }], turnComplete: true } }));
+            return;
+          }
+          if (d.toolCall && d.toolCall.functionCalls) {
+            const res = [];
+            for (const fc of d.toolCall.functionCalls) {
+              let r; try { r = await gemRunTool(fc.name, fc.args); } catch (e) { r = { ok: false, motivo: String(e.message || e) }; }
+              res.push({ id: fc.id, name: fc.name, response: { result: r } });
+            }
+            if (ws.readyState === 1) ws.send(JSON.stringify({ toolResponse: { functionResponses: res } }));
+            return;
+          }
+          const sc = d.serverContent; if (!sc) { if (d.goAway) gemLog('e', 'Google chiuderà la sessione tra poco: riapri Gemini se serve.'); return; }
+          if (sc.interrupted) gemHush();
+          (sc.modelTurn && sc.modelTurn.parts || []).forEach(pt => { if (pt.inlineData && pt.inlineData.data) gemPlay(pt.inlineData.data); });
+          if (sc.inputTranscription && sc.inputTranscription.text) { gem.gLine = null; if (!gem.uLine) gemLog('u', 'Tu: '); gemLog('u', sc.inputTranscription.text, true); }
+          if (sc.outputTranscription && sc.outputTranscription.text) { gem.uLine = null; if (!gem.gLine) gemLog('g', 'Gemini: '); gemLog('g', sc.outputTranscription.text, true); }
+          if (sc.turnComplete) { gem.uLine = null; gem.gLine = null; }
+        };
+        ws.onerror = () => {};
+        ws.onclose = ev => {
+          if (gem.closing) return;
+          const why = ev.reason || '';
+          gemLog('e', /quota|exhaust|429|rate/i.test(why) ? 'Hai finito le richieste gratuite di Gemini per ora: riprova più tardi.'
+            : /key|auth|permission|403|401/i.test(why) ? 'Google non accetta la chiave: ricollegala da Impostazioni.'
+            : /not found|model/i.test(why) ? 'Il modello vocale di Gemini non è disponibile per questa chiave.'
+            : 'Sessione chiusa' + (why ? ': ' + why.slice(0, 140) : '. Tocca «Parla con Gemini» per riaprirla.'));
+          gemStop(true);
+        };
+      } catch (e) { gemLog('e', 'Gemini non è partito: ' + (e.message || e)); gemStop(true); }
+    }
+    function gemRunToolSync() { return { pfs: $('ribPfsInput').value, splitter: $('ribSplitterInput').value, ottici_compilati: ribRowsState() }; }
+    function gemStop(keepPanel) {
+      gem.closing = true; gem.live = false;
+      try { gem.ws && gem.ws.close(); } catch (e) {}
+      gemHush();
+      try { gem.node && gem.node.disconnect(); } catch (e) {}
+      try { gem.stream && gem.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+      try { gem.ctx && gem.ctx.close(); } catch (e) {} try { gem.out && gem.out.close(); } catch (e) {}
+      gem.ws = gem.node = gem.stream = gem.ctx = gem.out = null;
+      paintGemBtn();
+      if (keepPanel === true) { gemState('Gemini chiuso'); $('gemPanel').classList.remove('talk'); }
+      else { $('gemPanel').hidden = true; document.body.classList.remove('gem-on'); }
+    }
+    function initGemini() {
+      if (!$('gemBtn')) return;
+      document.body.appendChild($('gemPanel'));   // fuori dalle schermate animate: resta fisso in basso
+      paintGemBtn();
+      $('gemBtn').addEventListener('click', gemStart);
+      $('gemStop').addEventListener('click', () => gemStop());
+      $('gemMute').addEventListener('click', () => {
+        gem.muted = !gem.muted; if (gem.node) gem.node.port.postMessage({ mute: gem.muted });
+        $('gemMute').classList.toggle('off', gem.muted); gemState(gem.muted ? 'Microfono in pausa' : 'In ascolto…');
+      });
+      // lasciando la ribattitura Gemini si chiude
+      window.addEventListener('popstate', () => setTimeout(() => { if (gem.live && !$('ribattituraScreen').classList.contains('active')) gemStop(); }, 50));
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && gem.live) gemStop(); });
     }
 
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
@@ -8431,6 +8758,7 @@
       initStats();
       initSplice();
       initRibAutocomplete();
+      initGemini();
       maybeShowNews();
       initUsersCount();
       history.replaceState({}, '', location.pathname + location.search.replace(/[?&]pfs=[^&]*/, '').replace(/^&/, '?'));

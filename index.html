@@ -311,6 +311,13 @@
     .chev { color: var(--muted); transition: transform 0.25s var(--ease); }
     .btn-main:hover .chev { transform: translateX(3px); color: var(--primary); }
 
+    .donate-card { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 18px 0 0; padding: 14px 16px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .donate-card[hidden] { display: none; }
+    .donate-ico { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 1.4rem; background: #fef3c7; flex-shrink: 0; }
+    .donate-txt { flex: 1; min-width: 180px; display: flex; flex-direction: column; } .donate-txt b { font-size: .95rem; } .donate-txt span { font-size: .8rem; color: var(--muted); line-height: 1.35; }
+    .donate-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; border-radius: 999px; background: #ffc439; color: #003087; font-weight: 800; font-size: .88rem; text-decoration: none; flex-shrink: 0; }
+    .donate-btn svg { width: 18px; height: 18px; color: #003087; }
+    @media (max-width: 420px) { .donate-btn { width: 100%; } }
     .app-footer { text-align: center; padding: 26px 0 8px; margin-top: auto; }
     .app-footer p { font-size: 0.72rem; font-weight: 700; color: var(--muted); letter-spacing: 0.4px; text-transform: uppercase; }
     .app-footer span { color: var(--primary); }
@@ -1185,6 +1192,12 @@
     }
     #posList > .pos-item { margin-bottom: 8px; }
     /* zone (province) e recenti */
+    .pos-sub { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 0 10px; }
+    .pos-sub[hidden] { display: none; }
+    .pos-sub button { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 6px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text); font: inherit; font-weight: 800; font-size: .9rem; cursor: pointer; }
+    .pos-sub button small { font-size: .7rem; font-weight: 700; color: var(--muted); }
+    .pos-sub button.sel { background: var(--primary); border-color: var(--primary); color: #fff; } .pos-sub button.sel small { color: rgba(255,255,255,.85); }
+    .pos-sub button[data-sub="cno"].sel { background: #7c3aed; border-color: #7c3aed; }
     .zone-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .zone-row::-webkit-scrollbar { display: none; }
     .zone-row .chip { flex-shrink: 0; white-space: nowrap; }
@@ -1723,6 +1736,12 @@
           <span class="badge-num">09</span>
           <svg class="chev" width="18" height="18"><use href="#i-chev"/></svg>
         </button>
+      </div>
+
+      <div class="donate-card" id="donateCard" hidden>
+        <div class="donate-ico">☕</div>
+        <div class="donate-txt"><b>Fiber Tools ti è utile?</b><span>È gratis e senza pubblicità. Se vuoi, offrimi un caffè: aiuta a tenerlo vivo e a farlo crescere.</span></div>
+        <a class="donate-btn" id="donateBtn" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.1 21.3H3.6a.6.6 0 0 1-.6-.7L5.7 3.5c.1-.5.5-.8 1-.8h6.5c3.3 0 5.4 1.7 4.9 4.9-.6 3.8-3.1 5.4-6.6 5.4H9.4c-.5 0-.9.4-1 .9l-1.3 7.4z"/><path fill="currentColor" opacity=".6" d="M19.2 8.2c-.7 4.1-3.4 5.8-7.2 5.8h-1.3l-1.2 7.4h3c.4 0 .8-.3.9-.8l.7-4.3c.1-.4.4-.7.9-.7h.6c3 0 5.2-1.3 5.8-4.8.3-1.5 0-2.7-.7-3.5z"/></svg> Dona con PayPal</a>
       </div>
 
       <footer class="app-footer">
@@ -2290,6 +2309,7 @@
           <input type="file" id="posListFile" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden>
           <input type="file" id="posImportFile" accept=".kml,.kmz,.txt,.xml,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz,text/plain,text/xml,application/xml" hidden>
         </div>
+        <div class="pos-sub" id="posSubRow" role="tablist" aria-label="PFS o CNO" hidden></div>
         <div class="pfs-mode-selector" data-seg="pos">
           <span class="seg-indicator"></span>
           <button type="button" class="pfs-mode-btn active" data-mode="list" id="posListModeBtn">Elenco per anello</button>
@@ -3129,6 +3149,7 @@
       loadRibattitureArchive(pfsKey);   // dopo l'accodamento, così mostra "da inviare"
       reportSend(await sending, { label: `Salvata in ${pfsKey} → ${splitterKey}`, key: ['rib', pfsKey, splitterKey] });
       loadRibattitureArchive(pfsKey);
+      maybeThankDonate();
     }
 
     function loadRibattitureArchive(openPfs) {
@@ -4596,6 +4617,9 @@
             <div id="setGem"></div>
           </div>` : ''}
           <hr>
+          ${DONATE_URL ? `<div class="field-group"><span class="field-label">Sostieni Fiber Tools</span>
+            <a class="donate-btn" href="${escapeHtml(DONATE_URL)}" target="_blank" rel="noopener" style="width:100%">☕ Offrimi un caffè con PayPal</a>
+            <p class="small" style="color:var(--muted);margin:6px 0 0">Facoltativo: l’app resta gratuita e completa per tutti.</p></div><hr>` : ''}
           <div class="field-group">
             <span class="field-label">Privacy</span>
             <a class="btn-secondary privacy-link" href="privacy.html" target="_blank" rel="noopener"><svg><use href="#i-shield"/></svg> Trattamento dei dati</a>
@@ -4680,6 +4704,8 @@
     }
     const kindWord = () => posKind === 'cen' ? 'centrale' : KIND_TAG[posKind] || 'PFS';
     const kindWords = () => posKind === 'cen' ? 'centrali' : kindWord();   // plurale
+    /** Parola per l'elenco: con la divisione attiva “CNO” o “PFS e CNO”. */
+    const listWord = () => posKind === 'pfs' && posSubCounts.cno ? (posSub === 'cno' ? 'CNO' : posSub === 'all' ? 'PFS e CNO' : 'PFS') : kindWords();
     /** Comune di una centrale (dalla nota "Comune: ABANO TERME (PD)"). */
     function cenGroup(it) { const m = /Comune:\s*([^·\n]+)/i.exec(String(it.note || '')); return m ? m[1].trim().toUpperCase() : 'ALTRI'; }
     function canonCen(v) { const c = String(v || '').trim().toUpperCase().replace(/\s+/g, ' ').replace(/^CEN(TRALE)?[\s_-]+/, ''); return c ? 'CEN ' + c : ''; }
@@ -4697,7 +4723,27 @@
       return pfs ? `PD ${pfs} PD_${m[2].padStart(3, '0')}` : '';
     }
     const getPositionsCount = () => { let n = 0; for (const k in getPositions()) n++; return n; };
-    function kindPositions() { const k = posKind; return Object.values(getPositions()).filter(it => posKindOf(it) === k); }
+    /* PFS e CNO divisi: i CNO hanno il codice catastale del comune (es. F839_CNO3) o “CNO” nel codice */
+    const isCnoCode = k => /^[A-Z]\d{3}_/.test(k || '') || /CNO/.test(String(k || '').toUpperCase());
+    const POS_SUB_KEY = 'fiber_tools_pos_sub';
+    let posSub = (() => { const v = lsGet(POS_SUB_KEY, 'pfs'); return ['all', 'pfs', 'cno'].includes(v) ? v : 'pfs'; })();
+    let posSubCounts = { all: 0, pfs: 0, cno: 0 };
+    function kindPositions() {
+      const k = posKind, arr = Object.values(getPositions()).filter(it => posKindOf(it) === k);
+      if (k !== 'pfs') return arr;
+      let cno = 0; arr.forEach(it => { if (isCnoCode(it.pfs)) cno++; });
+      posSubCounts = { all: arr.length, pfs: arr.length - cno, cno };
+      const sub = cno && posSub !== 'all' ? posSub : 'all';
+      return sub === 'all' ? arr : arr.filter(it => isCnoCode(it.pfs) === (sub === 'cno'));
+    }
+    function renderPosSub() {
+      const row = $('posSubRow'); if (!row) return;
+      const c = posSubCounts, show = posKind === 'pfs' && c.cno > 0 && c.pfs > 0;
+      row.hidden = !show; if (!show) return;
+      const n = v => v.toLocaleString('it-IT');
+      row.innerHTML = [['pfs', 'PFS', c.pfs], ['cno', 'CNO', c.cno], ['all', 'Tutti', c.all]]
+        .map(([k, t, v]) => `<button type="button" role="tab" aria-selected="${posSub === k}" class="${posSub === k ? 'sel' : ''}" data-sub="${k}">${t}<small>${n(v)}</small></button>`).join('');
+    }
 
     function setPosKind(kind, keepForm) {
       const changed = kind !== posKind;
@@ -4943,7 +4989,7 @@
           <div class="pfs-folder ${isOpen ? 'open' : ''}" data-anello="${escapeHtml(an)}" style="--i:${Math.min(gi, 12)}">
             <button type="button" class="pfs-folder-header" aria-expanded="${isOpen}">
               <span class="pfs-folder-title"><span class="anello-dot" style="background:${anelloColor(pdMode ? anelloFrom(an) : an)}"></span>${pdMode ? 'PFS ' : isRingCode(an) ? 'Anello ' : ''}${escapeHtml(an)}${zoneTag ? `<span class="zone-tag">${escapeHtml(zoneTag)}</span>` : ''}</span>
-              <span class="folder-meta">${arr.length} ${pdMode ? 'PD' : arr.length === 1 ? kindWord() : kindWords()} <svg><use href="#i-down"/></svg></span>
+              <span class="folder-meta">${arr.length} ${pdMode ? 'PD' : arr.length === 1 && !(posKind === 'pfs' && posSubCounts.cno) ? kindWord() : listWord()} <svg><use href="#i-down"/></svg></span>
             </button>
             <div class="pfs-folder-content"><div class="pfs-folder-inner"><div>${isOpen ? arr.map(posItemHtml).join('') : ''}</div></div></div>
           </div>`;
@@ -4975,6 +5021,7 @@
     }
     /** Apre la cartella di un gruppo (e la sua provincia) e la porta in vista. */
     function jumpToGroup(g) {
+      if (!posAllGroups[g] && posKind === 'pfs' && posSub !== 'all') { posSub = 'all'; lsSet(POS_SUB_KEY, posSub); renderPositions(); }
       const it = (posAllGroups[g] || [])[0]; if (!it) return;
       const z = posZone(it, g);
       const sel = getPosZoneSel();
@@ -4994,11 +5041,14 @@
       const pdPfs = posKind === 'pd' ? new Set(allArr.map(pdParent)).size : 0;
       const pfpSet = posKind === 'pfp' ? new Set(allArr.map(pfpGroup)) : new Set(), pfpRings = pfpSet.size;
       const grpWord = (set, n) => grpWordFor([...set], n);
+      renderPosSub();
+      if (posKind === 'pfs') $('posArchTitle').textContent = posSubCounts.cno && posSub === 'cno' ? 'Archivio CNO' : posSubCounts.cno && posSub === 'all' ? 'Archivio PFS e CNO' : 'Archivio PFS';
+      const subWord = posKind === 'pfs' && posSubCounts.cno && posSub === 'cno' ? 'CNO' : posKind === 'pfs' && posSubCounts.cno && posSub === 'all' ? 'PFS e CNO' : 'PFS';
       $('posCount').textContent = posKind === 'cen' ? (n => `${allArr.length} ${allArr.length === 1 ? 'centrale' : 'centrali'} • ${n} ${n === 1 ? 'comune' : 'comuni'}`)(new Set(allArr.map(cenGroup)).size)
         : posKind === 'pop' ? `${allArr.length} POP`
         : posKind === 'pfp' ? `${allArr.length} PFP • ${pfpRings} ${grpWord(pfpSet, pfpRings)}`
         : posKind === 'pd' ? `${allArr.length} PD • ${pdPfs} PFS`
-        : `${allArr.length} PFS • ${anelli.size} ${grpWord(anelli, anelli.size)}`;
+        : `${allArr.length.toLocaleString('it-IT')} ${subWord} • ${anelli.size} ${grpWord(anelli, anelli.size)}`;
       $('posNearBtn').classList.toggle('active', posNearMode);
 
       // gruppi completi e provincia di ogni gruppo (per recenti, salto e filtro zona)
@@ -5085,7 +5135,7 @@
       keys.forEach(k => { const z = zoneOfKey[k]; (posZoneMap[z] = posZoneMap[z] || []).push(k); });
       list.innerHTML = recent + zoneFoldersHtml(posZoneMap, z => {
         const ks = posZoneMap[z], n = ks.reduce((s, k) => s + groups[k].length, 0);
-        return `${ks.length} ${posKind === 'cen' ? (ks.length === 1 ? 'comune' : 'comuni') : grpWordFor(ks, ks.length)} • ${n} ${kindWords()}`;
+        return `${ks.length} ${posKind === 'cen' ? (ks.length === 1 ? 'comune' : 'comuni') : grpWordFor(ks, ks.length)} • ${n} ${listWord()}`;
       }, openZones, openNow);
     }
     function zoneFoldersHtml(zmap, metaFn, openZones, openNow) {
@@ -5487,6 +5537,11 @@
       // PFS Qui
       let posSearchT = null;
       $('posSearch').addEventListener('input', () => { clearTimeout(posSearchT); posSearchT = setTimeout(renderPositions, getPositionsCount() > 3000 ? 250 : 0); });
+      $('posSubRow').addEventListener('click', e => {
+        const b = e.target.closest('[data-sub]'); if (!b || b.dataset.sub === posSub) return;
+        posSub = b.dataset.sub; lsSet(POS_SUB_KEY, posSub);
+        renderPositions();
+      });
       $('posZoneRow').addEventListener('click', e => {
         const c = e.target.closest('[data-zone]'); if (!c) return;
         setPosZoneSel(c.dataset.zone);
@@ -6882,7 +6937,7 @@ All'inizio dì solo "Pronto, dimmi." e aspetta: non aprire sezioni e non usare s
     }
     const posBrief = (k, me) => { const it = getPositions()[k], db = getRibattitureData(); if (!it) return { codice: k }; const np = splitPosNote(it.note);
       const spl = Object.keys(db[k] || {}); const last = spl.map(x => db[k][x].updatedAt || '').sort((a, b) => gemDateT(b) - gemDateT(a))[0] || '';
-      return { codice: k, tipo: KIND_LBL[posKindOf(it)] || '', comune: np.comune || '', anello: it.anello || '', ...(me && it.lat ? { distanza: fmtDist(distanceM(me, it)) } : {}), splitter_salvati: spl.length, ...(last ? { ultima_ribattitura: last } : {}), ...(it.verificata ? { verificata: true } : {}) }; };
+      return { codice: k, tipo: posKindOf(it) === 'pfs' ? (isCnoCode(k) ? 'CNO' : 'PFS') : KIND_LBL[posKindOf(it)] || '', comune: np.comune || '', anello: it.anello || '', ...(me && it.lat ? { distanza: fmtDist(distanceM(me, it)) } : {}), splitter_salvati: spl.length, ...(last ? { ultima_ribattitura: last } : {}), ...(it.verificata ? { verificata: true } : {}) }; };
     const gemDateT = t => { const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\D+(\d{1,2}):(\d{2}))?/.exec(t || ''); return m ? new Date(+m[3], m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime() : 0; };
     function gemSearch(a) {
       const pos = getPositions(), db = getRibattitureData();
@@ -6893,6 +6948,7 @@ All'inizio dì solo "Pronto, dimmi." e aspetta: non aprire sezioni e non usare s
         const out = [];
         for (const k in pos) {
           const it = pos[k]; if (!it || (kinds && !kinds.includes(posKindOf(it)))) continue;
+          const tp = String(a.tipo || '').toLowerCase(); if ((tp === 'cno' && !isCnoCode(k)) || (tp === 'pfs' && isCnoCode(k))) continue;
           if (a.solo_senza_ribattiture && db[k] && Object.keys(db[k]).length) continue;
           if (a.solo_con_ribattiture && !(db[k] && Object.keys(db[k]).length)) continue;
           const note = String(it.note || '').toUpperCase();
@@ -7058,6 +7114,24 @@ Regole: trascrivi esattamente cifre e lettere, maiuscolo, senza spazi. Se un car
       $('gemPhotoBtn').addEventListener('click', () => { if (!gemKey()) { openGemConnect(); return; } $('gemPhotoFile').value = ''; $('gemPhotoFile').click(); });
       $('gemPhotoFile').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) gemPhotoFlow(f); });
       paintGemFab();
+    }
+
+
+    /* ---------- Donazioni (PayPal): discreto, mai obbligatorio ---------- */
+    const DONATE_URL = 'https://www.paypal.com/pool/9uKepvo7ej';
+    function initDonate() {
+      if (!DONATE_URL || !/^https:\/\/(www\.)?paypal\.(me|com)\//.test(DONATE_URL)) return;
+      $('donateBtn').href = DONATE_URL; $('donateCard').hidden = false;
+    }
+    /** Un solo grazie, dopo 20 ribattiture salvate, e poi mai più per 90 giorni. */
+    function maybeThankDonate() {
+      if (!DONATE_URL) return;
+      const n = Number(lsGet('fiber_tools_saves', '0')) + 1; lsSet('fiber_tools_saves', String(n));
+      const last = Number(lsGet('fiber_tools_donate_ask', '0'));
+      if (n < 20 || Date.now() - last < 90 * 864e5) return;
+      lsSet('fiber_tools_donate_ask', String(Date.now()));
+      setTimeout(() => openModal({ title: 'Grazie! 🙌', okText: '☕ Offrimi un caffè', cancelText: 'Magari più tardi', bodyHtml: `<p style="margin:0">Hai già salvato <b>${n} ribattiture</b> con Fiber Tools. L’app è gratis e lo resterà: se ti fa risparmiare tempo, un caffè con PayPal aiuta a farla crescere.</p>` })
+        .then(ok => { if (ok) window.open(DONATE_URL, '_blank', 'noopener'); }), 1200);
     }
 
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
@@ -9047,6 +9121,7 @@ Regole: trascrivi esattamente cifre e lettere, maiuscolo, senza spazi. Se un car
       initSplice();
       initRibAutocomplete();
       initGemini();
+      initDonate();
       initGemini2();
       maybeShowNews();
       initUsersCount();

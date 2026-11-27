@@ -1018,6 +1018,9 @@
     .gem-photo { color: #7c3aed; } .gem-photo[hidden] { display: none; }
     .gem-prev { width: 100%; border-collapse: collapse; font-size: .84rem; } .gem-prev td, .gem-prev th { padding: 5px 6px; border-bottom: 1px solid var(--border); text-align: left; }
     .gem-prev th { font-size: .68rem; color: var(--muted); text-transform: uppercase; } .gem-prev .q { color: #b45309; font-weight: 700; } .gem-prev .old { color: var(--muted); text-decoration: line-through; font-size: .74rem; }
+    .privacy-note { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); background: color-mix(in srgb, #16a34a 8%, transparent); border-radius: 10px; padding: 8px 10px; margin-top: 8px; }
+    .privacy-note svg { width: 16px; height: 16px; color: #16a34a; flex-shrink: 0; margin-top: 2px; } .privacy-note a { color: var(--primary, #0284c7); font-weight: 600; }
+    .privacy-link { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; } .privacy-link svg { width: 18px; height: 18px; }
     .gem-steps-plain { margin: 0; padding-left: 20px; font-size: .88rem; line-height: 1.5; } .gem-steps-plain li { margin-bottom: 6px; }
     .gem-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
     .gem-steps li { display: flex; gap: 10px; align-items: flex-start; } .gem-steps .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .8rem; color: #fff; background: linear-gradient(135deg, #1a73e8, #8e44ec); flex-shrink: 0; }
@@ -1512,6 +1515,7 @@
   <!-- Icone SVG riutilizzabili -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
+      <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
       <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></symbol>
       <symbol id="i-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.4 4.6 2.4 7.6 6 9-3.6 1.4-5.6 4.4-6 9-.4-4.6-2.4-7.6-6-9 3.6-1.4 5.6-4.4 6-9z"/></symbol>
       <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
@@ -4593,6 +4597,11 @@
           </div>` : ''}
           <hr>
           <div class="field-group">
+            <span class="field-label">Privacy</span>
+            <a class="btn-secondary privacy-link" href="privacy.html" target="_blank" rel="noopener"><svg><use href="#i-shield"/></svg> Trattamento dei dati</a>
+          </div>
+          <hr>
+          <div class="field-group">
             <span class="field-label">Notifiche sul telefono</span>
             <div id="setPush"><small class="ps-none">…</small></div>
           </div>
@@ -7348,7 +7357,8 @@ Regole: trascrivi esattamente cifre e lettere, maiuscolo, senza spazi. Se un car
             <input id="accPass" type="password" class="custom-input" autocomplete="new-password"></div>
           <div class="field-group"><label class="field-label" for="accPass2">Ripeti password</label>
             <input id="accPass2" type="password" class="custom-input" autocomplete="new-password"></div>
-          <p class="small" style="color:var(--muted)">Ti mandiamo un codice di 6 cifre via email: inseriscilo qui e l’account si attiva subito, senza attendere l’approvazione.</p>`;
+          <p class="small" style="color:var(--muted)">Ti mandiamo un codice di 6 cifre via email: inseriscilo qui e l’account si attiva subito, senza attendere l’approvazione.</p>
+          <p class="small privacy-note"><svg><use href="#i-shield"/></svg><span>I tuoi dati non vengono venduti né ceduti a terzi e la password è salvata cifrata. Registrandoti confermi di aver letto l’<a href="privacy.html" target="_blank" rel="noopener">informativa sul trattamento dei dati</a>.</span></p>`;
       const verifyHtml = () => `
           <div class="form-msg info">Ti abbiamo mandato un codice di 6 cifre a <b>${escapeHtml(verifyEmail)}</b>. Controlla anche la cartella spam.</div>
           <div class="field-group"><label class="field-label" for="accCode">Codice di verifica</label>
@@ -8942,7 +8952,7 @@ Regole: trascrivi esattamente cifre e lettere, maiuscolo, senza spazi. Se un car
 
     /* ================= CONTATTI ================= */
     const CONTACT_EMAIL = 'marigliano.lavoro@gmail.com';
-    const CONTACT_TOPICS = ['Segnalazione problema', 'Suggerimento / nuova funzione', 'Richiesta account o accesso', 'Dati PFS / POP da correggere', 'Altro'];
+    const CONTACT_TOPICS = ['Segnalazione problema', 'Suggerimento / nuova funzione', 'Richiesta account o accesso', 'Dati PFS / POP da correggere', 'Privacy: richiesta sui miei dati', 'Altro'];
 
     function contactMail() {
       const topic = $('ctTopic').value, name = $('ctName').value.trim(), msg = $('ctMsg').value.trim();

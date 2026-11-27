@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fiber Tools – Informativa sul trattamento dei dati</title>
+<meta name="theme-color" content="#1d4ed8">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root { --bg: #f1f5f9; --card: #fff; --text: #0f172a; --muted: #475569; --line: #e2e8f0; --accent: #1d4ed8; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --card: #111a2e; --text: #e2e8f0; --muted: #94a3b8; --line: #1e293b; --accent: #60a5fa; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: linear-gradient(120deg, #1d4ed8, #4f46e5); color: #fff; padding: 28px 20px 34px; }
+  header .in, main { max-width: 760px; margin: 0 auto; }
+  header a { color: #dbeafe; font-size: .9rem; text-decoration: none; }
+  h1 { margin: 10px 0 6px; font-size: 1.7rem; line-height: 1.2; }
+  header p { margin: 0; color: #dbeafe; }
+  main { padding: 18px 16px 48px; }
+  .promise { background: var(--card); border: 2px solid #16a34a; border-radius: 16px; padding: 16px 18px; margin: -30px 0 18px; box-shadow: 0 10px 30px rgba(15,23,42,.12); }
+  .promise h2 { margin: 0 0 6px; font-size: 1.1rem; color: #16a34a; }
+  .promise ul { margin: 6px 0 0; padding-left: 20px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; margin: 0 0 12px; }
+  section h2 { font-size: 1.05rem; margin: 4px 0 6px; }
+  ul { padding-left: 20px; margin: 6px 0; } li { margin: 3px 0; }
+  p { margin: 6px 0; } .muted { color: var(--muted); font-size: .9rem; }
+  a { color: var(--accent); }
+  .back { display: inline-block; margin-top: 8px; padding: 10px 16px; border-radius: 12px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<header><div class="in">
+  <a href="./">← Torna a Fiber Tools</a>
+  <h1>Informativa sul trattamento dei dati</h1>
+  <p>Come Fiber Tools usa e protegge i tuoi dati · aggiornata il 27/11/2026</p>
+</div></header>
+<main>
+  <div class="promise">
+    <h2>In breve</h2>
+    <ul>
+      <li><b>I tuoi dati non vengono venduti</b>, né affittati, né ceduti ad altre aziende per pubblicità o marketing.</li>
+      <li><b>La password non è mai salvata in chiaro</b>: viene trasformata in un codice cifrato non reversibile. Nessuno può leggerla, nemmeno chi gestisce l’app.</li>
+      <li>La tua email e i dati dell’account li vedono <b>solo gli amministratori</b> dell’app, per approvare gli accessi e gestire gli account.</li>
+      <li>Usiamo i dati <b>solo per far funzionare Fiber Tools</b> e per tenerlo sicuro.</li>
+    </ul>
+  </div>
+
+  <section>
+    <h2>1. Chi gestisce i dati</h2>
+    <p>Fiber Tools è gestito dal suo amministratore (titolare del trattamento), contattabile all’indirizzo <a href="mailto:marigliano.lavoro@gmail.com">marigliano.lavoro@gmail.com</a>.</p>
+  </section>
+
+  <section>
+    <h2>2. Quali dati trattiamo</h2>
+    <ul>
+      <li><b>Account</b>: email, nome e cognome, società per cui lavori, ruolo e stato dell’account, data di registrazione.</li>
+      <li><b>Password</b>: solo in forma cifrata non reversibile (vedi punto 4).</li>
+      <li><b>Accessi e sicurezza</b>: data dell’ultimo accesso, tipo di telefono e browser (es. “Android · Chrome”) e un codice casuale che identifica il dispositivo, per riconoscere usi anomali dell’account.</li>
+      <li><b>Dati di lavoro</b>: ribattiture, posizioni e correzioni, foto, note dei colleghi, con il nome di chi le ha inserite e la data.</li>
+      <li><b>Notifiche</b>: se le attivi, l’indirizzo tecnico per recapitarle al tuo telefono e i messaggi da mostrare.</li>
+      <li><b>Registro delle attività</b>: chi ha salvato, modificato o eliminato cosa, e quando.</li>
+    </ul>
+    <p class="muted">Non trattiamo dati sensibili e non tracciamo la tua posizione: la posizione del telefono viene usata solo sul momento, quando tocchi funzioni come “Vicino a me”, “Sono qui” o “Foto GPS”.</p>
+  </section>
+
+  <section>
+    <h2>3. Perché li usiamo</h2>
+    <ul>
+      <li>Farti accedere e far funzionare l’app (archivio, ribattiture, posizioni, notifiche).</li>
+      <li>Proteggere gli account e l’archivio da accessi non autorizzati e usi anomali.</li>
+      <li>Inviarti comunicazioni di servizio: codice di verifica, avvisi sull’account, informazioni come questa.</li>
+    </ul>
+    <p class="muted">Base giuridica: la fornitura del servizio che richiedi registrandoti e il legittimo interesse a mantenere l’app sicura.</p>
+  </section>
+
+  <section>
+    <h2>4. Password e sicurezza</h2>
+    <ul>
+      <li>La password viene cifrata con un algoritmo a senso unico (HMAC-SHA-256 ripetuto, con un “sale” diverso per ogni utente): dal codice salvato non si può risalire alla password.</li>
+      <li>Il recupero di una password dimenticata deve essere approvato da un amministratore.</li>
+      <li>Le comunicazioni tra l’app e l’archivio viaggiano cifrate (HTTPS).</li>
+      <li>L’archivio è accessibile solo agli account approvati; gli amministratori sono gli unici a vedere l’elenco degli iscritti.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>5. Chi può vedere i dati</h2>
+    <ul>
+      <li><b>Amministratori</b>: dati dell’account e registro delle attività.</li>
+      <li><b>Colleghi registrati</b>: vedono solo il nome (e la società) accanto alle ribattiture, alle correzioni e alle note che hai inserito. Non vedono la tua email.</li>
+      <li><b>Nessuna cessione a terzi</b>: i dati non vengono venduti né ceduti ad altre aziende. Potrebbero essere comunicati solo se richiesti per legge dalle autorità competenti.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. Servizi tecnici usati per far funzionare l’app</h2>
+    <p>Per funzionare Fiber Tools si appoggia ad alcuni fornitori tecnici, che trattano i dati solo per erogare il servizio secondo le proprie condizioni:</p>
+    <ul>
+      <li><b>Google</b> (Fogli, Drive, Apps Script, invio email): qui sono conservati l’archivio e gli account.</li>
+      <li><b>GitHub Pages</b>: ospita l’app; come ogni sito registra dati tecnici di connessione (es. indirizzo IP).</li>
+      <li><b>OpenStreetMap / Photon</b>: mostrano le mappe e trovano l’indirizzo di un punto; ricevono le coordinate richieste.</li>
+      <li><b>Google Maps</b>: si apre solo quando tocchi “Naviga” o “Mappa”.</li>
+    </ul>
+    <p class="muted">I server di questi fornitori possono trovarsi anche fuori dall’Unione Europea, con le garanzie previste dai fornitori stessi.</p>
+  </section>
+
+  <section>
+    <h2>7. Assistente Gemini (facoltativo)</h2>
+    <p>Gemini funziona solo se lo attivi tu con la tua chiave personale di Google, che resta <b>solo sul tuo telefono</b> e non viene mai inviata a Fiber Tools. Quando lo usi, la voce, le foto e le richieste vanno direttamente dal tuo telefono a Google, secondo le condizioni del tuo account Google. Con la chiave gratuita Google può usare queste conversazioni per migliorare i suoi servizi: non dettare dati personali di clienti.</p>
+  </section>
+
+  <section>
+    <h2>8. Dati salvati sul tuo telefono</h2>
+    <p>Per funzionare anche senza campo, l’app tiene sul telefono una copia dell’archivio, le preferenze e, se lo usi, la chiave di Gemini. Puoi cancellarli in qualsiasi momento cancellando i dati del sito dalle impostazioni del browser (o disinstallando l’app dalla schermata Home).</p>
+  </section>
+
+  <section>
+    <h2>9. Per quanto tempo</h2>
+    <p>I dati dell’account restano finché l’account è attivo. Se chiedi la cancellazione, l’account viene eliminato. Le ribattiture e le posizioni sono dati di lavoro condivisi con la squadra e restano nell’archivio; su richiesta il tuo nome può essere rimosso.</p>
+  </section>
+
+  <section>
+    <h2>10. I tuoi diritti</h2>
+    <p>Puoi chiedere in qualsiasi momento di vedere i tuoi dati, correggerli, cancellarli, limitarne l’uso, opporti al trattamento o riceverne una copia, scrivendo a <a href="mailto:marigliano.lavoro@gmail.com">marigliano.lavoro@gmail.com</a>. Se ritieni che i tuoi dati non siano trattati correttamente puoi rivolgerti al <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">Garante per la protezione dei dati personali</a>.</p>
+  </section>
+
+  <section>
+    <h2>11. Modifiche</h2>
+    <p>Se questa informativa cambia in modo importante, lo comunicheremo nell’app o via email. Ultimo aggiornamento: 27 novembre 2026.</p>
+  </section>
+
+  <a class="back" href="./">Torna a Fiber Tools</a>
+</main>
+</body>
+</html>

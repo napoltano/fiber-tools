@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 18;
+const SCRIPT_VERSION = 19;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_CEN = 'Centrali', SH_FIX = 'Correzioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -377,6 +377,13 @@ function register_(b) {
 const VERIFY_TTL = 15 * 60, VERIFY_MAX_TRIES = 5;
 const codeHash_ = (email, code) => b64_(Utilities.computeHmacSha256Signature(Utilities.newBlob(email + ':' + code).getBytes(), Utilities.newBlob(secret_()).getBytes()));
 function newCode_() { const hex = Utilities.getUuid().replace(/-/g, ''); return String(parseInt(hex.slice(0, 12), 16) % 1000000).padStart(6, '0'); }
+/* Trattamento dei dati: riportato in fondo alle email agli utenti */
+const PRIVACY_URL = 'https://napoltano.github.io/fiber-tools/privacy.html';
+const PRIVACY_TEXT = 'I tuoi dati sono al sicuro: email, nome e dati dell’account non vengono venduti né ceduti a terzi e la password è salvata cifrata (nessuno può leggerla, nemmeno chi gestisce l’app). Li usiamo solo per far funzionare Fiber Tools.';
+const PRIVACY_HTML = '<div style="margin-top:18px;padding:12px 14px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d;font-size:13px;line-height:1.5">'
+  + '<b>🔒 I tuoi dati sono al sicuro.</b> Email, nome e dati dell’account non vengono venduti né ceduti a terzi e la password è salvata cifrata: nessuno può leggerla, nemmeno chi gestisce l’app. '
+  + '<a href="' + PRIVACY_URL + '" style="color:#15803d;font-weight:bold">Leggi l’informativa completa</a></div>';
+
 /** Manda il codice di verifica (al massimo uno al minuto per indirizzo, salvo force). */
 function sendVerifyCode_(email, nome, force) {
   const cache = CacheService.getScriptCache(), rl = 'vsent_' + email;
@@ -385,8 +392,8 @@ function sendVerifyCode_(email, nome, force) {
   try {
     MailApp.sendEmail({
       to: email, name: 'Fiber Tools', subject: 'Fiber Tools – il tuo codice di verifica: ' + code,
-      body: 'Ciao ' + (nome || '') + ',\n\nil tuo codice per attivare l’account Fiber Tools è: ' + code + '\n\nInseriscilo nell’app entro 15 minuti. Se non ti sei registrato tu, ignora questa email.',
-      htmlBody: '<div style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a">Ciao ' + String(nome || '').replace(/[<>&]/g, '') + ',<br><br>il tuo codice per attivare l’account <b>Fiber Tools</b> è:<div style="font-size:30px;font-weight:bold;letter-spacing:6px;margin:16px 0;color:#1d4ed8">' + code + '</div>Inseriscilo nell’app entro 15 minuti.<br><br><span style="color:#64748b;font-size:13px">Se non ti sei registrato tu, ignora questa email.</span></div>'
+      body: 'Ciao ' + (nome || '') + ',\n\nil tuo codice per attivare l’account Fiber Tools è: ' + code + '\n\nInseriscilo nell’app entro 15 minuti. Se non ti sei registrato tu, ignora questa email.\n\n' + PRIVACY_TEXT + '\nInformativa completa: ' + PRIVACY_URL,
+      htmlBody: '<div style="font-family:Arial,sans-serif;font-size:15px;color:#0f172a">Ciao ' + String(nome || '').replace(/[<>&]/g, '') + ',<br><br>il tuo codice per attivare l’account <b>Fiber Tools</b> è:<div style="font-size:30px;font-weight:bold;letter-spacing:6px;margin:16px 0;color:#1d4ed8">' + code + '</div>Inseriscilo nell’app entro 15 minuti.<br><br><span style="color:#64748b;font-size:13px">Se non ti sei registrato tu, ignora questa email.</span>' + PRIVACY_HTML + '</div>'
     });
   } catch (e) {
     log_('Email di verifica non inviata', 'ACCOUNT', email, nome, String(e).slice(0, 200));

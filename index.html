@@ -4526,7 +4526,7 @@
           (rows.length ? `<div class="hist">${rows.map(r => `
             <div class="hist-row">
               <div class="hist-top"><b>${escapeHtml(r.azione || '')}</b><span>${escapeHtml(r.data || '')}</span></div>
-              <div class="hist-who">${r.tecnico ? '👤 ' + escapeHtml(r.tecnico) : 'Tecnico non indicato'}</div>
+              ${r.tecnico ? `<div class="hist-who">👤 ${escapeHtml(r.tecnico)}</div>` : ''}
               ${r.dettaglio ? `<div class="hist-det">${escapeHtml(r.dettaglio)}</div>` : ''}
             </div>`).join('')}</div>` : '<div class="empty-state">Nessuna modifica registrata.</div>'),
         okText: 'Chiudi', cancelText: 'Indietro'

@@ -41,7 +41,7 @@
  * Le foto finiscono nella cartella Drive "Fiber Tools Foto" (creata in automatico).
  */
 
-const SCRIPT_VERSION = 19;
+const SCRIPT_VERSION = 20;
 const N_OTTICI = 16;
 const SH_RIB = 'Ribattiture', SH_POS = 'PFS_Posizioni', SH_CEN = 'Centrali', SH_FIX = 'Correzioni', SH_LOG = 'Storico';
 const RIB_FOTO_COL = 4 + N_OTTICI * 2 + 1;   // colonna 37
@@ -625,7 +625,13 @@ function saveFoto_(dataUrl, name) {
 const fotoName_ = (...parts) => parts.map(p => norm_(p).replace(/[^\w-]+/g, '_')).join('__') + '__' + Utilities.formatDate(new Date(), 'Europe/Rome', 'yyyyMMdd_HHmmss');
 
 /* ------------------------------------------------------------------ lettura */
-function readRib_() {
+/** Privacy: il nome di chi ha fatto la ribattitura lo vede solo il proprietario; gli altri vedono solo il proprio. */
+function techFor_(viewer, name) {
+  if (!viewer || viewer.owner) return String(name || '');
+  return viewer.me && norm_(name) === viewer.me ? String(name || '') : '';
+}
+const viewerOf_ = a => ({ owner: ROLE_LEVEL[ruolo_(a.user.row)] >= 3, me: norm_(a.user.row[U.NOME]) });
+function readRib_(viewer) {
   const values = ribSheet_().getDataRange().getValues();
   const data = {};
   for (let r = 1; r < values.length; r++) {
@@ -634,7 +640,7 @@ function readRib_() {
     if (!pfs || !spl) continue;
     const ottici = [];
     for (let i = 0; i < N_OTTICI; i++) ottici.push({ ottico: i + 1, pte: String(row[4 + i * 2] || ''), fibra: String(row[5 + i * 2] || '') });
-    (data[pfs] = data[pfs] || {})[spl] = { updatedAt: String(row[2] || ''), tecnico: String(row[3] || ''), ottici: ottici, fotoId: String(row[RIB_FOTO_COL - 1] || ''), note: String(row[RIB_NOTE_COL - 1] || '') };
+    (data[pfs] = data[pfs] || {})[spl] = { updatedAt: String(row[2] || ''), tecnico: techFor_(viewer, row[3]), ottici: ottici, fotoId: String(row[RIB_FOTO_COL - 1] || ''), note: String(row[RIB_NOTE_COL - 1] || '') };
   }
   return data;
 }
@@ -654,12 +660,12 @@ function readPos_() {
   return out;
 }
 
-function history_(pfs, splitter) {
+function history_(pfs, splitter, viewer) {
   const values = logSheet_().getDataRange().getValues();
   const out = [];
   for (let r = values.length - 1; r >= 1 && out.length < 50; r--) {
     const row = values[r];
-    if (norm_(row[2]) === pfs && norm_(row[3]) === splitter) out.push({ data: String(row[0]), azione: String(row[1]), tecnico: String(row[4]), dettaglio: String(row[5]) });
+    if (norm_(row[2]) === pfs && norm_(row[3]) === splitter) out.push({ data: String(row[0]), azione: String(row[1]), tecnico: techFor_(viewer, row[4]), dettaglio: String(row[5]) });
   }
   return out;
 }
@@ -714,7 +720,10 @@ function saveRib_(b) {
   if (b.photo) fotoId = saveFoto_(b.photo, fotoName_(pfs, splitter)) || fotoId;
   else if (b.fotoId !== undefined) fotoId = String(b.fotoId || '');
 
-  const row = [pfs, splitter, String(b.timestamp || nowIt_()), norm_(b.tecnico)];
+  // il nome non arriva più a tutti i telefoni: se manca resta quello già salvato, altrimenti quello dell'account che salva
+  const tec = norm_(b.tecnico) || (oldRow ? norm_(oldRow[3]) : '') || (b._me ? norm_(b._me[U.NOME]) : '');
+  b.tecnico = tec;
+  const row = [pfs, splitter, String(b.timestamp || nowIt_()), tec];
   const byNum = {};
   (b.ottici || []).forEach(o => { byNum[Number(o.ottico)] = o; });
   for (let i = 1; i <= N_OTTICI; i++) { const o = byNum[i] || {}; row.push(norm_(o.pte), norm_(o.fibra)); }
@@ -1197,13 +1206,14 @@ function readAction_(b) {
   if (b.action === 'data') touch_(a, b.device, b.did);
   if (b.action === 'comments') return listComments_(a, b.pfs);
   if (b.action === 'pushInbox') return pushInbox_(a);
-  if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter)) };
+  if (b.action === 'history') return { status: 'success', version: SCRIPT_VERSION, history: history_(norm_(b.pfs), norm_(b.splitter), viewerOf_(a)) };
   // sincronizzazione leggera: se il telefono ha già l'ultima versione di una parte, quella parte non viene rimandata
   if (!Number(props_().getProperty('REV_POS') || 0)) bumpRev_('pos');
   allPosSheets_();   // crea i fogli che mancano prima di calcolare le revisioni
+  if (props_().getProperty('PRIVACY_TECH') !== '1') { bumpRev_('rib'); props_().setProperty('PRIVACY_TECH', '1'); }
   const rr = revToken_('rib'), rp = revToken_('pos');
   const out = { status: 'success', version: SCRIPT_VERSION, revRib: rr, revPos: rp };
-  if (b.revRib && b.revRib === rr) out.ribUnchanged = true; else out.data = readRib_();
+  if (b.revRib && b.revRib === rr) out.ribUnchanged = true; else out.data = readRib_(viewerOf_(a));
   if (b.revPos && b.revPos === rp) out.posUnchanged = true;
   else if (Number(b.posFmt) === 2) { Object.assign(out, readPosCompact_(b)); if (!out.posDelta) countFullDownload_(a); }
   else { out.positions = readPos_(); countFullDownload_(a); }

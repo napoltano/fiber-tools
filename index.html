@@ -6798,7 +6798,7 @@ All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, c
        ===================================================================== */
     // in prova: chi apre l'app con ?prova=1 e, sempre, il proprietario (anche dall'icona sulla schermata Home, che su iPhone ha una memoria a parte)
     const IS_OWNER_LOCAL = (() => { try { const a = JSON.parse(localStorage.getItem('fiber_tools_account') || 'null'); return !!a && a.ruolo === 'proprietario' && a.stato === 'attivo'; } catch (e) { return false; } })();
-    const GEM2 = BETA_ON || IS_OWNER_LOCAL;
+    const GEM2 = true;   // provato dal proprietario e attivo per tutti dal 27/11/2026
     const GEM_FLASH = ['gemini-3.8-flash', 'gemini-flash-latest'];
     const GEM_SCREENS = { home: null, pfs_calcolatore: 'pfsScreen', pte: 'pteScreen', calcolatore_colori: 'calculatorScreen', fibercop: 'fibercopScreen', ribattitura: 'ribattituraScreen', barcode: 'barcodeScreen', schema_giunzione: 'spliceScreen', posizioni_pfs: 'pfsPosScreen', foto_gps: 'geo', impostazioni: 'settings' };
     function gemOpen(name) {
@@ -8846,10 +8846,10 @@ Regole: trascrivi esattamente cifre e lettere, maiuscolo, senza spazi. Se un car
 
     /* ================= NOVITÀ ================= */
     // Cambia NEWS_ID quando aggiungi novità: il popup ricompare una volta a tutti.
-    const NEWS_ID = '2026-11-27a';
+    const NEWS_ID = '2026-11-27b';
     const NEWS_KEY = 'fiber_tools_news_seen';
     const NEWS = [
-      { c: '#8e44ec', i: 'i-mic', t: 'Ribattitura a voce con Gemini', d: 'In Ribattitura tocca “Parla con Gemini”: detti PFS, splitter, permute e ID e lui li scrive nei campi, ripetendo le cifre ad alta voce. Si collega in un minuto con una chiave gratuita di Google, che resta solo sul tuo telefono. Ideale quando lavori da solo.' },
+      { c: '#8e44ec', i: 'i-mic', t: 'Gemini in tutta l’app', d: 'Tocca il tasto viola Gemini accanto alla ricerca e parla: apri schede, avvia Naviga, chiedi il colore di una fibra, cerca «i PFS vicino a me senza ribattiture» o «cosa ho fatto ieri». In Ribattitura detti PFS, splitter, permute e ID e Gemini scrive e ripete le cifre; prima di salvare ti avvisa di ottici saltati o ID ripetuti. Con «Da foto» fotografi il foglio e i 16 ottici si compilano da soli. Si collega in un minuto con una chiave gratuita di Google, che resta solo sul tuo telefono.' },
       { c: '#dc2626', i: 'i-bell', t: 'Link, note e notifiche', d: 'Nella scheda di un PFS tocca “Link” per mandarlo su WhatsApp: chi lo apre arriva dritto alla scheda (serve l’account). Sotto trovi le “Note dei colleghi”: chiavi, accessi, attenzioni, con nome e data. In Impostazioni → Notifiche sul telefono attiva gli avvisi: correzioni approvate e nuove note sui PFS dove hai scritto, anche ad app chiusa (su iPhone serve l’app aggiunta alla schermata Home).' },
       { c: '#d97706', i: 'i-sun', t: 'Più comoda sul campo', d: 'In ribattitura Permuta e ID aprono il tastierino numerico (il tasto 123 / ABC torna alle lettere) e con Invio passi al campo dopo. Lo schermo resta acceso durante ribattitura e schema di giunzione. Con i guanti? Tocca “Guanti” in alto nella ribattitura o vai in Impostazioni → Sul campo: pulsanti e testi più grandi.' },
       { c: '#4f46e5', i: 'i-search', t: 'Cerca tutto e apri la scheda', d: 'In cima al menu c’è la ricerca unica: scrivi un PFS, un CNO, una centrale o una via e trovi posizioni e ribattiture. Toccando un risultato (o un PFS nell’elenco) si apre la scheda con mappa, comune, POP, foto, ribattiture e PD collegati. La guida rapida è in Impostazioni.' },

@@ -1050,6 +1050,8 @@
     .hs-row { display: flex; gap: 8px; align-items: stretch; } .hs-row .hs-box { flex: 1; min-width: 0; }
     .hs-glove { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 58px; padding: 6px 8px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--card); color: var(--muted); font: inherit; font-size: .64rem; font-weight: 800; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
     .hs-glove[hidden] { display: none; }
+    .hs-gem { color: #fff; border-color: transparent; background: linear-gradient(135deg, #1a73e8, #8e44ec 60%, #d64e84); box-shadow: 0 6px 16px rgba(66,85,230,.3); }
+    .hs-gem.live { animation: gemPulse 1.4s ease-in-out infinite; }
     .hs-glove svg { width: 20px; height: 20px; }
     .hs-glove.on { background: var(--primary, #0284c7); border-color: transparent; color: #fff; }
     html.field-mode .hs-glove { min-width: 70px; font-size: .74rem; }
@@ -1614,7 +1616,8 @@
       <div class="home-search" data-need-login>
         <div class="hs-row">
           <div class="hs-box"><svg><use href="#i-search"/></svg>
-            <input type="search" id="homeSearch" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Cerca PFS, CNO, centrale, POP o ribattitura…" aria-label="Cerca in tutto l’archivio"></div>
+            <input type="search" id="homeSearch" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Cerca PFS, CNO, centrale…" aria-label="Cerca in tutto l’archivio"></div>
+          <button type="button" class="hs-glove hs-gem" id="gemHomeBtn" hidden title="Parla con Gemini" aria-label="Parla con Gemini"><svg><use href="#i-mic"/></svg><span>Gemini</span></button>
           <button type="button" class="hs-glove" data-glove hidden title="Modalità guanti: pulsanti più grandi" aria-label="Modalità guanti" aria-pressed="false"><svg><use href="#i-expand"/></svg><span>Guanti</span></button>
         </div>
         <div class="hs-results" id="homeResults" hidden></div>
@@ -6992,13 +6995,15 @@ Regole: trascrivi esattamente cifre e lettere, maiuscolo, senza spazi. Se un car
     function paintGemFab() {
       const f = $('gemFab'); if (!f) return;
       const a = document.querySelector('.screen.active');
-      f.hidden = !GEM2 || !!gem.live || !$('modal').hidden && false || (a && a.id === 'ribattituraScreen');
+      f.hidden = !GEM2 || !!gem.live || (a && (a.id === 'ribattituraScreen' || a.id === 'homeScreen'));
+      const h = $('gemHomeBtn'); if (h) { h.hidden = !GEM2; h.classList.toggle('live', !!gem.live); }
       if ($('gemPhotoBtn')) $('gemPhotoBtn').hidden = !GEM2;
     }
     function initGemini2() {
       if (!GEM2 || !$('gemFab')) return;
       document.body.appendChild($('gemFab'));
       $('gemFab').addEventListener('click', gemStart);
+      $('gemHomeBtn').addEventListener('click', gemStart);
       $('gemPhotoBtn').addEventListener('click', () => { if (!gemKey()) { openGemConnect(); return; } $('gemPhotoFile').value = ''; $('gemPhotoFile').click(); });
       $('gemPhotoFile').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) gemPhotoFlow(f); });
       paintGemFab();

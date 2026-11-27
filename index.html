@@ -1018,6 +1018,7 @@
     .gem-photo { color: #7c3aed; } .gem-photo[hidden] { display: none; }
     .gem-prev { width: 100%; border-collapse: collapse; font-size: .84rem; } .gem-prev td, .gem-prev th { padding: 5px 6px; border-bottom: 1px solid var(--border); text-align: left; }
     .gem-prev th { font-size: .68rem; color: var(--muted); text-transform: uppercase; } .gem-prev .q { color: #b45309; font-weight: 700; } .gem-prev .old { color: var(--muted); text-decoration: line-through; font-size: .74rem; }
+    .gem-steps-plain { margin: 0; padding-left: 20px; font-size: .88rem; line-height: 1.5; } .gem-steps-plain li { margin-bottom: 6px; }
     .gem-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
     .gem-steps li { display: flex; gap: 10px; align-items: flex-start; } .gem-steps .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .8rem; color: #fff; background: linear-gradient(135deg, #1a73e8, #8e44ec); flex-shrink: 0; }
     .gem-steps p { margin: 2px 0 6px; font-size: .86rem; } .gem-note { font-size: .74rem; color: var(--muted); margin-top: 12px; line-height: 1.4; }
@@ -6619,7 +6620,7 @@ Regole:
 - Note: usa aggiungi_nota quando il tecnico dice "nota..." o detta indirizzi e fibre tolte.
 - Salva solo quando il tecnico dice di salvare: prima dici quanti ottici sono compilati.
 - Parla sempre italiano, frasi cortissime, niente spiegazioni, niente domande inutili.
-All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, chiedi il PFS.`;
+All'inizio dì solo "Pronto, dimmi." e aspetta: non aprire sezioni e non usare strumenti finché il tecnico non ti chiede qualcosa.`;
 
     function ribRowsState() {
       const out = [];
@@ -6629,6 +6630,8 @@ All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, c
     const gemClean = v => String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '').slice(0, 30);
     async function gemRunTool(name, a) {
       a = a || {};
+      // all'avvio Gemini non deve aprire sezioni o scrivere da solo: aspetta che il tecnico parli
+      if (!gem.userSpoke && name !== 'leggi_modulo' && name !== 'controlla_modulo') return { ok: false, motivo: 'Il tecnico non ha ancora chiesto nulla: aspetta che parli.' };
       if (GEM2 && ['imposta_pfs', 'imposta_splitter', 'scrivi_ottico', 'cancella_ottico', 'aggiungi_nota', 'salva'].includes(name) && !$('ribattituraScreen').classList.contains('active')) { gemOpen('ribattitura'); await new Promise(r => setTimeout(r, 350)); }
       if (name === 'imposta_pfs') {
         const raw = String(a.codice || '').trim(), pos = getPositions(), db = getRibattitureData();
@@ -6684,6 +6687,34 @@ All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, c
       return { ok: false, motivo: 'strumento sconosciuto' };
     }
 
+
+    /* ---------- Permesso del microfono: chiesto con una spiegazione, ricordato dal telefono, riproposto se rifiutato ---------- */
+    const MIC_OK_KEY = 'fiber_tools_mic_ok';
+    async function gemMicState() {
+      try { if (navigator.permissions && navigator.permissions.query) return (await navigator.permissions.query({ name: 'microphone' })).state; } catch (e) {}
+      return 'unknown';
+    }
+    function gemMicSteps() {
+      if (isIOS()) return isStandalone()
+        ? '<li>Apri <b>Impostazioni</b> dell’iPhone → <b>Safari</b> → <b>Microfono</b> e scegli <b>Consenti</b>.</li><li>Chiudi Fiber Tools dal multitasking e riaprila.</li>'
+        : '<li>Tocca <b>aA</b> nella barra dell’indirizzo → <b>Impostazioni sito web</b>.</li><li>Alla voce <b>Microfono</b> scegli <b>Consenti</b>.</li>';
+      return '<li>Tocca l’icona <b>a sinistra dell’indirizzo</b> (lucchetto o impostazioni) → <b>Autorizzazioni</b>.</li><li>Alla voce <b>Microfono</b> scegli <b>Consenti</b>, poi ricarica la pagina.</li>';
+    }
+    function gemMicHelp(blocked) {
+      openModal({ title: blocked ? 'Microfono bloccato' : 'Microfono non consentito', okText: blocked ? 'Ho capito' : 'Riprova', cancelText: 'Chiudi', bodyHtml: `
+        <p style="margin:0 0 10px">${blocked ? 'Il telefono ricorda che hai rifiutato il microfono per Fiber Tools, quindi non lo chiede più. Per usare Gemini riattivalo così:' : 'Per parlare con Gemini serve il microfono. Tocca <b>Riprova</b> e scegli <b>Consenti</b>.'}</p>
+        ${blocked ? `<ol class="gem-steps-plain">${gemMicSteps()}</ol>` : ''}` }).then(ok => { if (ok && !blocked) gemStart(); });
+    }
+    /** Prima della richiesta del telefono spiego cosa scegliere, così il permesso resta salvato. */
+    async function gemMicReady() {
+      const st = await gemMicState();
+      if (st === 'granted' || (st === 'unknown' && lsGet(MIC_OK_KEY, '') === '1')) return true;
+      if (st === 'denied') { gemMicHelp(true); return false; }
+      const tip = isIOS() ? 'Quando il telefono lo chiede, tocca <b>Consenti</b>.' : 'Quando il telefono lo chiede, scegli <b>«Mentre usi il sito»</b> (non «Solo questa volta»): così non te lo chiederà più.';
+      return await openModal({ title: 'Permesso del microfono', okText: 'Continua', cancelText: 'Annulla', bodyHtml: `
+        <p style="margin:0 0 8px">Gemini ti ascolta solo mentre il pannello è aperto: quando lo chiudi il microfono si spegne.</p><p style="margin:0">${tip}</p>` });
+    }
+
     function gemPlay(b64) {
       const ctx = gem.out; if (!ctx) return;
       const bin = atob(b64), n = bin.length >> 1, buf = ctx.createBuffer(1, n, 24000), ch = buf.getChannelData(0);
@@ -6702,9 +6733,17 @@ All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, c
       gem.closing = false; gem.live = true; gem.muted = false; window.__gemLive = true; paintGemBtn(); paintGemFab(); updateWakeLock();
       $('gemPanel').hidden = false; document.body.classList.add('gem-on'); $('gemLog').innerHTML = ''; gem.uLine = gem.gLine = null; $('gemMute').classList.remove('off');
       gemState('Collegamento…');
+      if (!await gemMicReady()) { gemStop(); return; }
       try {
         gem.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-      } catch (e) { gemLog('e', 'Serve il permesso del microfono: consentilo nelle impostazioni del browser.'); gemStop(true); return; }
+        lsSet(MIC_OK_KEY, '1');
+      } catch (e) {
+        try { localStorage.removeItem(MIC_OK_KEY); } catch (x) {}
+        gemStop();
+        if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) gemMicHelp(await gemMicState() === 'denied');
+        else toast('Microfono non disponibile: ' + (e && e.message || 'errore'), 'error', 5000);
+        return;
+      }
       try {
         const AC = window.AudioContext || window.webkitAudioContext;
         try { gem.ctx = new AC({ sampleRate: 16000 }); } catch (e) { gem.ctx = new AC(); }
@@ -6733,7 +6772,8 @@ All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, c
           let d; try { d = JSON.parse(typeof ev.data === 'string' ? ev.data : await (ev.data.text ? ev.data.text() : new Response(ev.data).text())); } catch (e) { return; }
           if (d.setupComplete) {
             ready = true; gemState('In ascolto…');
-            ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: 'Inizia.' }] }], turnComplete: true } }));
+            gem.userSpoke = false;
+            ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: 'Inizia: rispondi solo "Pronto, dimmi." e aspetta che io parli. Non usare nessuno strumento e non aprire nessuna sezione finché non ti chiedo qualcosa.' }] }], turnComplete: true } }));
             return;
           }
           if (d.toolCall && d.toolCall.functionCalls) {
@@ -6748,7 +6788,7 @@ All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, c
           const sc = d.serverContent; if (!sc) { if (d.goAway) gemLog('e', 'Google chiuderà la sessione tra poco: riapri Gemini se serve.'); return; }
           if (sc.interrupted) gemHush();
           (sc.modelTurn && sc.modelTurn.parts || []).forEach(pt => { if (pt.inlineData && pt.inlineData.data) gemPlay(pt.inlineData.data); });
-          if (sc.inputTranscription && sc.inputTranscription.text) { gem.gLine = null; if (!gem.uLine) gemLog('u', 'Tu: '); gemLog('u', sc.inputTranscription.text, true); }
+          if (sc.inputTranscription && sc.inputTranscription.text) { gem.userSpoke = true; gem.gLine = null; if (!gem.uLine) gemLog('u', 'Tu: '); gemLog('u', sc.inputTranscription.text, true); }
           if (sc.outputTranscription && sc.outputTranscription.text) { gem.uLine = null; if (!gem.gLine) gemLog('g', 'Gemini: '); gemLog('g', sc.outputTranscription.text, true); }
           if (sc.turnComplete) { gem.uLine = null; gem.gLine = null; }
         };

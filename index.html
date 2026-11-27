@@ -1011,6 +1011,13 @@
     .gem-log p { margin: 0; line-height: 1.35; } .gem-log .u { color: var(--muted); } .gem-log .g { color: var(--text); font-weight: 600; } .gem-log .t { color: #15803d; font-size: .78rem; font-weight: 700; } .gem-log .e { color: #b91c1c; font-weight: 600; }
     .ottico-row.gem-hit { animation: gemHit 1.2s ease-out; } @keyframes gemHit { 0% { background: rgba(142,68,236,.28); } 100% { background: transparent; } }
     body.gem-on .container { padding-bottom: 210px; }
+    .gem-fab { position: fixed; right: 16px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 55; width: 58px; height: 58px; border-radius: 50%; border: 0; color: #fff; cursor: pointer; display: grid; place-items: center;
+      background: linear-gradient(135deg, #1a73e8, #8e44ec 60%, #d64e84); box-shadow: 0 10px 26px rgba(66,85,230,.4); }
+    .gem-fab[hidden] { display: none; } .gem-fab svg { width: 26px; height: 26px; }
+    html.field-mode .gem-fab { width: 70px; height: 70px; }
+    .gem-photo { color: #7c3aed; } .gem-photo[hidden] { display: none; }
+    .gem-prev { width: 100%; border-collapse: collapse; font-size: .84rem; } .gem-prev td, .gem-prev th { padding: 5px 6px; border-bottom: 1px solid var(--border); text-align: left; }
+    .gem-prev th { font-size: .68rem; color: var(--muted); text-transform: uppercase; } .gem-prev .q { color: #b45309; font-weight: 700; } .gem-prev .old { color: var(--muted); text-decoration: line-through; font-size: .74rem; }
     .gem-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
     .gem-steps li { display: flex; gap: 10px; align-items: flex-start; } .gem-steps .n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .8rem; color: #fff; background: linear-gradient(135deg, #1a73e8, #8e44ec); flex-shrink: 0; }
     .gem-steps p { margin: 2px 0 6px; font-size: .86rem; } .gem-note { font-size: .74rem; color: var(--muted); margin-top: 12px; line-height: 1.4; }
@@ -1764,6 +1771,8 @@
       <div class="controls-card">
         <div class="section-title">
           <span>Ottici 1 – 16</span>
+          <button type="button" class="kb-toggle gem-photo" id="gemPhotoBtn" hidden aria-label="Compila dalla foto con Gemini"><svg><use href="#i-photo"/></svg><span>Da foto</span></button>
+          <input type="file" id="gemPhotoFile" accept="image/*" capture="environment" hidden>
           <button type="button" class="kb-toggle" id="ribKbToggle" hidden aria-label="Cambia tastiera"><svg><use href="#i-grid"/></svg><span id="ribKbLabel">123</span></button>
           <span class="count-pill" id="ribFillCount">0 / 16</span>
         </div>
@@ -1786,6 +1795,7 @@
         </div>
       </div>
 
+      <button type="button" class="gem-fab" id="gemFab" hidden aria-label="Parla con Gemini"><svg><use href="#i-mic"/></svg></button>
       <div class="gem-panel" id="gemPanel" hidden role="region" aria-label="Assistente Gemini">
         <div class="gem-head">
           <span class="gem-orb" id="gemOrb"><svg><use href="#i-spark"/></svg></span>
@@ -2503,6 +2513,7 @@
       const close = () => { el.classList.add('out'); setTimeout(() => el.remove(), 300); };
       el.addEventListener('click', close);
       setTimeout(close, ms);
+      return { remove: close };
     }
 
     /* ---------- Modal ---------- */
@@ -2612,7 +2623,7 @@
     let wakeLock = null;
     async function updateWakeLock() {
       const active = document.querySelector('.screen.active');
-      const want = wakeWanted() && 'wakeLock' in navigator && document.visibilityState === 'visible' && active && WAKE_SCREENS.includes(active.id);
+      const want = (wakeWanted() || window.__gemLive) && 'wakeLock' in navigator && document.visibilityState === 'visible' && active && (WAKE_SCREENS.includes(active.id) || window.__gemLive);
       try {
         if (want && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; showWakePill(); }); }
         else if (!want && wakeLock) { const w = wakeLock; wakeLock = null; await w.release(); }
@@ -2629,6 +2640,7 @@
       if (back) el.classList.add('back');
       window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
       updateWakeLock();
+      if (typeof paintGemFab === 'function') try { paintGemFab(); } catch (e) {}
     }
 
     function openScreen(screenId, title, subtitle, fromHistory = false) {
@@ -6593,7 +6605,7 @@
       { name: 'cancella_ottico', description: 'Svuota permuta e ID di un ottico.', parameters: { type: 'OBJECT', properties: { ottico: { type: 'INTEGER' } }, required: ['ottico'] } },
       { name: 'aggiungi_nota', description: 'Aggiunge una riga alle note della ribattitura (indirizzi, fibre tolte, cessazioni).', parameters: { type: 'OBJECT', properties: { testo: { type: 'STRING' } }, required: ['testo'] } },
       { name: 'leggi_modulo', description: 'Legge cosa c’è nel modulo adesso (PFS, splitter, ottici compilati, note).', parameters: { type: 'OBJECT', properties: {} } },
-      { name: 'salva', description: 'Salva la ribattitura. Solo quando il tecnico chiede esplicitamente di salvare.', parameters: { type: 'OBJECT', properties: {} } }
+      { name: 'salva', description: 'Salva la ribattitura. Solo quando il tecnico chiede esplicitamente di salvare.', parameters: { type: 'OBJECT', properties: { confermato: { type: 'BOOLEAN', description: 'true se il tecnico ha confermato dopo gli avvisi' } } } }
     ];
     const GEM_SYSTEM = `Sei l'assistente vocale di Fiber Tools e aiuti un tecnico di fibra ottica italiano a fare la ribattitura degli ottici di un PFS. Il tecnico ha le mani occupate: tu ascolti e scrivi nel modulo con gli strumenti.
 Regole:
@@ -6604,7 +6616,7 @@ Regole:
 - Note: usa aggiungi_nota quando il tecnico dice "nota..." o detta indirizzi e fibre tolte.
 - Salva solo quando il tecnico dice di salvare: prima dici quanti ottici sono compilati.
 - Parla sempre italiano, frasi cortissime, niente spiegazioni, niente domande inutili.
-All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
+All'inizio dì solo "Pronto."${''} e, se sei in Ribattitura e il PFS è vuoto, chiedi il PFS.`;
 
     function ribRowsState() {
       const out = [];
@@ -6614,6 +6626,7 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
     const gemClean = v => String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '').slice(0, 30);
     async function gemRunTool(name, a) {
       a = a || {};
+      if (GEM2 && ['imposta_pfs', 'imposta_splitter', 'scrivi_ottico', 'cancella_ottico', 'aggiungi_nota', 'salva'].includes(name) && !$('ribattituraScreen').classList.contains('active')) { gemOpen('ribattitura'); await new Promise(r => setTimeout(r, 350)); }
       if (name === 'imposta_pfs') {
         const raw = String(a.codice || '').trim(), pos = getPositions(), db = getRibattitureData();
         const exact = [raw.toUpperCase(), canonPfs(raw)].find(k => k && (db[k] || (pos[k] && posKindOf(pos[k]) === 'pfs')));
@@ -6655,6 +6668,7 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
       if (name === 'leggi_modulo') return { pfs: $('ribPfsInput').value, splitter: $('ribSplitterInput').value, ottici: ribRowsState(), note: $('ribNoteInput').value };
       if (name === 'salva') {
         if (!canWrite()) return { ok: false, motivo: 'serve un account approvato' };
+        if (GEM2 && !a.confermato) { const w = gemCheckForm(); if (w.length) return { ok: false, da_confermare: true, avvisi: w }; }
         if (!$('ribPfsInput').value.trim() || !$('ribSplitterInput').value.trim()) return { ok: false, motivo: 'mancano PFS o splitter' };
         const before = JSON.stringify(getRibattitureData()[$('ribPfsInput').value.trim().toUpperCase()]?.[$('ribSplitterInput').value.trim().toUpperCase()] || null);
         await saveRibattitura();
@@ -6663,6 +6677,7 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
         if (ok) gemLog('t', '✓ Salvato');
         return ok ? { ok: true } : { ok: false, motivo: 'non salvato: guarda lo schermo' };
       }
+      if (GEM2) { const r = await gemRunAppTool(name, a); if (r) return r; }
       return { ok: false, motivo: 'strumento sconosciuto' };
     }
 
@@ -6681,7 +6696,7 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
       if (gem.live) return gemStop();
       if (!gemKey()) { openGemConnect(); return; }
       if (!navigator.mediaDevices || !window.AudioWorkletNode || !window.WebSocket) { toast('Questo telefono non supporta l’audio in tempo reale.', 'error'); return; }
-      gem.closing = false; gem.live = true; gem.muted = false; paintGemBtn();
+      gem.closing = false; gem.live = true; gem.muted = false; window.__gemLive = true; paintGemBtn(); paintGemFab(); updateWakeLock();
       $('gemPanel').hidden = false; document.body.classList.add('gem-on'); $('gemLog').innerHTML = ''; gem.uLine = gem.gLine = null; $('gemMute').classList.remove('off');
       gemState('Collegamento…');
       try {
@@ -6706,8 +6721,8 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
         ws.onopen = () => ws.send(JSON.stringify({ setup: {
           model: 'models/' + GEM_MODEL,
           generationConfig: { responseModalities: ['AUDIO'], temperature: 0.4, speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } } },
-          systemInstruction: { parts: [{ text: GEM_SYSTEM + `\nStato attuale del modulo: ${JSON.stringify(gemRunToolSync())}` }] },
-          tools: [{ functionDeclarations: GEM_TOOLS }],
+          systemInstruction: { parts: [{ text: GEM_SYSTEM + (GEM2 ? GEM_SYSTEM_APP + `\nSezione aperta ora: ${curScreenName()}. Tecnico: ${getTecnico() || 'sconosciuto'}. Oggi è ${new Date().toLocaleDateString('it-IT')}.` : '') + `\nStato attuale del modulo di ribattitura: ${JSON.stringify(gemRunToolSync())}` }] },
+          tools: [{ functionDeclarations: GEM2 ? GEM_TOOLS.concat(GEM_TOOLS_APP) : GEM_TOOLS }],
           inputAudioTranscription: {}, outputAudioTranscription: {},
           realtimeInputConfig: { automaticActivityDetection: { silenceDurationMs: 700, prefixPaddingMs: 300 } }
         } }));
@@ -6755,7 +6770,7 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
       try { gem.stream && gem.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
       try { gem.ctx && gem.ctx.close(); } catch (e) {} try { gem.out && gem.out.close(); } catch (e) {}
       gem.ws = gem.node = gem.stream = gem.ctx = gem.out = null;
-      paintGemBtn();
+      window.__gemLive = false; paintGemBtn(); paintGemFab(); updateWakeLock();
       if (keepPanel === true) { gemState('Gemini chiuso'); $('gemPanel').classList.remove('talk'); }
       else { $('gemPanel').hidden = true; document.body.classList.remove('gem-on'); }
     }
@@ -6770,8 +6785,223 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
         $('gemMute').classList.toggle('off', gem.muted); gemState(gem.muted ? 'Microfono in pausa' : 'In ascolto…');
       });
       // lasciando la ribattitura Gemini si chiude
-      window.addEventListener('popstate', () => setTimeout(() => { if (gem.live && !$('ribattituraScreen').classList.contains('active')) gemStop(); }, 50));
+      window.addEventListener('popstate', () => setTimeout(() => { if (!GEM2 && gem.live && !$('ribattituraScreen').classList.contains('active')) gemStop(); if (typeof paintGemFab === 'function') paintGemFab(); }, 50));
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && gem.live) gemStop(); });
+    }
+
+
+    /* =====================================================================
+       GEMINI OVUNQUE (prova): tutta l'app a voce, ricerca intelligente, foto → ribattitura, controlli prima di salvare
+       ===================================================================== */
+    const GEM2 = BETA_ON;
+    const GEM_FLASH = ['gemini-3.8-flash', 'gemini-flash-latest'];
+    const GEM_SCREENS = { home: null, pfs_calcolatore: 'pfsScreen', pte: 'pteScreen', calcolatore_colori: 'calculatorScreen', fibercop: 'fibercopScreen', ribattitura: 'ribattituraScreen', barcode: 'barcodeScreen', schema_giunzione: 'spliceScreen', posizioni_pfs: 'pfsPosScreen', foto_gps: 'geo', impostazioni: 'settings' };
+    function gemOpen(name) {
+      const id = GEM_SCREENS[name];
+      if (name === 'home') { goHome(); return true; }
+      if (id === 'settings') { openSettings(); return true; }
+      if (id === 'geo') { $('geoCamBtn').click(); return true; }
+      if (id === 'pfsPosScreen') { openPosKind('pfs'); return true; }
+      const b = id && document.querySelector(`[data-open="${id}"]`);
+      if (!b) return false;
+      if (!$(id).classList.contains('active')) { if (!$('modal').hidden) closeModal(false); b.click(); }
+      return true;
+    }
+    const curScreenName = () => { const a = document.querySelector('.screen.active'); const id = a && a.id; return Object.keys(GEM_SCREENS).find(k => GEM_SCREENS[k] === id) || (id === 'homeScreen' ? 'home' : id || 'home'); };
+    const KIND_LBL = { pfs: 'PFS/CNO', pfp: 'PFP', pd: 'PD', pop: 'POP', cen: 'Centrale' };
+    /** Trova una posizione di qualunque tipo dal codice detto a voce. */
+    function gemFind(raw, kinds) {
+      raw = String(raw || '').trim(); if (!raw) return { list: [] };
+      const pos = getPositions();
+      const ok = k => k && pos[k] && (!kinds || kinds.includes(posKindOf(pos[k])));
+      const exact = [raw.toUpperCase(), canonPfs(raw), canonCen(raw), canonPop(raw)].find(ok);
+      if (exact) return { pick: exact, list: [] };
+      const lq = looseKey(raw); if (lq.length < 2) return { list: [] };
+      const pre = [], mid = [];
+      for (const k in pos) {
+        if (!ok(k)) continue;
+        const lk = looseKey(k), i = lk.indexOf(lq); if (i < 0) continue;
+        (i === 0 ? pre : mid).push(k); if (pre.length > 30) break;
+      }
+      const list = pre.sort((a, b) => a.length - b.length).concat(mid.slice(0, 20)).slice(0, 6);
+      return { pick: list.length === 1 ? list[0] : null, list };
+    }
+    const posBrief = (k, me) => { const it = getPositions()[k], db = getRibattitureData(); if (!it) return { codice: k }; const np = splitPosNote(it.note);
+      const spl = Object.keys(db[k] || {}); const last = spl.map(x => db[k][x].updatedAt || '').sort((a, b) => gemDateT(b) - gemDateT(a))[0] || '';
+      return { codice: k, tipo: KIND_LBL[posKindOf(it)] || '', comune: np.comune || '', anello: it.anello || '', ...(me && it.lat ? { distanza: fmtDist(distanceM(me, it)) } : {}), splitter_salvati: spl.length, ...(last ? { ultima_ribattitura: last } : {}), ...(it.verificata ? { verificata: true } : {}) }; };
+    const gemDateT = t => { const m = /(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\D+(\d{1,2}):(\d{2}))?/.exec(t || ''); return m ? new Date(+m[3], m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime() : 0; };
+    function gemSearch(a) {
+      const pos = getPositions(), db = getRibattitureData();
+      const kinds = a.tipo ? ({ pfs: ['pfs'], cno: ['pfs'], pfp: ['pfp'], pd: ['pd'], pop: ['pop'], centrale: ['cen'] }[String(a.tipo).toLowerCase()] || null) : null;
+      const com = looseKey(a.comune || ''), txt = String(a.testo || '').trim(), lq = looseKey(txt), words = txt.toUpperCase().split(/\s+/).filter(w => w.length > 2);
+      let me = null;
+      const run = () => {
+        const out = [];
+        for (const k in pos) {
+          const it = pos[k]; if (!it || (kinds && !kinds.includes(posKindOf(it)))) continue;
+          if (a.solo_senza_ribattiture && db[k] && Object.keys(db[k]).length) continue;
+          if (a.solo_con_ribattiture && !(db[k] && Object.keys(db[k]).length)) continue;
+          const note = String(it.note || '').toUpperCase();
+          if (com && !looseKey(splitPosNote(it.note).comune || '').includes(com)) continue;
+          if (txt && !(looseKey(k).includes(lq) || words.every(w => note.includes(w)))) continue;
+          out.push(k);
+          if (!me && out.length > 4000) break;
+        }
+        let list = out;
+        if (me) list = out.filter(k => pos[k].lat).map(k => [k, distanceM(me, pos[k])]).filter(x => !a.raggio_km || x[1] <= a.raggio_km * 1000).sort((x, y) => x[1] - y[1]).map(x => x[0]);
+        const lim = Math.min(Math.max(1, a.limite || 6), 12);
+        return { trovati: list.length, risultati: list.slice(0, lim).map(k => posBrief(k, me)) };
+      };
+      if (a.vicino_a_me) return locateMe().then(p => { me = p; return run(); }).catch(e => ({ ok: false, motivo: e.message }));
+      return run();
+    }
+    function gemActivity(a) {
+      const db = getRibattitureData(), me = getTecnico();
+      let d = new Date(); const g = String(a.giorno || 'oggi').toLowerCase();
+      if (g === 'ieri') d.setDate(d.getDate() - 1); else if (/\d/.test(g)) { const t = gemDateT(g.replace(/-/g, '/').replace(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/, '$3/$2/$1')); if (t) d = new Date(t); }
+      const day = d.toLocaleDateString('it-IT'), out = [];
+      Object.keys(db).forEach(p => Object.keys(db[p]).forEach(s => {
+        const it = db[p][s]; if (!String(it.updatedAt || '').startsWith(day)) return;
+        if (!a.tutti && me && it.tecnico && String(it.tecnico).toUpperCase() !== me) return;
+        out.push({ pfs: p, splitter: s, ora: String(it.updatedAt).split(' ')[1] || '', ottici_compilati: (it.ottici || []).filter(o => o.pte || o.fibra).length, tecnico: it.tecnico || '' });
+      }));
+      return { giorno: day, ribattiture: out.sort((x, y) => x.ora.localeCompare(y.ora)), totale: out.length };
+    }
+    function gemColor(a) {
+      const n = Math.round(Number(a.numero)); if (!(n > 0)) return { ok: false, motivo: 'numero mancante' };
+      const sis = String(a.sistema || 'cavo').toLowerCase();
+      if (sis === 'pfs_enel' || sis === 'pfs_16') {
+        const card = Math.ceil(n / PFS_CARD), pos = (n - 1) % PFS_CARD + 1;
+        if (sis === 'pfs_16') { const f = fiber16(n); return { permuta: n, cartolina: card, posizione: pos, colore: f.color.name, tacchettato: f.striped }; }
+        const c = baseColors.enel[(pos - 1) % 12]; return { permuta: n, cartolina: card, posizione: pos, colore: c.name, tacchettato: false };
+      }
+      const op = baseColors[a.operatore] ? a.operatore : ($('operatorSelect') ? $('operatorSelect').value : 'fibercop'), pal = baseColors[op];
+      const size = [4, 6, 8, 12, 24, 36].includes(Number(a.fibre_per_tubetto)) ? Number(a.fibre_per_tubetto) : 12;
+      const tube = Math.ceil(n / size), pos = (n - 1) % size + 1, f = pal[(pos - 1) % 12], t = pal[(tube - 1) % 12];
+      return { fibra: n, operatore: op, fibre_per_tubetto: size, tubetto: tube, colore_tubetto: t.name, posizione_nel_tubetto: pos, colore_fibra: f.name, tacchettato: pos > 24 ? 'doppio tacchettato' : pos > 12 ? 'tacchettato' : 'no' };
+    }
+    /** Controlli prima di salvare: ripetuti, incerti, ottici saltati, permute senza ID. */
+    function gemCheckForm() {
+      const w = $('ribRow1') ? checkRibDuplicates().slice() : [];
+      const rows = ribRowsState(), filled = rows.map(r => r.ottico), last = Math.max(0, ...filled);
+      for (let i = 1; i < last; i++) if (!filled.includes(i)) w.push(`Ottico ${i} saltato: è libero?`);
+      rows.forEach(r => { if (r.permuta && !r.id) w.push(`Ottico ${r.ottico}: c’è la permuta ma manca l’ID`); });
+      return w;
+    }
+    const GEM_TOOLS_APP = [
+      { name: 'apri_schermata', description: 'Apre una sezione dell’app.', parameters: { type: 'OBJECT', properties: { nome: { type: 'STRING', enum: Object.keys(GEM_SCREENS) } }, required: ['nome'] } },
+      { name: 'apri_scheda', description: 'Apre la scheda di un PFS, CNO, PFP, PD, POP o centrale (mappa, foto, ribattiture).', parameters: { type: 'OBJECT', properties: { codice: { type: 'STRING' } }, required: ['codice'] } },
+      { name: 'naviga', description: 'Avvia la navigazione di Google Maps verso un PFS o una posizione.', parameters: { type: 'OBJECT', properties: { codice: { type: 'STRING' } }, required: ['codice'] } },
+      { name: 'cerca', description: 'Cerca nell’archivio delle posizioni. Si possono combinare i filtri.', parameters: { type: 'OBJECT', properties: {
+        testo: { type: 'STRING', description: 'parte del codice o parole delle note (es. via)' }, comune: { type: 'STRING' }, tipo: { type: 'STRING', enum: ['pfs', 'cno', 'pfp', 'pd', 'pop', 'centrale'] },
+        vicino_a_me: { type: 'BOOLEAN', description: 'ordina per distanza dalla posizione del telefono' }, raggio_km: { type: 'NUMBER' },
+        solo_senza_ribattiture: { type: 'BOOLEAN' }, solo_con_ribattiture: { type: 'BOOLEAN' }, limite: { type: 'INTEGER' } } } },
+      { name: 'splitter_di', description: 'Elenca gli splitter già salvati di un PFS, con data, tecnico e ottici compilati.', parameters: { type: 'OBJECT', properties: { pfs: { type: 'STRING' } }, required: ['pfs'] } },
+      { name: 'attivita', description: 'Ribattiture salvate in un giorno (di serie: del tecnico che usa l’app).', parameters: { type: 'OBJECT', properties: { giorno: { type: 'STRING', description: 'oggi, ieri o data GG/MM/AAAA' }, tutti: { type: 'BOOLEAN', description: 'anche dei colleghi' } } } },
+      { name: 'colore', description: 'Calcola il colore di una fibra (cavo, con tubetti) o di una permuta in cartolina PFS. Usa sempre questo strumento, non andare a memoria.', parameters: { type: 'OBJECT', properties: {
+        numero: { type: 'INTEGER' }, sistema: { type: 'STRING', enum: ['cavo', 'pfs_enel', 'pfs_16'] }, operatore: { type: 'STRING', enum: Object.keys(baseColors) }, fibre_per_tubetto: { type: 'INTEGER' } }, required: ['numero'] } },
+      { name: 'imposta', description: 'Cambia tema o modalità guanti.', parameters: { type: 'OBJECT', properties: { tema: { type: 'STRING', enum: ['chiaro', 'scuro'] }, guanti: { type: 'BOOLEAN' } } } },
+      { name: 'controlla_modulo', description: 'Controlla la ribattitura: ID o permute ripetuti, valori incerti, ottici saltati, ID già usati altrove.', parameters: { type: 'OBJECT', properties: {} } }
+    ];
+    const GEM_SYSTEM_APP = `
+Sei anche l'assistente di tutta l'app Fiber Tools: puoi aprire sezioni (apri_schermata), aprire schede (apri_scheda), navigare (naviga), cercare (cerca: "vicino a me", per comune, per via, senza ribattiture…), dire cosa è stato fatto (attivita, splitter_di), calcolare colori (colore) e cambiare tema o guanti (imposta).
+- Per i codici colore usa SEMPRE lo strumento colore, mai la memoria. Rispondi con colore e, se serve, tubetto e tacchettato.
+- Risultati di ricerca: leggi al massimo 3 codici con comune e distanza, poi chiedi se aprirne uno o navigare.
+- Prima di salva chiama controlla_modulo: se ci sono avvisi leggili e chiedi conferma, poi chiama salva con confermato=true.
+- Se un comando riguarda la ribattitura e non sei in Ribattitura, aprila con apri_schermata.`;
+    async function gemRunAppTool(name, a) {
+      a = a || {};
+      if (name === 'apri_schermata') return { ok: gemOpen(a.nome) };
+      if (name === 'apri_scheda' || name === 'naviga') {
+        const f = gemFind(a.codice);
+        if (!f.pick) return f.list.length ? { ok: false, motivo: 'più candidati', candidati: f.list } : { ok: false, motivo: 'non trovato' };
+        if (name === 'naviga') { const it = getPositions()[f.pick]; if (!it.lat) return { ok: false, motivo: 'senza coordinate' }; navigateTo(it); return { ok: true, codice: f.pick }; }
+        if (!$('modal').hidden) closeModal(false);
+        openPosSheet(f.pick); return { ok: true, ...posBrief(f.pick) };
+      }
+      if (name === 'cerca') { const r = await gemSearch(a); gemLog('t', r.risultati ? `🔎 ${r.trovati} trovati` : '🔎 ' + (r.motivo || '')); return r; }
+      if (name === 'splitter_di') {
+        const f = gemFind(a.pfs, ['pfs']), db = getRibattitureData(), k = f.pick || (db[String(a.pfs || '').toUpperCase()] ? String(a.pfs).toUpperCase() : null);
+        if (!k) return f.list.length ? { ok: false, candidati: f.list } : { ok: false, motivo: 'non trovato' };
+        return { pfs: k, splitter: Object.keys(db[k] || {}).map(x => ({ nome: x, data: db[k][x].updatedAt || '', tecnico: db[k][x].tecnico || '', ottici_compilati: (db[k][x].ottici || []).filter(o => o.pte || o.fibra).length })) };
+      }
+      if (name === 'attivita') return gemActivity(a);
+      if (name === 'colore') return gemColor(a);
+      if (name === 'imposta') {
+        if (a.tema) { const want = a.tema === 'scuro' ? 'dark' : 'light'; if ((document.documentElement.getAttribute('data-theme') || 'light') !== want) toggleTheme(); }
+        if (typeof a.guanti === 'boolean') { lsSet(FIELD_KEY, a.guanti ? '1' : '0'); applyFieldMode(); }
+        return { ok: true };
+      }
+      if (name === 'controlla_modulo') { const w = gemCheckForm(); return { avvisi: w, tutto_ok: !w.length }; }
+      return null;
+    }
+
+    /* ---------- Foto → ribattitura ---------- */
+    async function gemImage(file) {
+      const img = await new Promise((res, rej) => { const u = URL.createObjectURL(file), i = new Image(); i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.onerror = rej; i.src = u; });
+      const sc = Math.min(1, 1800 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      return c.toDataURL('image/jpeg', 0.85).split(',')[1];
+    }
+    const GEM_PHOTO_PROMPT = `Questa è una foto di un foglio, cartellino o etichetta della ribattitura di uno splitter in un PFS (fibra ottica). Estrai per ogni ottico (1-16) la PERMUTA e l'ID.
+Regole: trascrivi esattamente cifre e lettere, maiuscolo, senza spazi. Se un carattere non si legge mettilo come "?". Non inventare: se un ottico non c'è non metterlo. Se vedi il codice del PFS o il nome dello splitter riportali. Se ci sono scritte utili (indirizzi, "tolta", "staccata") mettile in note.`;
+    const GEM_PHOTO_SCHEMA = { type: 'OBJECT', properties: { pfs: { type: 'STRING' }, splitter: { type: 'STRING' }, note: { type: 'STRING' },
+      ottici: { type: 'ARRAY', items: { type: 'OBJECT', properties: { ottico: { type: 'INTEGER' }, permuta: { type: 'STRING' }, id: { type: 'STRING' } }, required: ['ottico'] } } }, required: ['ottici'] };
+    async function gemReadPhoto(b64) {
+      let last = '';
+      for (const model of GEM_FLASH) {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(gemKey())}`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ inlineData: { mimeType: 'image/jpeg', data: b64 } }, { text: GEM_PHOTO_PROMPT }] }], generationConfig: { temperature: 0, responseMimeType: 'application/json', responseSchema: GEM_PHOTO_SCHEMA } }) });
+        const d = await r.json().catch(() => ({}));
+        if (r.status === 404) { last = 'modello non disponibile'; continue; }
+        if (!r.ok) throw new Error(r.status === 429 ? 'hai finito le richieste gratuite di Gemini per ora' : (d.error && d.error.message) || ('errore ' + r.status));
+        const t = d.candidates && d.candidates[0] && d.candidates[0].content && (d.candidates[0].content.parts || []).map(x => x.text || '').join('');
+        return JSON.parse(t || '{}');
+      }
+      throw new Error(last || 'nessun modello disponibile');
+    }
+    async function gemPhotoFlow(file) {
+      if (!gemKey()) { openGemConnect(); return; }
+      const t = toast('Gemini legge la foto…', 'info', 20000);
+      let res;
+      try { res = await gemReadPhoto(await gemImage(file)); }
+      catch (e) { toast('Foto non letta: ' + (e.message || e), 'error', 6000); return; }
+      finally { try { t && t.remove && t.remove(); } catch (e) {} }
+      const ott = (res.ottici || []).map(o => ({ ottico: Math.round(Number(o.ottico)), permuta: gemClean(o.permuta), id: gemClean(o.id) })).filter(o => o.ottico >= 1 && o.ottico <= 16 && (o.permuta || o.id));
+      if (!ott.length) { toast('Nella foto non ho trovato ottici leggibili: riprova più vicino e con più luce.', 'error', 6000); return; }
+      const cur = {}; ribRowsState().forEach(r => cur[r.ottico] = r);
+      const q = v => /\?/.test(v) ? `<span class="q">${escapeHtml(v)}</span>` : escapeHtml(v || '–');
+      const clash = ott.some(o => cur[o.ottico]);
+      const ok = await openModal({ title: `Gemini ha letto ${ott.length} ottici`, okText: 'Inserisci nel modulo', bodyHtml: `
+        ${res.pfs || res.splitter ? `<p style="margin:0 0 8px;font-size:.86rem">${res.pfs ? `PFS <b>${escapeHtml(res.pfs)}</b>` : ''} ${res.splitter ? `· Splitter <b>${escapeHtml(res.splitter)}</b>` : ''}</p>` : ''}
+        <table class="gem-prev"><tr><th>Ottico</th><th>Permuta</th><th>ID</th></tr>
+        ${ott.sort((a, b) => a.ottico - b.ottico).map(o => `<tr><td><b>${o.ottico}</b></td><td>${q(o.permuta)}${cur[o.ottico] && cur[o.ottico].permuta && cur[o.ottico].permuta !== o.permuta ? ` <span class="old">${escapeHtml(cur[o.ottico].permuta)}</span>` : ''}</td><td>${q(o.id)}${cur[o.ottico] && cur[o.ottico].id && cur[o.ottico].id !== o.id ? ` <span class="old">${escapeHtml(cur[o.ottico].id)}</span>` : ''}</td></tr>`).join('')}</table>
+        ${res.note ? `<p class="gem-note">Note lette: ${escapeHtml(res.note)}</p>` : ''}
+        ${clash ? '<p class="gem-note">Alcuni ottici sono già compilati: i valori barrati verranno sostituiti.</p>' : ''}
+        <p class="gem-note">Controlla sempre: i caratteri in arancione («?») non erano leggibili.</p>` });
+      if (!ok) return;
+      if (res.pfs && !$('ribPfsInput').value.trim()) { const f = gemFind(res.pfs, ['pfs']); $('ribPfsInput').value = f.pick || gemClean(res.pfs); paintRibPfsLink(); }
+      if (res.splitter && !$('ribSplitterInput').value.trim()) $('ribSplitterInput').value = String(res.splitter).toUpperCase();
+      ott.forEach(o => { if (o.permuta) $('ribPte' + o.ottico).value = o.permuta; if (o.id) $('ribFibra' + o.ottico).value = o.id; $('ribRow' + o.ottico).classList.add('gem-hit'); setTimeout(() => $('ribRow' + o.ottico).classList.remove('gem-hit'), 1300); });
+      if (res.note) { const n = $('ribNoteInput'); n.value = (n.value ? n.value.replace(/\s+$/, '') + '\n' : '') + res.note; }
+      document.querySelectorAll('#ribOtticiContainer input').forEach(x => x.dispatchEvent(new Event('input', { bubbles: true })));
+      refreshRibProgress();
+      const w = gemCheckForm();
+      toast(w.length ? `Inseriti ${ott.length} ottici · ${w.length} cose da controllare` : `Inseriti ${ott.length} ottici dalla foto.`, w.length ? 'info' : 'success', 5000);
+    }
+    function paintGemFab() {
+      const f = $('gemFab'); if (!f) return;
+      const a = document.querySelector('.screen.active');
+      f.hidden = !GEM2 || !!gem.live || !$('modal').hidden && false || (a && a.id === 'ribattituraScreen');
+      if ($('gemPhotoBtn')) $('gemPhotoBtn').hidden = !GEM2;
+    }
+    function initGemini2() {
+      if (!GEM2 || !$('gemFab')) return;
+      document.body.appendChild($('gemFab'));
+      $('gemFab').addEventListener('click', gemStart);
+      $('gemPhotoBtn').addEventListener('click', () => { if (!gemKey()) { openGemConnect(); return; } $('gemPhotoFile').value = ''; $('gemPhotoFile').click(); });
+      $('gemPhotoFile').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if (f) gemPhotoFlow(f); });
+      paintGemFab();
     }
 
     /* ---------- File condivisibile delle posizioni (KML) ---------- */
@@ -8760,6 +8990,7 @@ All'inizio dì solo "Pronto." e, se il PFS è vuoto, chiedi il PFS.`;
       initSplice();
       initRibAutocomplete();
       initGemini();
+      initGemini2();
       maybeShowNews();
       initUsersCount();
       history.replaceState({}, '', location.pathname + location.search.replace(/[?&]pfs=[^&]*/, '').replace(/^&/, '?'));
